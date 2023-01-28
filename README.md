@@ -6,6 +6,14 @@ Anx is a highly experimental systems programming language written in C++.
 
 The purpose of Anx is to simplify the most common use cases for C, while also including a select few of the quality-of-life features that modern languages provide.
 
+Here are a list of all of the datatypes available in Anx:
+```
+i8, i16, i32, i64, i128
+u8, u16, u32, u64, u128
+f32, f64
+bool
+```
+
 Here's an example of a fibonacci function in Anx:
 
 ```
@@ -50,10 +58,10 @@ fn open_file(path: *u8) !bool {
     # try to open the file. if an error occured, return it.
     try @fopen(path, "r");
 
-    return true; # if we got here, success!
+    ret true; # if we got here, success!
 }
 
-fn main() {
+fn main() void {
     # try to open a file.
     open_file("doesnt_exist.txt") catch |err| {
         # this block is executed if an error occured
