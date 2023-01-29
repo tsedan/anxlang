@@ -5,13 +5,14 @@
 // Tokenizer - This converts an input file into tokens
 //===---------------------------------------------------------------------===//
 
+Token token;
 std::string idstr;
 int32_t i32val;
 bool bval;
 char lch = ' ';
 
-// Get the next token from stdin
-Token gettok()
+// Get the next token from the input file
+Token get_token()
 {
     while (isspace(lch))
         lch = anxf.get();
@@ -67,7 +68,7 @@ Token gettok()
         while (lch != EOF && lch != '\n' && lch != '\r');
 
         if (lch != EOF)
-            return gettok();
+            return get_token();
     }
 
     if (lch == ';')
@@ -154,4 +155,10 @@ Token gettok()
 
     printf("Unknown token '%c'", lch);
     exit(1);
+}
+
+// Get the next token from the input file, setting the global token variable
+Token next_token()
+{
+    return token = get_token();
 }

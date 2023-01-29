@@ -41,9 +41,10 @@ enum Token
     tok_boolean     // literal boolean
 };
 
+extern Token token;
 extern std::string idstr;
 extern int32_t i32val;
 extern bool bval;
 extern char lch;
 
-Token gettok();
+Token next_token();

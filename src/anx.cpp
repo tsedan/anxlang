@@ -23,8 +23,6 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    Token t;
-
-    while ((t = gettok()) != tok_eof)
-        printf("%d ", t);
+    while (next_token() != tok_eof)
+        printf("%d ", token);
 }
