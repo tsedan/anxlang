@@ -1,9 +1,16 @@
 #include "anx.h"
 #include "lexer.h"
 #include "ast.h"
+#include "ir.h"
 
 //===---------------------------------------------------------------------===//
-// Anx main - This module is the entry point of the Anx compiler.
+// Anx - This module is the entry point of the Anx compiler.
+//
+// There are four major steps involved in the compilation process:
+// 1. (lexer.cpp) Tokenize the input file - mvp complete
+// 2. (ast.cpp) Parse the tokens into an AST - in progress
+// 3. (ir.cpp) Generate LLVM IR from the AST - not started
+// 4. Generate an executable from the LLVM IR - not started
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;
