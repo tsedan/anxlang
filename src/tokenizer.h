@@ -42,9 +42,9 @@ enum Token
 };
 
 extern Token token;
+
 extern std::string idstr;
 extern int32_t i32val;
 extern bool bval;
-extern char lch;
 
 Token next_token();

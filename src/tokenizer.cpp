@@ -6,14 +6,16 @@
 //===---------------------------------------------------------------------===//
 
 Token token;
+
 std::string idstr;
 int32_t i32val;
 bool bval;
-char lch = ' ';
 
 // Get the next token from the input file
 Token get_token()
 {
+    static char lch = ' ';
+
     while (isspace(lch))
         lch = anxf.get();
 
