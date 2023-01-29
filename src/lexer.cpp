@@ -1,8 +1,8 @@
 #include "anx.h"
-#include "tokenizer.h"
+#include "lexer.h"
 
 //===---------------------------------------------------------------------===//
-// Tokenizer - This converts an input file into tokens
+// Lexer - This tokenizes an input anx file
 //===---------------------------------------------------------------------===//
 
 Token token;

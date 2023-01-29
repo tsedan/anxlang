@@ -1,5 +1,5 @@
 #include "anx.h"
-#include "tokenizer.h"
+#include "lexer.h"
 
 //===---------------------------------------------------------------------===//
 // Anx main - The entry point of the Anx compiler.
