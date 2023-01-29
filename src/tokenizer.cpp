@@ -1,57 +1,8 @@
-#include <cctype>
-#include <cstdio>
-#include <cstdlib>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
-#include <vector>
+#include "tokenizer.h"
 
 //===---------------------------------------------------------------------===//
-// Tokenizer
+// Tokenizer - This converts an input file into tokens
 //===---------------------------------------------------------------------===//
-
-enum Token
-{
-    // general
-    tok_eof, // end of file
-    tok_eos, // end of statement
-
-    // grouping
-    tok_comma,  // ,
-    tok_curlys, // curly start
-    tok_curlye, // curly end
-    tok_parens, // paren start
-    tok_parene, // paren end
-
-    // functions
-    tok_fn,  // function
-    tok_ret, // return
-
-    // variables
-    tok_var,    // variable
-    tok_type,   // :
-    tok_assign, // =
-
-    // comparison
-    tok_equal, // ==
-
-    // operators
-    tok_mul, // *
-    tok_div, // /
-    tok_add, // +
-    tok_sub, // -
-
-    // control
-    tok_if, // if
-
-    // identifiers
-    tok_identifier, // identifier
-    tok_integer,    // literal integer
-};
-
-static std::string idstr;
-static int32_t i32val;
 
 // Get the next token from stdin
 static Token gettok()
@@ -76,6 +27,19 @@ static Token gettok()
             return tok_var;
         if (idstr == "if")
             return tok_if;
+        if (idstr == "void")
+            return tok_void;
+
+        if (idstr == "true")
+        {
+            bval = true;
+            return tok_boolean;
+        }
+        if (idstr == "false")
+        {
+            bval = false;
+            return tok_boolean;
+        }
 
         return tok_identifier;
     }

@@ -11,6 +11,8 @@ We're starting simple, and expanding only once a first working version is create
 Here are a list of all of the datatypes available in Anx:
 ```
 i32
+bool
+void
 ```
 
 Here's a basic sample of the language syntax:
