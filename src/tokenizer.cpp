@@ -1,4 +1,4 @@
-#include <string>
+#include "anx.h"
 #include "tokenizer.h"
 
 //===---------------------------------------------------------------------===//
@@ -8,19 +8,18 @@
 std::string idstr;
 int32_t i32val;
 bool bval;
-int lch = ' ';
+char lch = ' ';
 
 // Get the next token from stdin
 Token gettok()
 {
-    // skip whitespace
     while (isspace(lch))
-        lch = getchar();
+        lch = anxf.get();
 
     if (isalpha(lch))
     {
         idstr = lch;
-        while (isalnum(lch = getchar()))
+        while (isalnum(lch = anxf.get()))
             idstr += lch;
 
         if (idstr == "fn")
@@ -54,7 +53,7 @@ Token gettok()
         do
         {
             nstr += lch;
-            lch = getchar();
+            lch = anxf.get();
         } while (isdigit(lch));
 
         i32val = atoi(nstr.c_str());
@@ -64,7 +63,7 @@ Token gettok()
     if (lch == '#')
     {
         do
-            lch = getchar();
+            lch = anxf.get();
         while (lch != EOF && lch != '\n' && lch != '\r');
 
         if (lch != EOF)
@@ -73,77 +72,77 @@ Token gettok()
 
     if (lch == ';')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_eos;
     }
 
     if (lch == ',')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_comma;
     }
 
     if (lch == '{')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_curlys;
     }
 
     if (lch == '}')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_curlye;
     }
 
     if (lch == '(')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_parens;
     }
 
     if (lch == ')')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_parene;
     }
 
     if (lch == ':')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_type;
     }
 
     if (lch == '*')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_mul;
     }
 
     if (lch == '/')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_div;
     }
 
     if (lch == '+')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_add;
     }
 
     if (lch == '-')
     {
-        lch = getchar();
+        lch = anxf.get();
         return tok_sub;
     }
 
     if (lch == '=')
     {
-        lch = getchar();
+        lch = anxf.get();
 
         if (lch == '=')
         {
-            lch = getchar();
+            lch = anxf.get();
             return tok_equal;
         }
 

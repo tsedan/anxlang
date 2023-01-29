@@ -44,6 +44,6 @@ enum Token
 extern std::string idstr;
 extern int32_t i32val;
 extern bool bval;
-extern int lch;
+extern char lch;
 
 Token gettok();
