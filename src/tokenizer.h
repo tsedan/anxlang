@@ -38,11 +38,12 @@ enum Token
     // identifiers
     tok_identifier, // identifier
     tok_integer,    // literal integer
-    tok_boolean,    // literal boolean
+    tok_boolean     // literal boolean
 };
 
-static std::string idstr;
-static int32_t i32val;
-static bool bval;
+extern std::string idstr;
+extern int32_t i32val;
+extern bool bval;
+extern int lch;
 
-static Token gettok();
+Token gettok();

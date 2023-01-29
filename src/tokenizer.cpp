@@ -1,14 +1,18 @@
+#include <string>
 #include "tokenizer.h"
 
 //===---------------------------------------------------------------------===//
 // Tokenizer - This converts an input file into tokens
 //===---------------------------------------------------------------------===//
 
-// Get the next token from stdin
-static Token gettok()
-{
-    static int lch = ' ';
+std::string idstr;
+int32_t i32val;
+bool bval;
+int lch = ' ';
 
+// Get the next token from stdin
+Token gettok()
+{
     // skip whitespace
     while (isspace(lch))
         lch = getchar();
