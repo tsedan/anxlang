@@ -2,7 +2,7 @@
 #include "lexer.h"
 
 //===---------------------------------------------------------------------===//
-// Lexer - This tokenizes an input anx file
+// Lexer - This module tokenizes an input Anx file
 //===---------------------------------------------------------------------===//
 
 Token token;

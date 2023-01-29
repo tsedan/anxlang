@@ -1,8 +1,9 @@
 #include "anx.h"
 #include "lexer.h"
+#include "ast.h"
 
 //===---------------------------------------------------------------------===//
-// Anx main - The entry point of the Anx compiler.
+// Anx main - This module is the entry point of the Anx compiler.
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;
