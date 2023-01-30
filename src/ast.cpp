@@ -6,7 +6,7 @@
 //===---------------------------------------------------------------------===//
 // AST - This module implements the Abstract Syntax Tree (AST) for Anx
 //
-// The structure of the AST follows the following heirarchy:
+// The structure of the AST follows the following hierarchy:
 // ASTNode - The base type for AST nodes (defined in ast.h)
 //   DeclNode - A node that declares something
 //     FnDecl - A function declaration
@@ -163,3 +163,8 @@ public:
 class VoidStmt : public StmtNode
 {
 };
+
+ASTNode gen_ast()
+{
+    return VoidStmt();
+}
