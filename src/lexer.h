@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-enum Token
+enum TokEnum
 {
     // general
     tok_eof, // end of file
@@ -43,10 +44,15 @@ enum Token
     tok_boolean     // literal boolean
 };
 
-extern Token token;
+struct Token
+{
+    TokEnum tok;
+    std::string val;
+    union
+    {
+        int32_t i32val;
+        bool bval;
+    };
+};
 
-extern std::string idstr;
-extern int32_t i32val;
-extern bool bval;
-
-Token next_token();
+std::vector<Token> gen_tokens();

@@ -7,62 +7,63 @@
 // See lexer.h for the Token enum declaration.
 //===---------------------------------------------------------------------===//
 
-Token token;
-
-std::string idstr;
-int32_t i32val;
-bool bval;
+static Token token;
 
 // Get the next token from the input file
-Token get_token()
+void fill_token()
 {
     static char lch = ' ';
 
     while (isspace(lch))
         lch = anxf.get();
 
+    if (lch == EOF)
+    {
+        token.tok = tok_eof;
+        return;
+    }
+
+    token.val = lch;
+
     if (isalpha(lch))
     {
-        idstr = lch;
         while (isalnum(lch = anxf.get()))
-            idstr += lch;
+            token.val += lch;
 
-        if (idstr == "fn")
-            return tok_fn;
-        if (idstr == "ret")
-            return tok_ret;
-        if (idstr == "var")
-            return tok_var;
-        if (idstr == "if")
-            return tok_if;
-        if (idstr == "void")
-            return tok_void;
-
-        if (idstr == "true")
+        if (token.val == "fn")
+            token.tok = tok_fn;
+        else if (token.val == "ret")
+            token.tok = tok_ret;
+        else if (token.val == "var")
+            token.tok = tok_var;
+        else if (token.val == "if")
+            token.tok = tok_if;
+        else if (token.val == "void")
+            token.tok = tok_void;
+        else if (token.val == "true")
         {
-            bval = true;
-            return tok_boolean;
+            token.bval = true;
+            token.tok = tok_boolean;
         }
-        if (idstr == "false")
+        else if (token.val == "false")
         {
-            bval = false;
-            return tok_boolean;
+            token.bval = false;
+            token.tok = tok_boolean;
         }
+        else
+            token.tok = tok_identifier;
 
-        return tok_identifier;
+        return;
     }
 
     if (isdigit(lch))
     {
-        std::string nstr;
-        do
-        {
-            nstr += lch;
-            lch = anxf.get();
-        } while (isdigit(lch));
+        while (isdigit(lch = anxf.get()))
+            token.val += lch;
 
-        i32val = atoi(nstr.c_str());
-        return tok_integer;
+        token.i32val = atoi(token.val.c_str());
+        token.tok = tok_integer;
+        return;
     }
 
     if (lch == '#')
@@ -71,98 +72,76 @@ Token get_token()
             lch = anxf.get();
         while (lch != EOF && lch != '\n' && lch != '\r');
 
-        if (lch != EOF)
-            return get_token();
+        if (lch == EOF)
+            token.tok = tok_eof;
+        else
+            fill_token();
+
+        return;
     }
 
-    if (lch == ';')
-    {
-        lch = anxf.get();
-        return tok_eos;
-    }
+    char old = lch;
+    lch = anxf.get();
 
-    if (lch == ',')
+    switch (old)
     {
-        lch = anxf.get();
-        return tok_comma;
-    }
-
-    if (lch == '{')
-    {
-        lch = anxf.get();
-        return tok_curlys;
-    }
-
-    if (lch == '}')
-    {
-        lch = anxf.get();
-        return tok_curlye;
-    }
-
-    if (lch == '(')
-    {
-        lch = anxf.get();
-        return tok_parens;
-    }
-
-    if (lch == ')')
-    {
-        lch = anxf.get();
-        return tok_parene;
-    }
-
-    if (lch == ':')
-    {
-        lch = anxf.get();
-        return tok_type;
-    }
-
-    if (lch == '*')
-    {
-        lch = anxf.get();
-        return tok_mul;
-    }
-
-    if (lch == '/')
-    {
-        lch = anxf.get();
-        return tok_div;
-    }
-
-    if (lch == '+')
-    {
-        lch = anxf.get();
-        return tok_add;
-    }
-
-    if (lch == '-')
-    {
-        lch = anxf.get();
-        return tok_sub;
-    }
-
-    if (lch == '=')
-    {
-        lch = anxf.get();
-
+    case ';':
+        token.tok = tok_eos;
+        return;
+    case ',':
+        token.tok = tok_comma;
+        return;
+    case '{':
+        token.tok = tok_curlys;
+        return;
+    case '}':
+        token.tok = tok_curlye;
+        return;
+    case '(':
+        token.tok = tok_parens;
+        return;
+    case ')':
+        token.tok = tok_parene;
+        return;
+    case ':':
+        token.tok = tok_type;
+        return;
+    case '*':
+        token.tok = tok_mul;
+        return;
+    case '/':
+        token.tok = tok_div;
+        return;
+    case '+':
+        token.tok = tok_add;
+        return;
+    case '-':
+        token.tok = tok_sub;
+        return;
+    case '=':
         if (lch == '=')
         {
-            lch = anxf.get();
-            return tok_equal;
+            token.val += lch;
+            token.tok = tok_equal;
         }
-
-        return tok_assign;
+        else
+            token.tok = tok_assign;
+        return;
     }
 
-    if (lch == EOF)
-        return tok_eof;
-
-    printf("Unknown token '%c'", lch);
-    exit(1);
+    perr("Invalid token: '" + std::string(1, old) + "'");
 }
 
-// Get the next token from the input file, setting the global token variable
-Token next_token()
+std::vector<Token> gen_tokens()
 {
-    return token = get_token();
+    std::vector<Token> ret;
+
+    fill_token();
+    while (token.tok != tok_eof)
+    {
+        ret.push_back(token);
+        fill_token();
+    }
+
+    return ret;
 }

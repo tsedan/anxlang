@@ -15,6 +15,13 @@
 
 std::ifstream anxf;
 
+void perr(std::string msg)
+{
+    fprintf(stderr, "Compilation Error:\n");
+    fprintf(stderr, "    %s\n", msg.c_str());
+    exit(1);
+}
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -31,6 +38,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    while (next_token() != tok_eof)
-        printf("%d ", token);
+    for (Token t : gen_tokens())
+        printf("[%d '%s'] ", t.tok, t.val.c_str());
+
+    printf("\n");
 }

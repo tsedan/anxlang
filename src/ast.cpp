@@ -92,13 +92,13 @@ public:
 
 class BinOpStmt : public StmtNode
 {
-    Token op;
+    TokEnum op;
     std::unique_ptr<ASTNode> lhs;
     std::unique_ptr<ASTNode> rhs;
 
 public:
     BinOpStmt(
-        Token op,
+        TokEnum op,
         std::unique_ptr<ASTNode> lhs,
         std::unique_ptr<ASTNode> rhs)
         : op(op),
