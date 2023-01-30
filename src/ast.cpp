@@ -8,30 +8,22 @@
 //
 // The structure of the AST follows the following heirarchy:
 // ASTNode - The base type for AST nodes (defined in ast.h)
-//   GroupNode - A node that consists of a list of other nodes
 //   DeclNode - A node that declares something
 //     FnDecl - A function declaration
 //     VarDecl - A variable declaration
 //   StmtNode - A node that represents a value or evaluates in some way
-//     ReturnStmt - A return statement
+//     GroupStmt - A node consisting of a list of nodes, evaluates to the last
+//     RetStmt - A return statement
 //     IfStmt - An if statement
 //     BinOpStmt - A binary operation statement
 //     AssignStmt - A variable assignment statement
 //     CallStmt - A function call statement
-//     IntStmt - An integer literal statement
+//     IdentStmt - A variable statement
+//     CastStmt - A typecast statement
+//     I32Stmt - An 32bit integer literal statement
 //     BoolStmt - A boolean literal statement
 //     VoidStmt - A void literal statement
-//     IdentifierStmt - An identifier
-//     CastStmt - A typecast statement
 //===---------------------------------------------------------------------===//
-
-class GroupNode : public ASTNode
-{
-    std::vector<std::unique_ptr<ASTNode>> nodes;
-
-public:
-    GroupNode(std::vector<std::unique_ptr<ASTNode>> nodes) : nodes(std::move(nodes)) {}
-};
 
 class DeclNode : public ASTNode
 {
@@ -63,5 +55,111 @@ public:
 };
 
 class StmtNode : public ASTNode
+{
+};
+
+class GroupStmt : public StmtNode
+{
+    std::vector<std::unique_ptr<ASTNode>> nodes;
+
+public:
+    GroupStmt(std::vector<std::unique_ptr<ASTNode>> nodes) : nodes(std::move(nodes)) {}
+};
+
+class RetStmt : public StmtNode
+{
+    std::unique_ptr<ASTNode> value;
+
+public:
+    RetStmt(std::unique_ptr<ASTNode> value) : value(std::move(value)) {}
+};
+
+class IfStmt : public StmtNode
+{
+    std::unique_ptr<ASTNode> cond;
+    std::unique_ptr<ASTNode> then;
+    std::unique_ptr<ASTNode> els;
+
+public:
+    IfStmt(
+        std::unique_ptr<ASTNode> cond,
+        std::unique_ptr<ASTNode> then,
+        std::unique_ptr<ASTNode> els)
+        : cond(std::move(cond)),
+          then(std::move(then)),
+          els(std::move(els)) {}
+};
+
+class BinOpStmt : public StmtNode
+{
+    Token op;
+    std::unique_ptr<ASTNode> lhs;
+    std::unique_ptr<ASTNode> rhs;
+
+public:
+    BinOpStmt(
+        Token op,
+        std::unique_ptr<ASTNode> lhs,
+        std::unique_ptr<ASTNode> rhs)
+        : op(op),
+          lhs(std::move(lhs)),
+          rhs(std::move(rhs)) {}
+};
+
+class AssignStmt : public StmtNode
+{
+    std::string name;
+    std::unique_ptr<ASTNode> value;
+
+public:
+    AssignStmt(std::string name, std::unique_ptr<ASTNode> value)
+        : name(name), value(std::move(value)) {}
+};
+
+class CallStmt : public StmtNode
+{
+    std::string name;
+    std::vector<std::unique_ptr<ASTNode>> args;
+
+public:
+    CallStmt(std::string name, std::vector<std::unique_ptr<ASTNode>> args)
+        : name(name), args(std::move(args)) {}
+};
+
+class IdentStmt : public StmtNode
+{
+    std::string name;
+
+public:
+    IdentStmt(std::string name) : name(name) {}
+};
+
+class CastStmt : public StmtNode
+{
+    std::string type;
+    std::unique_ptr<ASTNode> value;
+
+public:
+    CastStmt(std::string type, std::unique_ptr<ASTNode> value)
+        : type(type), value(std::move(value)) {}
+};
+
+class I32Stmt : public StmtNode
+{
+    int32_t value;
+
+public:
+    I32Stmt(int32_t value) : value(value) {}
+};
+
+class BoolStmt : public StmtNode
+{
+    bool value;
+
+public:
+    BoolStmt(bool value) : value(value) {}
+};
+
+class VoidStmt : public StmtNode
 {
 };
