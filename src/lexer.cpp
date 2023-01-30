@@ -3,6 +3,8 @@
 
 //===---------------------------------------------------------------------===//
 // Lexer - This module tokenizes an input Anx file
+//
+// See lexer.h for the Token enum declaration.
 //===---------------------------------------------------------------------===//
 
 Token token;
