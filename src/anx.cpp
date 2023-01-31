@@ -38,8 +38,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    for (Token t : gen_tokens())
-        printf("[%d '%s'] ", t.tok, t.val.c_str());
+    gen_tokens();
 
-    printf("\n");
+    gen_ast();
 }

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <memory>
+
 class ASTNode
 {
 public:
     virtual ~ASTNode() {}
 };
 
-ASTNode gen_ast();
+std::unique_ptr<ASTNode> gen_ast();

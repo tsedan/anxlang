@@ -7,6 +7,8 @@
 // See lexer.h for the Token enum declaration.
 //===---------------------------------------------------------------------===//
 
+std::vector<Token> tokens;
+
 static Token token;
 
 // Get the next token from the input file
@@ -17,13 +19,13 @@ void fill_token()
     while (isspace(lch))
         lch = anxf.get();
 
+    token.val = lch;
+
     if (lch == EOF)
     {
         token.tok = tok_eof;
         return;
     }
-
-    token.val = lch;
 
     if (isalpha(lch))
     {
@@ -122,6 +124,7 @@ void fill_token()
         if (lch == '=')
         {
             token.val += lch;
+            lch = anxf.get();
             token.tok = tok_equal;
         }
         else
@@ -132,16 +135,13 @@ void fill_token()
     perr("Invalid token: '" + std::string(1, old) + "'");
 }
 
-std::vector<Token> gen_tokens()
+void gen_tokens()
 {
-    std::vector<Token> ret;
+    tokens.clear();
 
-    fill_token();
-    while (token.tok != tok_eof)
+    do
     {
-        ret.push_back(token);
         fill_token();
-    }
-
-    return ret;
+        tokens.push_back(token);
+    } while (token.tok != tok_eof);
 }

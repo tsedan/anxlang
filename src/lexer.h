@@ -55,4 +55,6 @@ struct Token
     };
 };
 
-std::vector<Token> gen_tokens();
+extern std::vector<Token> tokens;
+
+void gen_tokens();
