@@ -1,3 +1,8 @@
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include "anx.h"
 #include "lexer.h"
 #include "ast.h"
@@ -17,39 +22,64 @@ std::ifstream anxf;
 
 void perr(std::string msg)
 {
-    fprintf(stderr, "Compilation Error:\n");
-    fprintf(stderr, "    %s\n", msg.c_str());
+    std::cerr << "Compilation Error:\n";
+    std::cerr << "    " << msg << std::endl;
     exit(1);
 }
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    bool verbose = false;
+
+    opterr = 0;
+
+    int c;
+    while ((c = getopt(argc, argv, "vh")) != -1)
     {
-        fprintf(stderr, "Usage: anx <filename>\n");
+        switch (c)
+        {
+        case 'v':
+            verbose = true;
+            break;
+        case '?':
+            std::cerr << "Unknown option '-" << optopt << "'.\n";
+            return 1;
+        case 'h':
+            std::cout << "USAGE: anx [options] file\n";
+            std::cout << "OPTIONS:\n";
+            std::cout << "  -v    Verbose mode\n";
+            std::cout << "  -h    Print this help message\n";
+            return 1;
+        default:
+            abort();
+        }
+    }
+
+    if (argc - optind != 1)
+    {
+        std::cerr << "USAGE: anx [options] file\n";
         return 1;
     }
 
-    anxf.open(argv[1]);
+    anxf.open(argv[optind]);
 
     if (!anxf.is_open())
     {
-        fprintf(stderr, "Could not open file: %s\n", argv[1]);
+        std::cerr << "Could not open file: " << argv[optind] << '\n';
         return 1;
     }
 
     gen_tokens();
 
-    for (Token t : tokens)
-        printf("%s ", t.val.c_str());
-    printf("\n");
-
-    for (Token t : tokens)
-        printf("%d ", t.tok);
-    printf("\n");
+    if (verbose)
+    {
+        for (Token t : tokens)
+            std::cout << t.val << ' ';
+        std::cout << '\n';
+    }
 
     std::unique_ptr<ProgramNode> ast = gen_ast();
 
-    // print the AST
-    ast->print(0);
+    if (verbose)
+        ast->print(0);
 }
