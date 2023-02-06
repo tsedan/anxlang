@@ -40,5 +40,16 @@ int main(int argc, char **argv)
 
     gen_tokens();
 
-    gen_ast();
+    for (Token t : tokens)
+        printf("%s ", t.val.c_str());
+    printf("\n");
+
+    for (Token t : tokens)
+        printf("%d ", t.tok);
+    printf("\n");
+
+    std::unique_ptr<ProgramNode> ast = gen_ast();
+
+    // print the AST
+    ast->print(0);
 }

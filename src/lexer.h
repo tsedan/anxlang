@@ -7,7 +7,6 @@ enum TokEnum
 {
     // general
     tok_eof, // end of file
-    tok_eos, // end of statement
 
     // grouping
     tok_comma,  // ,
@@ -17,9 +16,8 @@ enum TokEnum
     tok_parene, // paren end
 
     // functions
-    tok_fn,   // function
-    tok_ret,  // return
-    tok_void, // void
+    tok_fn,  // function
+    tok_ret, // return
 
     // variables
     tok_var,    // variable
