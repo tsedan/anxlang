@@ -26,17 +26,13 @@ enum TokEnum
     tok_type,   // :
     tok_assign, // =
 
-    // comparison
-    tok_equal, // ==
-
-    // operators
-    tok_mul, // *
-    tok_div, // /
-    tok_add, // +
-    tok_sub, // -
+    // comparison / arithmetic
+    tok_binop, // binary operation
+    tok_unop,  // unary operation
 
     // control
-    tok_if, // if
+    tok_if,   // if
+    tok_else, // else
 
     // identifiers
     tok_identifier, // identifier
@@ -58,3 +54,4 @@ struct Token
 extern std::vector<Token> tokens;
 
 void gen_tokens();
+int get_priority(const std::string &op);

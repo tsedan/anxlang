@@ -40,6 +40,8 @@ void fill_token()
             token.tok = tok_var;
         else if (token.val == "if")
             token.tok = tok_if;
+        else if (token.val == "else")
+            token.tok = tok_else;
         else if (token.val == "void")
             token.tok = tok_void;
         else if (token.val == "true")
@@ -109,26 +111,36 @@ void fill_token()
         token.tok = tok_type;
         return;
     case '*':
-        token.tok = tok_mul;
+        token.tok = tok_binop;
         return;
     case '/':
-        token.tok = tok_div;
+        token.tok = tok_binop;
         return;
     case '+':
-        token.tok = tok_add;
+        token.tok = tok_binop;
         return;
     case '-':
-        token.tok = tok_sub;
+        token.tok = tok_binop;
         return;
     case '=':
         if (lch == '=')
         {
             token.val += lch;
             lch = anxf.get();
-            token.tok = tok_equal;
+            token.tok = tok_binop;
         }
         else
             token.tok = tok_assign;
+        return;
+    case '!':
+        if (lch == '=')
+        {
+            token.val += lch;
+            lch = anxf.get();
+            token.tok = tok_binop;
+        }
+        else
+            token.tok = tok_unop;
         return;
     }
 
@@ -144,4 +156,17 @@ void gen_tokens()
         fill_token();
         tokens.push_back(token);
     } while (token.tok != tok_eof);
+}
+
+int get_priority(const std::string &op)
+{
+    if (op == "*" || op == "/")
+        return 2;
+    else if (op == "+" || op == "-")
+        return 1;
+    else if (op == "==" || op == "!=")
+        return 0;
+
+    perr("Invalid operator: '" + op + "'");
+    return -1;
 }
