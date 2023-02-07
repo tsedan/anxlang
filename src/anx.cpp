@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include "anx.h"
-#include "lexer.h"
 #include "ast.h"
 #include "ir.h"
 
@@ -69,7 +68,7 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::unique_ptr<ProgramNode> program = ast();
+    std::unique_ptr<ast::ProgramNode> program = ast::gen_ast();
 
     if (verbose)
         program->print(0);

@@ -6,7 +6,7 @@
 // AST - This module implements the Abstract Syntax Tree (AST) for Anx
 //
 // The structure of the AST follows the following hierarchy:
-// ASTNode - The base type for AST nodes (defined in ast.h)
+// Node - The base type for AST nodes (defined in ast.h)
 //   ProgramNode - The root node of the AST
 //   DeclNode - A node that declares something
 //     FnDecl - A function declaration
@@ -26,11 +26,11 @@
 //     VoidStmt - A void literal statement
 //===---------------------------------------------------------------------===//
 
-std::unique_ptr<ASTNode> parse_any();
-std::unique_ptr<StmtNode> parse_expr();
-std::unique_ptr<StmtNode> parse_primary();
+std::unique_ptr<ast::Node> parse_any();
+std::unique_ptr<ast::StmtNode> parse_expr();
+std::unique_ptr<ast::StmtNode> parse_primary();
 
-std::unique_ptr<StmtNode> parse_identifier()
+std::unique_ptr<ast::StmtNode> parse_identifier()
 {
     std::string name = lex::tok.val;
 
@@ -40,7 +40,7 @@ std::unique_ptr<StmtNode> parse_identifier()
     {
         lex::eat(); // eat (
 
-        std::vector<std::unique_ptr<ASTNode>> args;
+        std::vector<std::unique_ptr<ast::Node>> args;
 
         while (1)
         {
@@ -57,17 +57,17 @@ std::unique_ptr<StmtNode> parse_identifier()
 
         lex::eat(); // eat )
 
-        return std::make_unique<CallStmt>(std::move(name), std::move(args));
+        return std::make_unique<ast::CallStmt>(std::move(name), std::move(args));
     }
 
-    return std::make_unique<IdentStmt>(std::move(name));
+    return std::make_unique<ast::IdentStmt>(std::move(name));
 }
 
-std::unique_ptr<GroupStmt> parse_group()
+std::unique_ptr<ast::GroupStmt> parse_group()
 {
     lex::eat(); // eat {
 
-    std::vector<std::unique_ptr<ASTNode>> nodes;
+    std::vector<std::unique_ptr<ast::Node>> nodes;
 
     while (lex::tok.tok != lex::tok_curlye)
         nodes.push_back(parse_any());
@@ -77,10 +77,10 @@ std::unique_ptr<GroupStmt> parse_group()
 
     lex::eat(); // eat }
 
-    return std::make_unique<GroupStmt>(std::move(nodes));
+    return std::make_unique<ast::GroupStmt>(std::move(nodes));
 }
 
-std::unique_ptr<FnDecl> parse_fn()
+std::unique_ptr<ast::FnDecl> parse_fn()
 {
     lex::eat(); // eat fn
 
@@ -140,19 +140,19 @@ std::unique_ptr<FnDecl> parse_fn()
 
     lex::eat(); // eat return type
 
-    return std::make_unique<FnDecl>(std::move(name), std::move(args), std::move(type), parse_any());
+    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_any());
 }
 
-std::unique_ptr<VarDecl> parse_var()
+std::unique_ptr<ast::VarDecl> parse_var()
 {
     return nullptr;
 }
 
-std::unique_ptr<StmtNode> parse_paren_expr()
+std::unique_ptr<ast::StmtNode> parse_paren_expr()
 {
     lex::eat(); // eat (
 
-    std::unique_ptr<StmtNode> expr = parse_expr();
+    std::unique_ptr<ast::StmtNode> expr = parse_expr();
 
     if (lex::tok.tok != lex::tok_parene)
         perr("Expected ')' to close parenthetical expression");
@@ -162,34 +162,34 @@ std::unique_ptr<StmtNode> parse_paren_expr()
     return expr;
 }
 
-std::unique_ptr<StmtNode> parse_unary()
+std::unique_ptr<ast::StmtNode> parse_unary()
 {
     std::string op = lex::tok.val;
 
     lex::eat(); // eat op
 
-    return std::make_unique<UnOpStmt>(std::move(op), parse_primary());
+    return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary());
 }
 
-std::unique_ptr<I32Stmt> parse_i32()
+std::unique_ptr<ast::I32Stmt> parse_i32()
 {
     int val = lex::tok.i32val;
 
     lex::eat(); // eat integer
 
-    return std::make_unique<I32Stmt>(val);
+    return std::make_unique<ast::I32Stmt>(val);
 }
 
-std::unique_ptr<BoolStmt> parse_bool()
+std::unique_ptr<ast::BoolStmt> parse_bool()
 {
     bool val = lex::tok.bval;
 
     lex::eat(); // eat boolean
 
-    return std::make_unique<BoolStmt>(val);
+    return std::make_unique<ast::BoolStmt>(val);
 }
 
-std::unique_ptr<StmtNode> parse_primary()
+std::unique_ptr<ast::StmtNode> parse_primary()
 {
     switch (lex::tok.tok)
     {
@@ -210,7 +210,7 @@ std::unique_ptr<StmtNode> parse_primary()
     return nullptr;
 }
 
-std::unique_ptr<StmtNode> parse_binop(int priority, std::unique_ptr<StmtNode> lhs)
+std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::StmtNode> lhs)
 {
     while (1)
     {
@@ -223,22 +223,20 @@ std::unique_ptr<StmtNode> parse_binop(int priority, std::unique_ptr<StmtNode> lh
 
         lex::eat(); // eat op
 
-        std::unique_ptr<StmtNode> rhs = parse_primary();
+        std::unique_ptr<ast::StmtNode> rhs = parse_primary();
 
         int next_prio = lex::prio(lex::tok.val);
 
         if (c_prio < next_prio)
             rhs = parse_binop(c_prio + 1, std::move(rhs));
 
-        lhs = std::make_unique<BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs));
+        lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs));
     }
-
-    return nullptr;
 }
 
-std::unique_ptr<StmtNode> parse_expr()
+std::unique_ptr<ast::StmtNode> parse_expr()
 {
-    std::unique_ptr<StmtNode> lhs = parse_primary();
+    std::unique_ptr<ast::StmtNode> lhs = parse_primary();
 
     if (lex::tok.tok == lex::tok_binop)
         lhs = parse_binop(0, std::move(lhs));
@@ -246,15 +244,15 @@ std::unique_ptr<StmtNode> parse_expr()
     return lhs;
 }
 
-std::unique_ptr<IfStmt> parse_if()
+std::unique_ptr<ast::IfStmt> parse_if()
 {
     lex::eat(); // eat if
 
-    std::unique_ptr<ASTNode> cond = parse_expr();
+    std::unique_ptr<ast::Node> cond = parse_expr();
 
-    std::unique_ptr<ASTNode> then = parse_any();
+    std::unique_ptr<ast::Node> then = parse_any();
 
-    std::unique_ptr<ASTNode> els;
+    std::unique_ptr<ast::Node> els;
 
     if (lex::tok.tok == lex::tok_else)
     {
@@ -262,17 +260,17 @@ std::unique_ptr<IfStmt> parse_if()
         els = parse_any();
     }
 
-    return std::make_unique<IfStmt>(std::move(cond), std::move(then), std::move(els));
+    return std::make_unique<ast::IfStmt>(std::move(cond), std::move(then), std::move(els));
 }
 
-std::unique_ptr<RetStmt> parse_ret()
+std::unique_ptr<ast::RetStmt> parse_ret()
 {
     lex::eat(); // eat ret
 
-    return std::make_unique<RetStmt>(parse_expr());
+    return std::make_unique<ast::RetStmt>(parse_expr());
 }
 
-std::unique_ptr<ASTNode> parse_any()
+std::unique_ptr<ast::Node> parse_any()
 {
     switch (lex::tok.tok)
     {
@@ -294,7 +292,7 @@ std::unique_ptr<ASTNode> parse_any()
 }
 
 // Generate the program AST
-std::unique_ptr<ProgramNode> ast()
+std::unique_ptr<ast::ProgramNode> ast::gen_ast()
 {
     lex::eat(); // generate the first token
 
