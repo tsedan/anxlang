@@ -275,4 +275,4 @@ public:
     }
 };
 
-std::unique_ptr<ProgramNode> gen_ast();
+std::unique_ptr<ProgramNode> ast();

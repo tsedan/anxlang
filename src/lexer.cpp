@@ -7,53 +7,51 @@
 // See lexer.h for the Token enum declaration.
 //===---------------------------------------------------------------------===//
 
-std::vector<Token> tokens;
+lex::Token lex::tok;
 
-static Token token;
-
-// Get the next token from the input file
-void fill_token()
+// Get the next token from the input file and update the global token variable
+void lex::eat()
 {
     static char lch = ' ';
 
     while (isspace(lch))
         lch = anxf.get();
 
-    token.val = lch;
+    tok.val = lch;
 
     if (lch == EOF)
     {
-        token.tok = tok_eof;
+        tok.tok = tok_eof;
         return;
     }
 
     if (isalpha(lch))
     {
         while (isalnum(lch = anxf.get()))
-            token.val += lch;
+            tok.val += lch;
 
-        if (token.val == "fn")
-            token.tok = tok_fn;
-        else if (token.val == "ret")
-            token.tok = tok_ret;
-        else if (token.val == "var")
-            token.tok = tok_var;
-        else if (token.val == "if")
-            token.tok = tok_if;
-        else if (token.val == "else")
-            token.tok = tok_else;
-        else if (token.val == "true")
+        if (tok.val == "fn")
+            tok.tok = tok_fn;
+        else if (tok.val == "ret")
+            tok.tok = tok_ret;
+        else if (tok.val == "var")
+            tok.tok = tok_var;
+        else if (tok.val == "if")
+            tok.tok = tok_if;
+        else if (tok.val == "else")
+            tok.tok = tok_else;
+        else if (tok.val == "true")
         {
-            token.bval = true;
-            token.tok = tok_boolean;
+            tok.bval = true;
+            tok.tok = tok_boolean;
         }
-        else if (token.val == "false")
+        else if (tok.val == "false")
         {
-            token.bval = false;
-            token.tok = tok_boolean;
+            tok.bval = false;
+            tok.tok = tok_boolean;
         }
         else
-            token.tok = tok_identifier;
+            tok.tok = tok_identifier;
 
         return;
     }
@@ -61,10 +59,10 @@ void fill_token()
     if (isdigit(lch))
     {
         while (isdigit(lch = anxf.get()))
-            token.val += lch;
+            tok.val += lch;
 
-        token.i32val = atoi(token.val.c_str());
-        token.tok = tok_integer;
+        tok.i32val = atoi(tok.val.c_str());
+        tok.tok = tok_integer;
         return;
     }
 
@@ -75,9 +73,9 @@ void fill_token()
         while (lch != EOF && lch != '\n' && lch != '\r');
 
         if (lch == EOF)
-            token.tok = tok_eof;
+            tok.tok = tok_eof;
         else
-            fill_token();
+            eat();
 
         return;
     }
@@ -88,82 +86,72 @@ void fill_token()
     switch (old)
     {
     case ',':
-        token.tok = tok_comma;
+        tok.tok = tok_comma;
         return;
     case '{':
-        token.tok = tok_curlys;
+        tok.tok = tok_curlys;
         return;
     case '}':
-        token.tok = tok_curlye;
+        tok.tok = tok_curlye;
         return;
     case '(':
-        token.tok = tok_parens;
+        tok.tok = tok_parens;
         return;
     case ')':
-        token.tok = tok_parene;
+        tok.tok = tok_parene;
         return;
     case ':':
-        token.tok = tok_type;
+        tok.tok = tok_type;
         return;
     case '*':
     case '/':
     case '+':
     case '-':
-        token.tok = tok_binop;
+        tok.tok = tok_binop;
         return;
     case '<':
     case '>':
-        token.tok = tok_binop;
+        tok.tok = tok_binop;
         if (lch == '=')
         {
-            token.val += lch;
+            tok.val += lch;
             lch = anxf.get();
         }
         return;
     case '=':
         if (lch == '=')
         {
-            token.val += lch;
+            tok.val += lch;
             lch = anxf.get();
-            token.tok = tok_binop;
+            tok.tok = tok_binop;
         }
         else
-            token.tok = tok_assign;
+            tok.tok = tok_assign;
         return;
     case '!':
         if (lch == '=')
         {
-            token.val += lch;
+            tok.val += lch;
             lch = anxf.get();
-            token.tok = tok_binop;
+            tok.tok = tok_binop;
         }
         else
-            token.tok = tok_unop;
+            tok.tok = tok_unop;
         return;
     }
 
     perr("Invalid token: '" + std::string(1, old) + "'");
 }
 
-void gen_tokens()
+// Get the priority of an operator, such as + or /
+int lex::prio(const std::string &op)
 {
-    tokens.clear();
-
-    do
-    {
-        fill_token();
-        tokens.push_back(token);
-    } while (token.tok != tok_eof);
-}
-
-int get_priority(const std::string &op)
-{
-    if (op == "+" || op == "-")
-        return 0;
-    else if (op == "*" || op == "/")
+    if (op == "*" || op == "/")
+        return 2;
+    else if (op == "+" || op == "-")
         return 1;
     else if (op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=")
-        return 2;
+        return 0;
 
     return -1;
 }

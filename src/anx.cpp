@@ -69,17 +69,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    gen_tokens();
+    std::unique_ptr<ProgramNode> program = ast();
 
     if (verbose)
-    {
-        for (Token t : tokens)
-            std::cout << t.val << ' ';
-        std::cout << '\n';
-    }
-
-    std::unique_ptr<ProgramNode> ast = gen_ast();
-
-    if (verbose)
-        ast->print(0);
+        program->print(0);
 }

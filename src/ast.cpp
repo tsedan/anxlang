@@ -26,21 +26,19 @@
 //     VoidStmt - A void literal statement
 //===---------------------------------------------------------------------===//
 
-static size_t ti = 0;
-
 std::unique_ptr<ASTNode> parse_any();
 std::unique_ptr<StmtNode> parse_expr();
 std::unique_ptr<StmtNode> parse_primary();
 
 std::unique_ptr<StmtNode> parse_identifier()
 {
-    std::string name = tokens.at(ti).val;
+    std::string name = lex::tok.val;
 
-    ti++; // eat identifier
+    lex::eat(); // eat identifier
 
-    if (tokens.at(ti).tok == tok_parens)
+    if (lex::tok.tok == lex::tok_parens)
     {
-        ti++; // eat (
+        lex::eat(); // eat (
 
         std::vector<std::unique_ptr<ASTNode>> args;
 
@@ -48,16 +46,16 @@ std::unique_ptr<StmtNode> parse_identifier()
         {
             args.push_back(parse_expr());
 
-            if (tokens.at(ti).tok == tok_parene)
+            if (lex::tok.tok == lex::tok_parene)
                 break;
 
-            if (tokens.at(ti).tok != tok_comma)
+            if (lex::tok.tok != lex::tok_comma)
                 perr("Expected ',' or ')' in function call");
 
-            ti++; // eat ,
+            lex::eat(); // eat ,
         }
 
-        ti++; // eat )
+        lex::eat(); // eat )
 
         return std::make_unique<CallStmt>(std::move(name), std::move(args));
     }
@@ -67,80 +65,80 @@ std::unique_ptr<StmtNode> parse_identifier()
 
 std::unique_ptr<GroupStmt> parse_group()
 {
-    ti++; // eat {
+    lex::eat(); // eat {
 
     std::vector<std::unique_ptr<ASTNode>> nodes;
 
-    while (tokens.at(ti).tok != tok_curlye)
+    while (lex::tok.tok != lex::tok_curlye)
         nodes.push_back(parse_any());
 
-    if (tokens.at(ti).tok != tok_curlye)
-        perr("Expected '}' to close group statement, got '" + tokens.at(ti).val + "' instead");
+    if (lex::tok.tok != lex::tok_curlye)
+        perr("Expected '}' to close group statement, got '" + lex::tok.val + "' instead");
 
-    ti++; // eat }
+    lex::eat(); // eat }
 
     return std::make_unique<GroupStmt>(std::move(nodes));
 }
 
 std::unique_ptr<FnDecl> parse_fn()
 {
-    ti++; // eat fn
+    lex::eat(); // eat fn
 
-    if (tokens.at(ti).tok != tok_identifier)
+    if (lex::tok.tok != lex::tok_identifier)
         perr("Expected identifier after function declaration");
 
-    std::string name = tokens.at(ti).val;
+    std::string name = lex::tok.val;
 
-    ti++; // eat identifier
+    lex::eat(); // eat identifier
 
-    if (tokens.at(ti).tok != tok_parens)
+    if (lex::tok.tok != lex::tok_parens)
         perr("Expected '(' after function name in function declaration");
 
-    ti++; // eat (
+    lex::eat(); // eat (
 
     std::vector<std::pair<std::string, std::string>> args;
 
-    if (tokens.at(ti).tok != tok_parene)
+    if (lex::tok.tok != lex::tok_parene)
     {
         while (1)
         {
-            if (tokens.at(ti).tok != tok_identifier)
-                perr("Expected identifier in function argument list in function declaration, got '" + tokens.at(ti).val + "' instead");
+            if (lex::tok.tok != lex::tok_identifier)
+                perr("Expected identifier in function argument list in function declaration, got '" + lex::tok.val + "' instead");
 
-            std::string name = tokens.at(ti).val;
+            std::string name = lex::tok.val;
 
-            ti++; // eat name
+            lex::eat(); // eat name
 
-            if (tokens.at(ti).tok != tok_type)
+            if (lex::tok.tok != lex::tok_type)
                 perr("Expected ':' after variable name in argument list in function declaration");
 
-            ti++; // eat :
+            lex::eat(); // eat :
 
-            if (tokens.at(ti).tok != tok_identifier)
+            if (lex::tok.tok != lex::tok_identifier)
                 perr("Expected identifier after type in function argument list in function declaration");
 
-            args.push_back(std::make_pair(name, tokens.at(ti).val));
+            args.push_back(std::make_pair(name, lex::tok.val));
 
-            ti++; // eat type
+            lex::eat(); // eat type
 
-            if (tokens.at(ti).tok == tok_parene)
+            if (lex::tok.tok == lex::tok_parene)
                 break;
 
-            if (tokens.at(ti).tok != tok_comma)
+            if (lex::tok.tok != lex::tok_comma)
                 perr("Expected ',' or ')' in argument list in function declaration");
 
-            ti++; // eat ,
+            lex::eat(); // eat ,
         }
     }
 
-    ti++; // eat )
+    lex::eat(); // eat )
 
-    if (tokens.at(ti).tok != tok_identifier)
+    if (lex::tok.tok != lex::tok_identifier)
         perr("Expected return type after function argument list in function declaration");
 
-    std::string type = tokens.at(ti).val;
+    std::string type = lex::tok.val;
 
-    ti++; // eat return type
+    lex::eat(); // eat return type
 
     return std::make_unique<FnDecl>(std::move(name), std::move(args), std::move(type), parse_any());
 }
@@ -152,46 +150,61 @@ std::unique_ptr<VarDecl> parse_var()
 
 std::unique_ptr<StmtNode> parse_paren_expr()
 {
-    if (tokens.at(ti).tok != tok_parens)
-        perr("Expected '(' to open parenthetical expression");
-
-    ti++; // eat (
+    lex::eat(); // eat (
 
     std::unique_ptr<StmtNode> expr = parse_expr();
 
-    if (tokens.at(ti).tok != tok_parene)
+    if (lex::tok.tok != lex::tok_parene)
         perr("Expected ')' to close parenthetical expression");
 
-    ti++; // eat )
+    lex::eat(); // eat )
 
     return expr;
 }
 
 std::unique_ptr<StmtNode> parse_unary()
 {
-    std::string op = tokens.at(ti).val;
+    std::string op = lex::tok.val;
 
-    ti++; // eat op
+    lex::eat(); // eat op
 
     return std::make_unique<UnOpStmt>(std::move(op), parse_primary());
 }
 
+std::unique_ptr<I32Stmt> parse_i32()
+{
+    int val = lex::tok.i32val;
+
+    lex::eat(); // eat integer
+
+    return std::make_unique<I32Stmt>(val);
+}
+
+std::unique_ptr<BoolStmt> parse_bool()
+{
+    bool val = lex::tok.bval;
+
+    lex::eat(); // eat boolean
+
+    return std::make_unique<BoolStmt>(val);
+}
+
 std::unique_ptr<StmtNode> parse_primary()
 {
-    switch (tokens.at(ti).tok)
+    switch (lex::tok.tok)
     {
-    case tok_identifier:
+    case lex::tok_identifier:
         return parse_identifier();
-    case tok_integer:
-        return std::make_unique<I32Stmt>(tokens.at(ti++).i32val);
-    case tok_boolean:
-        return std::make_unique<BoolStmt>(tokens.at(ti++).bval);
-    case tok_parens:
+    case lex::tok_integer:
+        return parse_i32();
+    case lex::tok_boolean:
+        return parse_bool();
+    case lex::tok_parens:
         return parse_paren_expr();
-    case tok_unop:
+    case lex::tok_unop:
         return parse_unary();
     default:
-        perr("Expected expression, got '" + tokens.at(ti).val + "' instead");
+        perr("Expected expression, got '" + lex::tok.val + "' instead");
     }
 
     return nullptr;
@@ -201,21 +214,21 @@ std::unique_ptr<StmtNode> parse_binop(int priority, std::unique_ptr<StmtNode> lh
 {
     while (1)
     {
-        int prio = get_priority(tokens.at(ti).val);
+        int c_prio = lex::prio(lex::tok.val);
 
-        if (prio < priority)
+        if (c_prio < priority)
             return lhs;
 
-        std::string op = tokens.at(ti).val;
+        std::string op = lex::tok.val;
 
-        ti++; // eat op
+        lex::eat(); // eat op
 
         std::unique_ptr<StmtNode> rhs = parse_primary();
 
-        int next_prio = get_priority(tokens.at(ti).val);
+        int next_prio = lex::prio(lex::tok.val);
 
-        if (prio < next_prio)
-            rhs = parse_binop(prio + 1, std::move(rhs));
+        if (c_prio < next_prio)
+            rhs = parse_binop(c_prio + 1, std::move(rhs));
 
         lhs = std::make_unique<BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs));
     }
@@ -227,7 +240,7 @@ std::unique_ptr<StmtNode> parse_expr()
 {
     std::unique_ptr<StmtNode> lhs = parse_primary();
 
-    if (tokens.at(ti).tok == tok_binop)
+    if (lex::tok.tok == lex::tok_binop)
         lhs = parse_binop(0, std::move(lhs));
 
     return lhs;
@@ -235,7 +248,7 @@ std::unique_ptr<StmtNode> parse_expr()
 
 std::unique_ptr<IfStmt> parse_if()
 {
-    ti++; // eat if
+    lex::eat(); // eat if
 
     std::unique_ptr<ASTNode> cond = parse_expr();
 
@@ -243,9 +256,9 @@ std::unique_ptr<IfStmt> parse_if()
 
     std::unique_ptr<ASTNode> els;
 
-    if (tokens.at(ti).tok == tok_else)
+    if (lex::tok.tok == lex::tok_else)
     {
-        ti++; // eat else
+        lex::eat(); // eat else
         els = parse_any();
     }
 
@@ -254,50 +267,53 @@ std::unique_ptr<IfStmt> parse_if()
 
 std::unique_ptr<RetStmt> parse_ret()
 {
-    ti++; // eat ret
+    lex::eat(); // eat ret
 
     return std::make_unique<RetStmt>(parse_expr());
 }
 
 std::unique_ptr<ASTNode> parse_any()
 {
-    switch (tokens.at(ti).tok)
+    switch (lex::tok.tok)
     {
-    case tok_eof:
+    case lex::tok_eof:
         perr("Unexpected end of file");
-    case tok_curlys:
+    case lex::tok_curlys:
         return parse_group();
-    case tok_if:
+    case lex::tok_if:
         return parse_if();
-    case tok_identifier:
+    case lex::tok_identifier:
         return parse_identifier();
-    case tok_ret:
+    case lex::tok_ret:
         return parse_ret();
     default:
-        perr("Unexpected token '" + tokens.at(ti).val + "'");
+        perr("Unexpected token '" + lex::tok.val + "'");
     }
 
     return nullptr;
 }
 
-std::unique_ptr<ProgramNode> gen_ast()
+// Generate the program AST
+std::unique_ptr<ProgramNode> ast()
 {
+    lex::eat(); // generate the first token
+
     std::vector<std::unique_ptr<DeclNode>> decls;
 
     while (1)
     {
-        switch (tokens.at(ti).tok)
+        switch (lex::tok.tok)
         {
-        case tok_eof:
+        case lex::tok_eof:
             return std::make_unique<ProgramNode>(std::move(decls));
-        case tok_fn:
+        case lex::tok_fn:
             decls.push_back(parse_fn());
             break;
-        case tok_var:
+        case lex::tok_var:
             decls.push_back(parse_var());
             break;
         default:
-            perr("Only declarations are permitted at the top level, got '" + tokens.at(ti).val + "' instead");
+            perr("Only declarations are permitted at the top level, got '" + lex::tok.val + "' instead");
         }
     }
 }
