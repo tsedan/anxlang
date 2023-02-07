@@ -2,6 +2,8 @@
 
 Anx is a highly experimental systems programming language written in C++.
 
+**Note: Anx requires LLVM >= 15.0.7 in order to build properly (llvm-config must be available).**
+
 # Design Philosophy
 
 The purpose of Anx is to simplify the most common use cases for C, while also including a select few of the quality-of-life features that modern languages provide.
