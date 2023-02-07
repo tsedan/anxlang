@@ -78,16 +78,16 @@ namespace ast
     {
     };
 
-    class GroupStmt : public StmtNode
+    class ScopeNode : public StmtNode
     {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
 
-        GroupStmt(std::vector<std::unique_ptr<Node>> nodes) : nodes(std::move(nodes)) {}
+        ScopeNode(std::vector<std::unique_ptr<Node>> nodes) : nodes(std::move(nodes)) {}
 
         void print(int ind)
         {
-            std::cout << std::string(ind, ' ') << "< group >" << '\n';
+            std::cout << std::string(ind, ' ') << "< scope >" << '\n';
             for (auto &node : nodes)
                 node->print(ind + 1);
         }

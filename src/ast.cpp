@@ -11,8 +11,8 @@
 //   DeclNode - A node that declares something
 //     FnDecl - A function declaration
 //     VarDecl - A variable declaration
+//   ScopeNode - A node consisting of a list of nodes
 //   StmtNode - A node that represents a value or evaluates in some way
-//     GroupStmt - A node consisting of a list of nodes, evaluates to the last
 //     RetStmt - A return statement
 //     IfStmt - An if statement
 //     BinOpStmt - A binary operation statement
@@ -26,7 +26,7 @@
 //     VoidStmt - A void literal statement
 //===---------------------------------------------------------------------===//
 
-std::unique_ptr<ast::Node> parse_any();
+std::unique_ptr<ast::StmtNode> parse_stmt();
 std::unique_ptr<ast::StmtNode> parse_expr();
 std::unique_ptr<ast::StmtNode> parse_primary();
 
@@ -63,21 +63,26 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
     return std::make_unique<ast::IdentStmt>(std::move(name));
 }
 
-std::unique_ptr<ast::GroupStmt> parse_group()
+std::unique_ptr<ast::ScopeNode> parse_scope()
 {
     lex::eat(); // eat {
 
     std::vector<std::unique_ptr<ast::Node>> nodes;
 
-    while (lex::tok.tok != lex::tok_curlye)
-        nodes.push_back(parse_any());
-
-    if (lex::tok.tok != lex::tok_curlye)
-        perr("Expected '}' to close group statement, got '" + lex::tok.val + "' instead");
-
-    lex::eat(); // eat }
-
-    return std::make_unique<ast::GroupStmt>(std::move(nodes));
+    while (1)
+    {
+        switch (lex::tok.tok)
+        {
+        case lex::tok_curlye:
+            lex::eat(); // eat }
+            return std::make_unique<ast::ScopeNode>(std::move(nodes));
+        case lex::tok_curlys:
+            nodes.push_back(parse_scope());
+            break;
+        default:
+            nodes.push_back(parse_stmt());
+        }
+    }
 }
 
 std::unique_ptr<ast::FnDecl> parse_fn()
@@ -140,12 +145,10 @@ std::unique_ptr<ast::FnDecl> parse_fn()
 
     lex::eat(); // eat return type
 
-    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_any());
-}
+    if (lex::tok.tok == lex::tok_curlys)
+        return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_scope());
 
-std::unique_ptr<ast::VarDecl> parse_var()
-{
-    return nullptr;
+    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_stmt());
 }
 
 std::unique_ptr<ast::StmtNode> parse_paren_expr()
@@ -250,14 +253,23 @@ std::unique_ptr<ast::IfStmt> parse_if()
 
     std::unique_ptr<ast::Node> cond = parse_expr();
 
-    std::unique_ptr<ast::Node> then = parse_any();
+    std::unique_ptr<ast::Node> then;
+
+    if (lex::tok.tok == lex::tok_curlys)
+        then = parse_scope();
+    else
+        then = parse_stmt();
 
     std::unique_ptr<ast::Node> els;
 
     if (lex::tok.tok == lex::tok_else)
     {
         lex::eat(); // eat else
-        els = parse_any();
+
+        if (lex::tok.tok == lex::tok_curlys)
+            els = parse_scope();
+        else
+            els = parse_stmt();
     }
 
     return std::make_unique<ast::IfStmt>(std::move(cond), std::move(then), std::move(els));
@@ -270,14 +282,10 @@ std::unique_ptr<ast::RetStmt> parse_ret()
     return std::make_unique<ast::RetStmt>(parse_expr());
 }
 
-std::unique_ptr<ast::Node> parse_any()
+std::unique_ptr<ast::StmtNode> parse_stmt()
 {
     switch (lex::tok.tok)
     {
-    case lex::tok_eof:
-        perr("Unexpected end of file");
-    case lex::tok_curlys:
-        return parse_group();
     case lex::tok_if:
         return parse_if();
     case lex::tok_identifier:
@@ -306,9 +314,6 @@ std::unique_ptr<ast::ProgramNode> ast::gen_ast()
             return std::make_unique<ProgramNode>(std::move(decls));
         case lex::tok_fn:
             decls.push_back(parse_fn());
-            break;
-        case lex::tok_var:
-            decls.push_back(parse_var());
             break;
         default:
             perr("Only declarations are permitted at the top level, got '" + lex::tok.val + "' instead");
