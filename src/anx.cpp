@@ -79,7 +79,10 @@ int main(int argc, char **argv)
 
     auto mainIR = program->codegen();
 
-    fprintf(stderr, "Read function definition:\n");
-    mainIR->print(llvm::errs());
-    fprintf(stderr, "\n");
+    if (verbose)
+    {
+        fprintf(stderr, "Read function definition:\n");
+        mainIR->print(llvm::errs());
+        fprintf(stderr, "\n");
+    }
 }

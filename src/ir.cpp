@@ -89,6 +89,38 @@ llvm::Value *ast::FnDecl::codegen()
 
 llvm::Value *ast::IfStmt::codegen()
 {
+    llvm::Value *CondV = cond->codegen();
+    if (!CondV)
+        return nullptr;
+
+    llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *ThenBB =
+        llvm::BasicBlock::Create(*ir::ctx, "then", F);
+    llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(*ir::ctx, "else");
+    llvm::BasicBlock *MergeBB = llvm::BasicBlock::Create(*ir::ctx, "ifcont");
+
+    ir::builder->CreateCondBr(CondV, ThenBB, ElseBB);
+
+    ir::builder->SetInsertPoint(ThenBB);
+
+    then->codegen();
+
+    ir::builder->CreateBr(MergeBB);
+    ThenBB = ir::builder->GetInsertBlock();
+
+    F->getBasicBlockList().push_back(ElseBB);
+    ir::builder->SetInsertPoint(ElseBB);
+
+    if (els)
+        els->codegen();
+
+    ir::builder->CreateBr(MergeBB);
+    ElseBB = ir::builder->GetInsertBlock();
+
+    F->getBasicBlockList().push_back(MergeBB);
+    ir::builder->SetInsertPoint(MergeBB);
+
     return nullptr;
 }
 
@@ -104,7 +136,7 @@ llvm::Value *ast::RetStmt::codegen()
 
 llvm::Value *ast::BoolStmt::codegen()
 {
-    return nullptr;
+    return llvm::ConstantInt::get(*ir::ctx, llvm::APInt(1, value));
 }
 
 llvm::Value *ast::CallStmt::codegen()
@@ -129,6 +161,14 @@ llvm::Value *ast::CallStmt::codegen()
 
 llvm::Value *ast::UnOpStmt::codegen()
 {
+    llvm::Value *V = val->codegen();
+    if (!V)
+        return nullptr;
+
+    if (op == "!")
+        return ir::builder->CreateNot(V, "nottmp");
+
+    perr("Invalid unary operator '" + op + "' used");
     return nullptr;
 }
 
@@ -174,5 +214,8 @@ llvm::Value *ast::IdentStmt::codegen()
 
 llvm::Value *ast::ScopeNode::codegen()
 {
+    for (auto &stmt : nodes)
+        stmt->codegen();
+
     return nullptr;
 }
