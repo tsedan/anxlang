@@ -72,4 +72,6 @@ int main(int argc, char **argv)
 
     if (verbose)
         program->print(0);
+
+    program->codegen();
 }

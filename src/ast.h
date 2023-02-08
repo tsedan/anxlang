@@ -4,17 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
 
 namespace ast
 {
@@ -23,6 +13,7 @@ namespace ast
     public:
         virtual ~Node() {}
         virtual void print(int ind) {}
+        virtual llvm::Value *codegen() = 0;
     };
 
     class DeclNode : public Node
@@ -35,6 +26,7 @@ namespace ast
         std::vector<std::unique_ptr<DeclNode>> decls;
 
         ProgramNode(std::vector<std::unique_ptr<DeclNode>> decls) : decls(std::move(decls)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -60,6 +52,7 @@ namespace ast
               args(std::move(args)),
               type(std::move(type)),
               body(std::move(body)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -79,6 +72,7 @@ namespace ast
         std::string type;
 
         VarDecl(std::string name, std::string type) : name(name), type(type) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -96,6 +90,7 @@ namespace ast
         std::vector<std::unique_ptr<Node>> nodes;
 
         ScopeNode(std::vector<std::unique_ptr<Node>> nodes) : nodes(std::move(nodes)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -111,6 +106,7 @@ namespace ast
         std::unique_ptr<Node> value;
 
         RetStmt(std::unique_ptr<Node> value) : value(std::move(value)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -133,6 +129,7 @@ namespace ast
             : cond(std::move(cond)),
               then(std::move(then)),
               els(std::move(els)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -162,6 +159,7 @@ namespace ast
             : op(op),
               lhs(std::move(lhs)),
               rhs(std::move(rhs)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -182,6 +180,7 @@ namespace ast
             std::unique_ptr<Node> val)
             : op(op),
               val(std::move(val)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -198,6 +197,7 @@ namespace ast
 
         AssignStmt(std::string name, std::unique_ptr<Node> value)
             : name(name), value(std::move(value)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -214,6 +214,7 @@ namespace ast
 
         CallStmt(std::string name, std::vector<std::unique_ptr<Node>> args)
             : name(name), args(std::move(args)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -229,6 +230,7 @@ namespace ast
         std::string name;
 
         IdentStmt(std::string name) : name(name) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -244,6 +246,7 @@ namespace ast
 
         CastStmt(std::string type, std::unique_ptr<Node> value)
             : type(type), value(std::move(value)) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -258,6 +261,7 @@ namespace ast
         int32_t value;
 
         I32Stmt(int32_t value) : value(value) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -271,6 +275,7 @@ namespace ast
         bool value;
 
         BoolStmt(bool value) : value(value) {}
+        llvm::Value *codegen();
 
         void print(int ind)
         {
@@ -281,6 +286,8 @@ namespace ast
     class VoidStmt : public StmtNode
     {
     public:
+        llvm::Value *codegen();
+
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< void >" << '\n';
