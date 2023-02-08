@@ -73,5 +73,13 @@ int main(int argc, char **argv)
     if (verbose)
         program->print(0);
 
-    program->codegen();
+    ir::ctx = std::make_unique<llvm::LLVMContext>();
+    ir::mod = std::make_unique<llvm::Module>("Anx Main", *ir::ctx);
+    ir::builder = std::make_unique<llvm::IRBuilder<>>(*ir::ctx);
+
+    auto mainIR = program->codegen();
+
+    fprintf(stderr, "Read function definition:\n");
+    mainIR->print(llvm::errs());
+    fprintf(stderr, "\n");
 }
