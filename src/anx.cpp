@@ -77,12 +77,59 @@ int main(int argc, char **argv)
     ir::mod = std::make_unique<llvm::Module>("Anx Main", *ir::ctx);
     ir::builder = std::make_unique<llvm::IRBuilder<>>(*ir::ctx);
 
-    auto mainIR = program->codegen();
+    program->codegen();
 
-    if (verbose)
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+
+    auto TargetTriple = llvm::sys::getDefaultTargetTriple();
+    ir::mod->setTargetTriple(TargetTriple);
+
+    std::string Error;
+    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
+
+    if (!Target)
     {
-        fprintf(stderr, "Read function definition:\n");
-        mainIR->print(llvm::errs());
-        fprintf(stderr, "\n");
+        llvm::errs() << Error;
+        return 1;
     }
+
+    auto CPU = "generic";
+    auto Features = "";
+
+    llvm::TargetOptions opt;
+    auto RM = llvm::Optional<llvm::Reloc::Model>();
+    auto TheTargetMachine =
+        Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM, llvm::None, llvm::CodeGenOpt::Aggressive);
+
+    ir::mod->setDataLayout(TheTargetMachine->createDataLayout());
+
+    auto Filename = "out.o";
+    std::error_code EC;
+    llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
+
+    if (EC)
+    {
+        llvm::errs() << "Could not open file: " << EC.message();
+        return 1;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto FileType = llvm::CGFT_ObjectFile;
+
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
+    {
+        llvm::errs() << "TheTargetMachine can't emit a file of this type";
+        return 1;
+    }
+
+    pass.run(*ir::mod);
+    dest.flush();
+
+    llvm::outs() << "Wrote " << Filename << "\n";
+
+    return 0;
 }

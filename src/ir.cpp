@@ -23,7 +23,6 @@ llvm::Value *ast::ProgramNode::codegen()
     if (!mainFn)
     {
         perr("No main function defined");
-        return nullptr;
     }
 
     return mainFn;
@@ -42,7 +41,6 @@ llvm::Value *ast::FnDecl::codegen()
         else
         {
             perr("Unknown parameter type '" + args[i].second + "'");
-            return nullptr;
         }
     }
 
@@ -55,10 +53,7 @@ llvm::Value *ast::FnDecl::codegen()
     else if (type == "void")
         Result = llvm::Type::getVoidTy(*ir::ctx);
     else
-    {
-        perr("Unknown return type '" + type + "'");
-        return nullptr;
-    }
+        throw std::runtime_error("Unknown return type '" + type + "'");
 
     llvm::FunctionType *FT =
         llvm::FunctionType::get(Result, Params, false);
@@ -82,7 +77,10 @@ llvm::Value *ast::FnDecl::codegen()
 
     body->codegen();
 
-    llvm::verifyFunction(*F);
+    llvm::verifyFunction(*F, &llvm::errs());
+
+    llvm::errs() << '\n';
+    F->print(llvm::errs());
 
     return F;
 }
@@ -90,8 +88,6 @@ llvm::Value *ast::FnDecl::codegen()
 llvm::Value *ast::IfStmt::codegen()
 {
     llvm::Value *CondV = cond->codegen();
-    if (!CondV)
-        return nullptr;
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -106,7 +102,9 @@ llvm::Value *ast::IfStmt::codegen()
 
     then->codegen();
 
-    ir::builder->CreateBr(MergeBB);
+    if (!ThenBB->getTerminator())
+        ir::builder->CreateBr(MergeBB);
+
     ThenBB = ir::builder->GetInsertBlock();
 
     F->getBasicBlockList().push_back(ElseBB);
@@ -115,7 +113,9 @@ llvm::Value *ast::IfStmt::codegen()
     if (els)
         els->codegen();
 
-    ir::builder->CreateBr(MergeBB);
+    if (!ElseBB->getTerminator())
+        ir::builder->CreateBr(MergeBB);
+
     ElseBB = ir::builder->GetInsertBlock();
 
     F->getBasicBlockList().push_back(MergeBB);
@@ -131,6 +131,9 @@ llvm::Value *ast::I32Stmt::codegen()
 
 llvm::Value *ast::RetStmt::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        throw std::runtime_error("Block already has terminator");
+
     return ir::builder->CreateRet(value->codegen());
 }
 
@@ -150,11 +153,7 @@ llvm::Value *ast::CallStmt::codegen()
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-    {
         ArgsV.push_back(args[i]->codegen());
-        if (!ArgsV.back())
-            return nullptr;
-    }
 
     return ir::builder->CreateCall(CalleeF, ArgsV, "calltmp");
 }
@@ -162,22 +161,17 @@ llvm::Value *ast::CallStmt::codegen()
 llvm::Value *ast::UnOpStmt::codegen()
 {
     llvm::Value *V = val->codegen();
-    if (!V)
-        return nullptr;
 
     if (op == "!")
         return ir::builder->CreateNot(V, "nottmp");
 
-    perr("Invalid unary operator '" + op + "' used");
-    return nullptr;
+    throw std::runtime_error("Invalid unary operator '" + op + "' used");
 }
 
 llvm::Value *ast::BinOpStmt::codegen()
 {
     llvm::Value *L = lhs->codegen();
     llvm::Value *R = rhs->codegen();
-    if (!L || !R)
-        return nullptr;
 
     if (op == "+")
     {
@@ -195,11 +189,8 @@ llvm::Value *ast::BinOpStmt::codegen()
     {
         return ir::builder->CreateICmpULT(L, R, "cmptmp");
     }
-    else
-    {
-        perr("Invalid binary operator");
-        return nullptr;
-    }
+
+    throw std::runtime_error("Invalid binary operator '" + op + "' used");
 }
 
 llvm::Value *ast::IdentStmt::codegen()
@@ -214,8 +205,14 @@ llvm::Value *ast::IdentStmt::codegen()
 
 llvm::Value *ast::ScopeNode::codegen()
 {
+    llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
+    llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
+
+    ir::builder->CreateBr(BB);
+    ir::builder->SetInsertPoint(BB);
+
     for (auto &stmt : nodes)
         stmt->codegen();
 
-    return nullptr;
+    return BB;
 }

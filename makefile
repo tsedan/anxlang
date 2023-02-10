@@ -1,5 +1,5 @@
 CC = clang++
-CFLAGS = -O3 -Wall -pedantic -std=c++14
+CFLAGS = -O3 -Wall -pedantic -std=c++17
 LLVMFLAGS = `llvm-config --cxxflags`
 LINKERFLAGS = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 
