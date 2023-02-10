@@ -79,8 +79,11 @@ llvm::Value *ast::FnDecl::codegen()
 
     llvm::verifyFunction(*F, &llvm::errs());
 
-    llvm::errs() << '\n';
-    F->print(llvm::errs());
+    if (verbose)
+    {
+        llvm::errs() << '\n';
+        F->print(llvm::errs());
+    }
 
     return F;
 }

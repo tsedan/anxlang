@@ -13,11 +13,14 @@
 // There are four major steps involved in the compilation process:
 // 1. (lexer.cpp) Tokenize the input file - mvp complete
 // 2. (ast.cpp) Parse the tokens into an AST - mvp complete
-// 3. (ir.cpp) Generate LLVM IR from the AST - in progress
-// 4. Generate an executable from the LLVM IR - not started
+// 3. (ir.cpp) Generate LLVM IR from the AST - mvp complete
+// 4. (anx.cpp) Generate an executable from the LLVM IR - mvp complete
+//
+// The current todo item is implementing a basic standard library.
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;
+bool verbose = false;
 
 void perr(std::string msg)
 {
@@ -28,17 +31,20 @@ void perr(std::string msg)
 
 int main(int argc, char **argv)
 {
-    bool verbose = false;
+    char *outfile = nullptr;
 
     opterr = 0;
 
     int c;
-    while ((c = getopt(argc, argv, "vh")) != -1)
+    while ((c = getopt(argc, argv, "vho:")) != -1)
     {
         switch (c)
         {
         case 'v':
             verbose = true;
+            break;
+        case 'o':
+            outfile = optarg;
             break;
         case '?':
             std::cerr << "Unknown option '-" << optopt << "'.\n";
@@ -129,7 +135,18 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
-    llvm::outs() << "Wrote " << Filename << "\n";
+    if (verbose)
+        llvm::outs() << "Wrote " << Filename << "\n";
+
+    std::string clangcmd = "clang out.o";
+    if (outfile)
+    {
+        clangcmd += " -o ";
+        clangcmd += outfile;
+    }
+
+    system(clangcmd.c_str());
+    system("rm out.o");
 
     return 0;
 }

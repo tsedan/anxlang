@@ -12,5 +12,6 @@
 #include "llvm/Target/TargetOptions.h"
 
 extern std::ifstream anxf; // The anx input file
+extern bool verbose;       // Whether the compiler should print what it's doing
 
 void perr(std::string msg);
