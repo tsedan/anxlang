@@ -3,23 +3,23 @@ CFLAGS = -O3 -Wall -pedantic -std=c++17
 LLVMFLAGS = `llvm-config --cxxflags`
 LINKERFLAGS = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 
-build/anx: build/anx.o build/lexer.o build/ast.o build/ir.o | build
-	$(CC) -g -o build/anx build/anx.o build/lexer.o build/ast.o build/ir.o $(CFLAGS) $(LINKERFLAGS) 
+bin/anx: bin/anx.o bin/lexer.o bin/ast.o bin/ir.o | bin
+	$(CC) -g -o bin/anx bin/anx.o bin/lexer.o bin/ast.o bin/ir.o $(CFLAGS) $(LINKERFLAGS) 
 
-build/anx.o: src/anx.cpp src/anx.h src/ast.h src/ir.h | build
-	$(CC) -g -c -o build/anx.o src/anx.cpp $(CFLAGS) $(LLVMFLAGS)
+bin/anx.o: src/anx.cpp src/anx.h src/ast.h src/ir.h | bin
+	$(CC) -g -c -o bin/anx.o src/anx.cpp $(CFLAGS) $(LLVMFLAGS)
 
-build/lexer.o: src/lexer.cpp src/lexer.h src/anx.h | build
-	$(CC) -g -c -o build/lexer.o src/lexer.cpp $(CFLAGS) $(LLVMFLAGS)
+bin/lexer.o: src/lexer.cpp src/lexer.h src/anx.h | bin
+	$(CC) -g -c -o bin/lexer.o src/lexer.cpp $(CFLAGS) $(LLVMFLAGS)
 
-build/ast.o : src/ast.cpp src/ast.h src/lexer.h src/anx.h | build
-	$(CC) -g -c -o build/ast.o src/ast.cpp $(CFLAGS) $(LLVMFLAGS)
+bin/ast.o : src/ast.cpp src/ast.h src/lexer.h src/anx.h | bin
+	$(CC) -g -c -o bin/ast.o src/ast.cpp $(CFLAGS) $(LLVMFLAGS)
 
-build/ir.o : src/ir.cpp src/ir.h src/ast.h src/anx.h | build
-	$(CC) -g -c -o build/ir.o src/ir.cpp $(CFLAGS) $(LLVMFLAGS)
+bin/ir.o : src/ir.cpp src/ir.h src/ast.h src/anx.h | bin
+	$(CC) -g -c -o bin/ir.o src/ir.cpp $(CFLAGS) $(LLVMFLAGS)
 
 clean:
-	rm -rf build
+	rm -rf bin
 
-build:
+bin:
 	mkdir -p $@
