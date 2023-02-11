@@ -3,7 +3,7 @@
 #include "ast.h"
 
 //===---------------------------------------------------------------------===//
-// AST - This module implements the Abstract Syntax Tree (AST) for Anx
+// AST - This module implements the Abstract Syntax Tree (AST) for Anx.
 //
 // The structure of the AST follows the following hierarchy:
 // Node - The base type for AST nodes (defined in ast.h)
@@ -24,6 +24,19 @@
 //     BoolStmt - A boolean literal statement
 //     VoidStmt - A void literal statement
 //===---------------------------------------------------------------------===//
+
+// Get the priority of an operator, such as + or /
+int prio(const std::string &op)
+{
+    if (op == "*" || op == "/" || op == "%")
+        return 2;
+    else if (op == "+" || op == "-")
+        return 1;
+    else if (op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=")
+        return 0;
+
+    return -1;
+}
 
 std::unique_ptr<ast::StmtNode> parse_stmt();
 std::unique_ptr<ast::StmtNode> parse_expr();
@@ -222,7 +235,7 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
 {
     while (1)
     {
-        int c_prio = lex::prio(lex::tok.val);
+        int c_prio = prio(lex::tok.val);
 
         if (c_prio < priority)
             return lhs;
@@ -233,7 +246,7 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
 
         std::unique_ptr<ast::StmtNode> rhs = parse_primary();
 
-        int next_prio = lex::prio(lex::tok.val);
+        int next_prio = prio(lex::tok.val);
 
         if (c_prio < next_prio)
             rhs = parse_binop(c_prio + 1, std::move(rhs));

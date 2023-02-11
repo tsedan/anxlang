@@ -56,6 +56,4 @@ namespace lex
     extern Token tok;
     void eat();
     void exp(TokEnum token, std::string msg);
-
-    int prio(const std::string &op);
 }

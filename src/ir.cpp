@@ -5,7 +5,7 @@
 #include "ast.h"
 
 //===---------------------------------------------------------------------===//
-// IR - This module generates LLVM IR from the Anx AST
+// IR - This module generates LLVM IR from the Anx AST.
 //===---------------------------------------------------------------------===//
 
 std::unique_ptr<llvm::LLVMContext> ir::ctx;

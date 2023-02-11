@@ -2,9 +2,7 @@
 #include "lexer.h"
 
 //===---------------------------------------------------------------------===//
-// Lexer - This module tokenizes an input Anx file
-//
-// See lexer.h for the Token enum declaration.
+// Lexer - This module tokenizes an input Anx file.
 //===---------------------------------------------------------------------===//
 
 lex::Token lex::tok;
@@ -153,17 +151,4 @@ void lex::exp(lex::TokEnum token, std::string msg)
 {
     if (tok.tok != token)
         perr(msg);
-}
-
-// Get the priority of an operator, such as + or /
-int lex::prio(const std::string &op)
-{
-    if (op == "*" || op == "/" || op == "%")
-        return 2;
-    else if (op == "+" || op == "-")
-        return 1;
-    else if (op == "==" || op == "!=" || op == "<" || op == ">" || op == "<=" || op == ">=")
-        return 0;
-
-    return -1;
 }
