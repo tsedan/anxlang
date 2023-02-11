@@ -1,4 +1,7 @@
+fn nothing() void ret;
+
 fn main() i32 {
+    nothing();
     ret fib(7);
 }
 

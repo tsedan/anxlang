@@ -41,16 +41,19 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
 
         std::vector<std::unique_ptr<ast::Node>> args;
 
-        while (1)
+        if (lex::tok.tok != lex::tok_parene)
         {
-            args.push_back(parse_expr());
+            while (1)
+            {
+                args.push_back(parse_expr());
 
-            if (lex::tok.tok == lex::tok_parene)
-                break;
+                if (lex::tok.tok == lex::tok_parene)
+                    break;
 
-            lex::exp(lex::tok_comma, "Expected ',' or ')' in function call");
+                lex::exp(lex::tok_comma, "Expected ',' or ')' in function call");
 
-            lex::eat(); // eat ,
+                lex::eat(); // eat ,
+            }
         }
 
         lex::eat(); // eat )
@@ -281,30 +284,38 @@ std::unique_ptr<ast::RetStmt> parse_ret()
 {
     lex::eat(); // eat ret
 
-    std::unique_ptr<ast::RetStmt> ret = std::make_unique<ast::RetStmt>(parse_expr());
+    std::unique_ptr<ast::StmtNode> val = nullptr;
 
-    lex::exp(lex::tok_eol, "Expected ';' at end of return statement");
+    if (lex::tok.tok != lex::tok_eol)
+        val = parse_expr();
 
-    lex::eat(); // eat ;
+    std::unique_ptr<ast::RetStmt> ret = std::make_unique<ast::RetStmt>(std::move(val));
 
     return ret;
 }
 
 std::unique_ptr<ast::StmtNode> parse_stmt()
 {
+    std::unique_ptr<ast::StmtNode> n;
+
     switch (lex::tok.tok)
     {
     case lex::tok_if:
         return parse_if();
     case lex::tok_identifier:
-        return parse_identifier();
+        n = parse_identifier();
+        break;
     case lex::tok_ret:
-        return parse_ret();
+        n = parse_ret();
+        break;
     default:
         perr("Unexpected token '" + lex::tok.val + "'");
     }
 
-    return nullptr;
+    lex::exp(lex::tok_eol, "Expected ';' at end of statement");
+    lex::eat(); // eat ;
+
+    return n;
 }
 
 // Generate the program AST

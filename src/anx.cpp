@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
-    std::string clangcmd = "clang out.o";
+    std::string clangcmd = "cc out.o";
     if (outfile)
     {
         clangcmd += " -o";
@@ -143,7 +143,7 @@ int main(int argc, char **argv)
     }
 
     system(clangcmd.c_str());
-    system("rm out.o");
+    remove("out.o");
 
     return 0;
 }

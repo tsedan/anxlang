@@ -151,6 +151,9 @@ llvm::Value *ast::RetStmt::codegen()
     if (ir::builder->GetInsertBlock()->getTerminator())
         throw std::runtime_error("Block already has terminator");
 
+    if (!value)
+        return ir::builder->CreateRetVoid();
+
     return ir::builder->CreateRet(value->codegen());
 }
 
@@ -171,6 +174,9 @@ llvm::Value *ast::CallStmt::codegen()
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
         ArgsV.push_back(args[i]->codegen());
+
+    if (CalleeF->getReturnType()->isVoidTy())
+        return ir::builder->CreateCall(CalleeF, ArgsV);
 
     return ir::builder->CreateCall(CalleeF, ArgsV, "calltmp");
 }

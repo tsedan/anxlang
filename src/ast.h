@@ -47,7 +47,8 @@ namespace ast
                 std::cout << arg.first << " : " << arg.second << ", ";
             std::cout << ") " << type;
             std::cout << " >" << '\n';
-            body->print(ind + 1);
+            if (body)
+                body->print(ind + 1);
         }
     };
 
@@ -104,15 +105,16 @@ namespace ast
     class RetStmt : public StmtNode
     {
     public:
-        std::unique_ptr<Node> value;
+        std::unique_ptr<StmtNode> value;
 
-        RetStmt(std::unique_ptr<Node> value) : value(std::move(value)) {}
+        RetStmt(std::unique_ptr<StmtNode> value) : value(std::move(value)) {}
         llvm::Value *codegen();
 
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< ret >" << '\n';
-            value->print(ind + 1);
+            if (value)
+                value->print(ind + 1);
         }
     };
 
