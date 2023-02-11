@@ -34,8 +34,6 @@ void lex::eat()
             tok.tok = tok_fn;
         else if (tok.val == "pub")
             tok.tok = tok_pub;
-        else if (tok.val == "ext")
-            tok.tok = tok_ext;
         else if (tok.val == "ret")
             tok.tok = tok_ret;
         else if (tok.val == "var")

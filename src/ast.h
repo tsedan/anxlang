@@ -23,17 +23,20 @@ namespace ast
         std::vector<std::pair<std::string, std::string>> args;
         std::string type;
         std::unique_ptr<Node> body;
+        bool is_pub;
         llvm::Function *F;
 
         FnDecl(
             std::string name,
             std::vector<std::pair<std::string, std::string>> args,
             std::string type,
-            std::unique_ptr<Node> body)
+            std::unique_ptr<Node> body,
+            bool is_pub)
             : name(name),
               args(std::move(args)),
               type(std::move(type)),
-              body(std::move(body)) {}
+              body(std::move(body)),
+              is_pub(is_pub) {}
         void declare();
         llvm::Value *codegen();
 

@@ -61,7 +61,13 @@ void ast::FnDecl::declare()
     llvm::FunctionType *FT =
         llvm::FunctionType::get(Result, Params, false);
 
-    F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, ir::mod.get());
+    llvm::Function::LinkageTypes linkage;
+    if (is_pub || name == "main")
+        linkage = llvm::Function::ExternalLinkage;
+    else
+        linkage = llvm::Function::InternalLinkage;
+
+    F = llvm::Function::Create(FT, linkage, name, ir::mod.get());
 
     unsigned Idx = 0;
     for (auto &Arg : F->args())

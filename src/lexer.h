@@ -21,7 +21,6 @@ namespace lex
         // functions
         tok_fn,  // function
         tok_pub, // public decorator
-        tok_ext, // extern decorator
         tok_ret, // return
 
         // variables

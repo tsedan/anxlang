@@ -83,7 +83,7 @@ std::unique_ptr<ast::ScopeNode> parse_scope()
     }
 }
 
-std::unique_ptr<ast::FnDecl> parse_fn()
+std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 {
     lex::eat(); // eat fn
 
@@ -137,9 +137,9 @@ std::unique_ptr<ast::FnDecl> parse_fn()
     lex::eat(); // eat return type
 
     if (lex::tok.tok == lex::tok_curlys)
-        return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_scope());
+        return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_scope(), is_pub);
 
-    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_stmt());
+    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_stmt(), is_pub);
 }
 
 std::unique_ptr<ast::StmtNode> parse_paren_expr()
@@ -308,18 +308,13 @@ std::unique_ptr<ast::ProgramNode> ast::gen_ast()
         {
         case lex::tok_eof:
             return std::make_unique<ProgramNode>(std::move(decls));
-        case lex::tok_ext:
-            lex::eat();
-            lex::exp(lex::tok_fn, "Expected 'fn' after external decorator");
-            decls.push_back(parse_fn());
-            break;
         case lex::tok_pub:
             lex::eat();
             lex::exp(lex::tok_fn, "Expected 'fn' after public decorator");
-            decls.push_back(parse_fn());
+            decls.push_back(parse_fn(true));
             break;
         case lex::tok_fn:
-            decls.push_back(parse_fn());
+            decls.push_back(parse_fn(false));
             break;
         default:
             perr("Only declarations are permitted at the top level, got '" + lex::tok.val + "' instead");
