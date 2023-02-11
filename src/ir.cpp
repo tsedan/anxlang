@@ -91,6 +91,8 @@ llvm::Value *ast::FnDecl::codegen()
 
     body->codegen();
 
+    llvm::EliminateUnreachableBlocks(*F);
+
     llvm::verifyFunction(*F, &llvm::errs());
 
     if (verbose)
@@ -119,10 +121,8 @@ llvm::Value *ast::IfStmt::codegen()
 
     then->codegen();
 
-    if (!ThenBB->getTerminator())
+    if (!ir::builder->GetInsertBlock()->getTerminator())
         ir::builder->CreateBr(MergeBB);
-
-    ThenBB = ir::builder->GetInsertBlock();
 
     F->getBasicBlockList().push_back(ElseBB);
     ir::builder->SetInsertPoint(ElseBB);
@@ -130,10 +130,8 @@ llvm::Value *ast::IfStmt::codegen()
     if (els)
         els->codegen();
 
-    if (!ElseBB->getTerminator())
+    if (!ir::builder->GetInsertBlock()->getTerminator())
         ir::builder->CreateBr(MergeBB);
-
-    ElseBB = ir::builder->GetInsertBlock();
 
     F->getBasicBlockList().push_back(MergeBB);
     ir::builder->SetInsertPoint(MergeBB);
@@ -197,21 +195,25 @@ llvm::Value *ast::BinOpStmt::codegen()
     llvm::Value *R = rhs->codegen();
 
     if (op == "+")
-    {
         return ir::builder->CreateAdd(L, R, "addtmp");
-    }
     else if (op == "-")
-    {
         return ir::builder->CreateSub(L, R, "subtmp");
-    }
     else if (op == "*")
-    {
         return ir::builder->CreateMul(L, R, "multmp");
-    }
+    else if (op == "/")
+        return ir::builder->CreateSDiv(L, R, "divtmp");
     else if (op == "<")
-    {
         return ir::builder->CreateICmpULT(L, R, "cmptmp");
-    }
+    else if (op == ">")
+        return ir::builder->CreateICmpUGT(L, R, "cmptmp");
+    else if (op == "<=")
+        return ir::builder->CreateICmpULE(L, R, "cmptmp");
+    else if (op == ">=")
+        return ir::builder->CreateICmpUGE(L, R, "cmptmp");
+    else if (op == "==")
+        return ir::builder->CreateICmpEQ(L, R, "cmptmp");
+    else if (op == "!=")
+        return ir::builder->CreateICmpNE(L, R, "cmptmp");
 
     throw std::runtime_error("Invalid binary operator '" + op + "' used");
 }
@@ -228,6 +230,9 @@ llvm::Value *ast::IdentStmt::codegen()
 
 llvm::Value *ast::ScopeNode::codegen()
 {
+    if (nodes.empty())
+        perr("Cannot have an empty scope!");
+
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
 
