@@ -138,7 +138,7 @@ int main(int argc, char **argv)
     std::string clangcmd = "clang out.o";
     if (outfile)
     {
-        clangcmd += " -o ";
+        clangcmd += " -o";
         clangcmd += outfile;
     }
 

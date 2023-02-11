@@ -85,6 +85,9 @@ void lex::eat()
 
     switch (old)
     {
+    case ';':
+        tok.tok = tok_eol;
+        return;
     case ',':
         tok.tok = tok_comma;
         return;

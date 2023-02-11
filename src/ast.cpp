@@ -278,7 +278,14 @@ std::unique_ptr<ast::RetStmt> parse_ret()
 {
     lex::eat(); // eat ret
 
-    return std::make_unique<ast::RetStmt>(parse_expr());
+    std::unique_ptr<ast::RetStmt> ret = std::make_unique<ast::RetStmt>(parse_expr());
+
+    if (lex::tok.tok != lex::tok_eol)
+        perr("expected semicolon at end of return statement");
+
+    lex::eat(); // eat ;
+
+    return ret;
 }
 
 std::unique_ptr<ast::StmtNode> parse_stmt()

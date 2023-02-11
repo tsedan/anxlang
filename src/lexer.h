@@ -9,6 +9,7 @@ namespace lex
     {
         // general
         tok_eof, // end of file
+        tok_eol, // end of line
 
         // grouping
         tok_comma,  // ,
