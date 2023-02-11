@@ -33,6 +33,9 @@ llvm::Value *ast::ProgramNode::codegen()
 
 void ast::FnDecl::declare()
 {
+    if (ir::mod->getFunction(name))
+        perr("No two functions can have the same name: '" + name + "'");
+
     std::vector<llvm::Type *> Params(args.size());
 
     for (unsigned i = 0, e = args.size(); i != e; ++i)
@@ -76,6 +79,9 @@ void ast::FnDecl::declare()
 
 llvm::Value *ast::FnDecl::codegen()
 {
+    if (!body)
+        return nullptr;
+
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 

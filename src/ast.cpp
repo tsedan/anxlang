@@ -136,10 +136,22 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     lex::eat(); // eat return type
 
-    if (lex::tok.tok == lex::tok_curlys)
-        return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_scope(), is_pub);
+    std::unique_ptr<ast::Node> body;
 
-    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), parse_stmt(), is_pub);
+    switch (lex::tok.tok)
+    {
+    case lex::tok_eol:
+        lex::eat();
+        body = nullptr;
+        break;
+    case lex::tok_curlys:
+        body = parse_scope();
+        break;
+    default:
+        body = parse_stmt();
+    }
+
+    return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), std::move(body), is_pub);
 }
 
 std::unique_ptr<ast::StmtNode> parse_paren_expr()
