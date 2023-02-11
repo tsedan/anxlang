@@ -1,10 +1,17 @@
+pub fn putchar(n: i32) i32;
+
 fn main() i32 {
-    ret fib(7);
+    printint(fib(40));
+    putchar(10);
+    ret 0;
+}
+
+fn printint(i: i32) void {
+    if i > 9 printint(i / 10);
+    putchar(i % 10 + 48);
 }
 
 fn fib(n: i32) i32 {
-    if (n < 2)
-        ret n;
-
+    if n < 2 ret n;
     ret fib(n - 1) + fib(n - 2);
 }

@@ -112,6 +112,7 @@ void lex::eat()
     case '/':
     case '+':
     case '-':
+    case '%':
         tok.tok = tok_binop;
         return;
     case '<':
@@ -157,7 +158,7 @@ void lex::exp(lex::TokEnum token, std::string msg)
 // Get the priority of an operator, such as + or /
 int lex::prio(const std::string &op)
 {
-    if (op == "*" || op == "/")
+    if (op == "*" || op == "/" || op == "%")
         return 2;
     else if (op == "+" || op == "-")
         return 1;

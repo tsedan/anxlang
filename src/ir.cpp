@@ -91,6 +91,14 @@ llvm::Value *ast::FnDecl::codegen()
 
     body->codegen();
 
+    if (!ir::builder->GetInsertBlock()->getTerminator())
+    {
+        if (type == "void")
+            ir::builder->CreateRetVoid();
+        else
+            perr("Expected return statement at end of function '" + name + "'");
+    }
+
     llvm::EliminateUnreachableBlocks(*F);
 
     llvm::verifyFunction(*F, &llvm::errs());
@@ -202,6 +210,8 @@ llvm::Value *ast::BinOpStmt::codegen()
         return ir::builder->CreateMul(L, R, "multmp");
     else if (op == "/")
         return ir::builder->CreateSDiv(L, R, "divtmp");
+    else if (op == "%")
+        return ir::builder->CreateSRem(L, R, "modtmp");
     else if (op == "<")
         return ir::builder->CreateICmpULT(L, R, "cmptmp");
     else if (op == ">")

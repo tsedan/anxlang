@@ -135,14 +135,16 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
-    std::string clangcmd = "cc out.o";
+    std::string linkercmd = "cc out.o";
     if (outfile)
     {
-        clangcmd += " -o";
-        clangcmd += outfile;
+        linkercmd += " -o";
+        linkercmd += outfile;
     }
+    if (verbose)
+        linkercmd += " -v";
 
-    system(clangcmd.c_str());
+    system(linkercmd.c_str());
     remove("out.o");
 
     return 0;
