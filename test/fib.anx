@@ -12,6 +12,9 @@ fn printint(i: i32) void {
 }
 
 fn fib(n: i32) i32 {
-    if n < 2 ret n;
+    if n < 2 {
+        ret n;
+    }
+
     ret fib(n - 1) + fib(n - 2);
 }

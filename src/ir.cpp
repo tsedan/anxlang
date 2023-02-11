@@ -244,13 +244,20 @@ llvm::Value *ast::ScopeNode::codegen()
         perr("Cannot have an empty scope!");
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
-    llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
 
+    llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
     ir::builder->CreateBr(BB);
     ir::builder->SetInsertPoint(BB);
 
     for (auto &stmt : nodes)
         stmt->codegen();
+
+    if (!ir::builder->GetInsertBlock()->getTerminator())
+    {
+        llvm::BasicBlock *BB2 = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
+        ir::builder->CreateBr(BB2);
+        ir::builder->SetInsertPoint(BB2);
+    }
 
     return BB;
 }

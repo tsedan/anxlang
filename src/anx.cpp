@@ -16,7 +16,7 @@
 // 3. (ir.cpp) Generate LLVM IR from the AST - mvp complete
 // 4. (anx.cpp) Generate an executable from the LLVM IR - mvp complete
 //
-// The current todo item is implementing a basic standard library.
+// The current todo item is implementing variables.
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;
