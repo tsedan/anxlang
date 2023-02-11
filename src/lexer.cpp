@@ -32,6 +32,10 @@ void lex::eat()
 
         if (tok.val == "fn")
             tok.tok = tok_fn;
+        else if (tok.val == "pub")
+            tok.tok = tok_pub;
+        else if (tok.val == "ext")
+            tok.tok = tok_ext;
         else if (tok.val == "ret")
             tok.tok = tok_ret;
         else if (tok.val == "var")
@@ -144,6 +148,12 @@ void lex::eat()
     }
 
     perr("Invalid token: '" + std::string(1, old) + "'");
+}
+
+void lex::exp(lex::TokEnum token, std::string msg)
+{
+    if (tok.tok != token)
+        perr(msg);
 }
 
 // Get the priority of an operator, such as + or /

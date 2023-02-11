@@ -20,6 +20,8 @@ namespace lex
 
         // functions
         tok_fn,  // function
+        tok_pub, // public decorator
+        tok_ext, // extern decorator
         tok_ret, // return
 
         // variables
@@ -54,6 +56,7 @@ namespace lex
 
     extern Token tok;
     void eat();
+    void exp(TokEnum token, std::string msg);
 
     int prio(const std::string &op);
 }

@@ -48,8 +48,7 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
             if (lex::tok.tok == lex::tok_parene)
                 break;
 
-            if (lex::tok.tok != lex::tok_comma)
-                perr("Expected ',' or ')' in function call");
+            lex::exp(lex::tok_comma, "Expected ',' or ')' in function call");
 
             lex::eat(); // eat ,
         }
@@ -88,15 +87,13 @@ std::unique_ptr<ast::FnDecl> parse_fn()
 {
     lex::eat(); // eat fn
 
-    if (lex::tok.tok != lex::tok_identifier)
-        perr("Expected identifier after function declaration");
+    lex::exp(lex::tok_identifier, "Expected identifier after function declaration");
 
     std::string name = lex::tok.val;
 
     lex::eat(); // eat identifier
 
-    if (lex::tok.tok != lex::tok_parens)
-        perr("Expected '(' after function name in function declaration");
+    lex::exp(lex::tok_parens, "Expected '(' after function name in function declaration");
 
     lex::eat(); // eat (
 
@@ -106,20 +103,17 @@ std::unique_ptr<ast::FnDecl> parse_fn()
     {
         while (1)
         {
-            if (lex::tok.tok != lex::tok_identifier)
-                perr("Expected identifier in function argument list in function declaration, got '" + lex::tok.val + "' instead");
+            lex::exp(lex::tok_identifier, "Expected identifier in function argument list in function declaration, got '" + lex::tok.val + "' instead");
 
             std::string name = lex::tok.val;
 
             lex::eat(); // eat name
 
-            if (lex::tok.tok != lex::tok_type)
-                perr("Expected ':' after variable name in argument list in function declaration");
+            lex::exp(lex::tok_type, "Expected ':' after variable name in argument list in function declaration");
 
             lex::eat(); // eat :
 
-            if (lex::tok.tok != lex::tok_identifier)
-                perr("Expected identifier after type in function argument list in function declaration");
+            lex::exp(lex::tok_identifier, "Expected identifier after type in function argument list in function declaration");
 
             args.push_back(std::make_pair(name, lex::tok.val));
 
@@ -128,8 +122,7 @@ std::unique_ptr<ast::FnDecl> parse_fn()
             if (lex::tok.tok == lex::tok_parene)
                 break;
 
-            if (lex::tok.tok != lex::tok_comma)
-                perr("Expected ',' or ')' in argument list in function declaration");
+            lex::exp(lex::tok_comma, "Expected ',' or ')' in argument list in function declaration");
 
             lex::eat(); // eat ,
         }
@@ -137,8 +130,7 @@ std::unique_ptr<ast::FnDecl> parse_fn()
 
     lex::eat(); // eat )
 
-    if (lex::tok.tok != lex::tok_identifier)
-        perr("Expected return type after function argument list in function declaration");
+    lex::exp(lex::tok_identifier, "Expected return type after function argument list in function declaration");
 
     std::string type = lex::tok.val;
 
@@ -156,8 +148,7 @@ std::unique_ptr<ast::StmtNode> parse_paren_expr()
 
     std::unique_ptr<ast::StmtNode> expr = parse_expr();
 
-    if (lex::tok.tok != lex::tok_parene)
-        perr("Expected ')' to close parenthetical expression");
+    lex::exp(lex::tok_parene, "Expected ')' to close parenthetical expression");
 
     lex::eat(); // eat )
 
@@ -280,8 +271,7 @@ std::unique_ptr<ast::RetStmt> parse_ret()
 
     std::unique_ptr<ast::RetStmt> ret = std::make_unique<ast::RetStmt>(parse_expr());
 
-    if (lex::tok.tok != lex::tok_eol)
-        perr("expected semicolon at end of return statement");
+    lex::exp(lex::tok_eol, "Expected ';' at end of return statement");
 
     lex::eat(); // eat ;
 
@@ -318,6 +308,16 @@ std::unique_ptr<ast::ProgramNode> ast::gen_ast()
         {
         case lex::tok_eof:
             return std::make_unique<ProgramNode>(std::move(decls));
+        case lex::tok_ext:
+            lex::eat();
+            lex::exp(lex::tok_fn, "Expected 'fn' after external decorator");
+            decls.push_back(parse_fn());
+            break;
+        case lex::tok_pub:
+            lex::eat();
+            lex::exp(lex::tok_fn, "Expected 'fn' after public decorator");
+            decls.push_back(parse_fn());
+            break;
         case lex::tok_fn:
             decls.push_back(parse_fn());
             break;
