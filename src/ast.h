@@ -16,32 +16,14 @@ namespace ast
         virtual llvm::Value *codegen() = 0;
     };
 
-    class DeclNode : public Node
-    {
-    };
-
-    class ProgramNode : public Node
-    {
-    public:
-        std::vector<std::unique_ptr<DeclNode>> decls;
-
-        ProgramNode(std::vector<std::unique_ptr<DeclNode>> decls) : decls(std::move(decls)) {}
-        llvm::Value *codegen();
-
-        void print(int ind)
-        {
-            for (auto &decl : decls)
-                decl->print(ind);
-        }
-    };
-
-    class FnDecl : public DeclNode
+    class FnDecl : public Node
     {
     public:
         std::string name;
         std::vector<std::pair<std::string, std::string>> args;
         std::string type;
         std::unique_ptr<Node> body;
+        llvm::Function *F;
 
         FnDecl(
             std::string name,
@@ -52,6 +34,7 @@ namespace ast
               args(std::move(args)),
               type(std::move(type)),
               body(std::move(body)) {}
+        void declare();
         llvm::Value *codegen();
 
         void print(int ind)
@@ -65,7 +48,22 @@ namespace ast
         }
     };
 
-    class VarDecl : public DeclNode
+    class ProgramNode : public Node
+    {
+    public:
+        std::vector<std::unique_ptr<FnDecl>> decls;
+
+        ProgramNode(std::vector<std::unique_ptr<FnDecl>> decls) : decls(std::move(decls)) {}
+        llvm::Value *codegen();
+
+        void print(int ind)
+        {
+            for (auto &decl : decls)
+                decl->print(ind);
+        }
+    };
+
+    class VarDecl : public Node
     {
     public:
         std::string name;

@@ -8,9 +8,8 @@
 // The structure of the AST follows the following hierarchy:
 // Node - The base type for AST nodes (defined in ast.h)
 //   ProgramNode - The root node of the AST
-//   DeclNode - A node that declares something
-//     FnDecl - A function declaration
-//     VarDecl - A variable declaration
+//   FnDecl - A function declaration
+//   VarDecl - A variable declaration
 //   ScopeNode - A node consisting of a list of nodes
 //   StmtNode - A node that represents a value or evaluates in some way
 //     RetStmt - A return statement
@@ -304,7 +303,7 @@ std::unique_ptr<ast::ProgramNode> ast::gen_ast()
 {
     lex::eat(); // generate the first token
 
-    std::vector<std::unique_ptr<DeclNode>> decls;
+    std::vector<std::unique_ptr<FnDecl>> decls;
 
     while (1)
     {

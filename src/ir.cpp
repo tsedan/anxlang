@@ -17,6 +17,9 @@ std::map<std::string, llvm::Value *> vars;
 llvm::Value *ast::ProgramNode::codegen()
 {
     for (auto &fn : decls)
+        fn->declare();
+
+    for (auto &fn : decls)
         fn->codegen();
 
     llvm::Value *mainFn = ir::mod->getFunction("main");
@@ -28,7 +31,7 @@ llvm::Value *ast::ProgramNode::codegen()
     return mainFn;
 }
 
-llvm::Value *ast::FnDecl::codegen()
+void ast::FnDecl::declare()
 {
     std::vector<llvm::Type *> Params(args.size());
 
@@ -58,16 +61,15 @@ llvm::Value *ast::FnDecl::codegen()
     llvm::FunctionType *FT =
         llvm::FunctionType::get(Result, Params, false);
 
-    llvm::Function *F =
-        llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, ir::mod.get());
+    F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage, name, ir::mod.get());
 
     unsigned Idx = 0;
     for (auto &Arg : F->args())
         Arg.setName(args[Idx++].first);
+}
 
-    if (!F->empty())
-        perr("Function '" + name + "' already defined");
-
+llvm::Value *ast::FnDecl::codegen()
+{
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 

@@ -135,9 +135,6 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
-    if (verbose)
-        llvm::outs() << "Wrote " << Filename << "\n";
-
     std::string clangcmd = "clang out.o";
     if (outfile)
     {
