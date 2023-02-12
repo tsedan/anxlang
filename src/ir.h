@@ -21,10 +21,12 @@ namespace ir
     class Symbol final
     {
     public:
-        std::string ty;
+        std::string kind;
         llvm::Value *value;
+        llvm::Function *function;
 
-        Symbol(std::string ty, llvm::Value *value) : ty(ty), value(value) {}
+        Symbol(std::string kind, llvm::Value *value) : kind(kind), value(value) {}
+        Symbol(llvm::Function *function) : kind("fn"), function(function) {}
     };
 
     extern std::unique_ptr<llvm::LLVMContext> ctx;

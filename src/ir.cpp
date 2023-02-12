@@ -54,6 +54,8 @@ llvm::Type *get_type(std::string ty, bool allow_void = false)
 
 llvm::Value *ast::ProgramNode::codegen()
 {
+    symbols.push_back(std::map<std::string, ir::Symbol>());
+
     for (auto &fn : decls)
         fn->declare();
 
@@ -63,6 +65,8 @@ llvm::Value *ast::ProgramNode::codegen()
     llvm::Value *mainFn = ir::mod->getFunction("main");
     if (!mainFn)
         perr("No main function defined");
+
+    symbols.pop_back();
 
     return mainFn;
 }
@@ -87,6 +91,8 @@ void ast::FnDecl::declare()
     unsigned Idx = 0;
     for (auto &Arg : F->args())
         Arg.setName(args[Idx++].first);
+
+    symbols.back().insert(std::make_pair(name, ir::Symbol(F)));
 }
 
 llvm::Value *ast::FnDecl::codegen()
@@ -100,7 +106,7 @@ llvm::Value *ast::FnDecl::codegen()
     symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &Arg : F->args())
-        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol("", &Arg)));
+        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol("var", &Arg)));
 
     body->codegen();
 
@@ -183,9 +189,12 @@ llvm::Value *ast::RetNode::codegen()
 
 llvm::Value *ast::CallStmt::codegen()
 {
-    llvm::Function *CalleeF = ir::mod->getFunction(name);
-    if (!CalleeF)
-        perr("Unknown function referenced");
+    ir::Symbol sym = search(name);
+
+    if (sym.kind != "fn")
+        perr("Attempted to call a non-function '" + name + "'");
+
+    llvm::Function *CalleeF = sym.function;
 
     if (CalleeF->arg_size() != args.size())
         perr("Incorrect # arguments passed");
