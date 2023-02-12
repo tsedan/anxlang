@@ -106,7 +106,7 @@ llvm::Value *ast::FnDecl::codegen()
     symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &Arg : F->args())
-        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol("var", &Arg)));
+        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol(ir::sym_var, &Arg)));
 
     body->codegen();
 
@@ -191,7 +191,7 @@ llvm::Value *ast::CallStmt::codegen()
 {
     ir::Symbol sym = search(name);
 
-    if (sym.kind != "fn")
+    if (sym.kind != ir::sym_fn)
         perr("Attempted to call a non-function '" + name + "'");
 
     llvm::Function *CalleeF = sym.function;

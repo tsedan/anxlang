@@ -18,15 +18,21 @@
 
 namespace ir
 {
+    enum SymbolEnum
+    {
+        sym_fn,  // function symbol
+        sym_var, // var symbol
+    };
+
     class Symbol final
     {
     public:
-        std::string kind;
+        SymbolEnum kind;
         llvm::Value *value;
         llvm::Function *function;
 
-        Symbol(std::string kind, llvm::Value *value) : kind(kind), value(value) {}
-        Symbol(llvm::Function *function) : kind("fn"), function(function) {}
+        Symbol(SymbolEnum kind, llvm::Value *value) : kind(kind), value(value) {}
+        Symbol(llvm::Function *function) : kind(sym_fn), function(function) {}
     };
 
     extern std::unique_ptr<llvm::LLVMContext> ctx;
