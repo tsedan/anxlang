@@ -40,16 +40,8 @@ void lex::eat()
             tok.tok = tok_if;
         else if (tok.val == "else")
             tok.tok = tok_else;
-        else if (tok.val == "true")
-        {
-            tok.bval = true;
-            tok.tok = tok_boolean;
-        }
-        else if (tok.val == "false")
-        {
-            tok.bval = false;
-            tok.tok = tok_boolean;
-        }
+        else if (tok.val == "true" || tok.val == "false")
+            tok.tok = tok_number;
         else
             tok.tok = tok_identifier;
 
@@ -61,8 +53,7 @@ void lex::eat()
         while (isdigit(lch = anxf.get()))
             tok.val += lch;
 
-        tok.i32val = atoi(tok.val.c_str());
-        tok.tok = tok_integer;
+        tok.tok = tok_number;
         return;
     }
 

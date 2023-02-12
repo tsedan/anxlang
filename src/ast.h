@@ -258,31 +258,17 @@ namespace ast
         }
     };
 
-    class I32Stmt : public StmtNode
+    class NumStmt : public StmtNode
     {
     public:
-        int32_t value;
+        std::string value;
 
-        I32Stmt(int32_t value) : value(value) {}
+        NumStmt(std::string value) : value(value) {}
         llvm::Value *codegen();
 
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< i32 " << value << " >" << '\n';
-        }
-    };
-
-    class BoolStmt : public StmtNode
-    {
-    public:
-        bool value;
-
-        BoolStmt(bool value) : value(value) {}
-        llvm::Value *codegen();
-
-        void print(int ind)
-        {
-            std::cout << std::string(ind, ' ') << "< bool " << value << " >" << '\n';
         }
     };
 

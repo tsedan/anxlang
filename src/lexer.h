@@ -38,19 +38,13 @@ namespace lex
 
         // identifiers
         tok_identifier, // identifier
-        tok_integer,    // literal integer
-        tok_boolean     // literal boolean
+        tok_number,     // literal number
     };
 
     struct Token
     {
         TokEnum tok;
         std::string val;
-        union
-        {
-            int32_t i32val;
-            bool bval;
-        };
     };
 
     extern Token tok;

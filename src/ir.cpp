@@ -161,9 +161,9 @@ llvm::Value *ast::IfStmt::codegen()
     return nullptr;
 }
 
-llvm::Value *ast::I32Stmt::codegen()
+llvm::Value *ast::NumStmt::codegen()
 {
-    return llvm::ConstantInt::get(*ir::ctx, llvm::APInt(32, value, true));
+    return llvm::ConstantInt::get(*ir::ctx, llvm::APInt(32, value, 10));
 }
 
 llvm::Value *ast::RetStmt::codegen()
@@ -175,11 +175,6 @@ llvm::Value *ast::RetStmt::codegen()
         return ir::builder->CreateRetVoid();
 
     return ir::builder->CreateRet(value->codegen());
-}
-
-llvm::Value *ast::BoolStmt::codegen()
-{
-    return llvm::ConstantInt::get(*ir::ctx, llvm::APInt(1, value));
 }
 
 llvm::Value *ast::CallStmt::codegen()

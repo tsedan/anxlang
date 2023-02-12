@@ -20,8 +20,7 @@
 //     CallStmt - A function call statement
 //     IdentStmt - A variable statement
 //     CastStmt - A typecast statement
-//     I32Stmt - An 32bit integer literal statement
-//     BoolStmt - A boolean literal statement
+//     NumStmt - A number literal statement
 //===---------------------------------------------------------------------===//
 
 std::unique_ptr<ast::ProgramNode> ast::prog;
@@ -193,22 +192,13 @@ std::unique_ptr<ast::StmtNode> parse_unary()
     return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary());
 }
 
-std::unique_ptr<ast::I32Stmt> parse_i32()
+std::unique_ptr<ast::NumStmt> parse_num()
 {
-    int val = lex::tok.i32val;
+    std::string val = lex::tok.val;
 
     lex::eat(); // eat integer
 
-    return std::make_unique<ast::I32Stmt>(val);
-}
-
-std::unique_ptr<ast::BoolStmt> parse_bool()
-{
-    bool val = lex::tok.bval;
-
-    lex::eat(); // eat boolean
-
-    return std::make_unique<ast::BoolStmt>(val);
+    return std::make_unique<ast::NumStmt>(val);
 }
 
 std::unique_ptr<ast::StmtNode> parse_primary()
@@ -217,10 +207,8 @@ std::unique_ptr<ast::StmtNode> parse_primary()
     {
     case lex::tok_identifier:
         return parse_identifier();
-    case lex::tok_integer:
-        return parse_i32();
-    case lex::tok_boolean:
-        return parse_bool();
+    case lex::tok_number:
+        return parse_num();
     case lex::tok_parens:
         return parse_paren_expr();
     case lex::tok_unop:
