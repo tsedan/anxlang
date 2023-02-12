@@ -127,7 +127,7 @@ llvm::Value *ast::FnDecl::codegen()
     return F;
 }
 
-llvm::Value *ast::IfStmt::codegen()
+llvm::Value *ast::IfNode::codegen()
 {
     llvm::Value *CondV = cond->codegen();
 
@@ -170,7 +170,7 @@ llvm::Value *ast::NumStmt::codegen()
     return llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(width, value, radix), is_unsigned));
 }
 
-llvm::Value *ast::RetStmt::codegen()
+llvm::Value *ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
         throw std::runtime_error("Block already has terminator");

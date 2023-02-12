@@ -11,15 +11,14 @@
 //   FnDecl - A function declaration
 //   VarDecl - A variable declaration
 //   ScopeNode - A node consisting of a list of nodes
-//   StmtNode - A node that represents a value or evaluates in some way
-//     RetStmt - A return statement
-//     IfStmt - An if statement
+//   RetNode - A return
+//   IfNode - An if/else block
+//   AssignNode - A variable assignment
+//   StmtNode - A node that evaluates
 //     BinOpStmt - A binary operation statement
 //     UnOpStmt - A unary operation statement
-//     AssignStmt - A variable assignment statement
 //     CallStmt - A function call statement
 //     IdentStmt - A variable statement
-//     CastStmt - A typecast statement
 //     NumStmt - A number literal statement
 //===---------------------------------------------------------------------===//
 
@@ -254,7 +253,7 @@ std::unique_ptr<ast::StmtNode> parse_expr()
     return lhs;
 }
 
-std::unique_ptr<ast::IfStmt> parse_if()
+std::unique_ptr<ast::IfNode> parse_if()
 {
     lex::eat(); // eat if
 
@@ -279,10 +278,10 @@ std::unique_ptr<ast::IfStmt> parse_if()
             els = parse_stmt();
     }
 
-    return std::make_unique<ast::IfStmt>(std::move(cond), std::move(then), std::move(els));
+    return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els));
 }
 
-std::unique_ptr<ast::RetStmt> parse_ret()
+std::unique_ptr<ast::RetNode> parse_ret()
 {
     lex::eat(); // eat ret
 
@@ -291,7 +290,7 @@ std::unique_ptr<ast::RetStmt> parse_ret()
     if (lex::tok.tok != lex::tok_eol)
         val = parse_expr();
 
-    std::unique_ptr<ast::RetStmt> ret = std::make_unique<ast::RetStmt>(std::move(val));
+    std::unique_ptr<ast::RetNode> ret = std::make_unique<ast::RetNode>(std::move(val));
 
     return ret;
 }

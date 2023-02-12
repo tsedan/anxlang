@@ -17,6 +17,7 @@
 // 4. (anx.cpp) Generate an executable from the LLVM IR - mvp complete
 //
 // The current todo item is implementing a more advanced type system.
+// In order to do this we need to build types into the tree and cast when needed.
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;

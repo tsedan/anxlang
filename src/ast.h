@@ -102,12 +102,12 @@ namespace ast
         }
     };
 
-    class RetStmt : public StmtNode
+    class RetNode : public StmtNode
     {
     public:
         std::unique_ptr<StmtNode> value;
 
-        RetStmt(std::unique_ptr<StmtNode> value) : value(std::move(value)) {}
+        RetNode(std::unique_ptr<StmtNode> value) : value(std::move(value)) {}
         llvm::Value *codegen();
 
         void print(int ind)
@@ -118,14 +118,14 @@ namespace ast
         }
     };
 
-    class IfStmt : public StmtNode
+    class IfNode : public StmtNode
     {
     public:
         std::unique_ptr<Node> cond;
         std::unique_ptr<Node> then;
         std::unique_ptr<Node> els;
 
-        IfStmt(
+        IfNode(
             std::unique_ptr<Node> cond,
             std::unique_ptr<Node> then,
             std::unique_ptr<Node> els)
@@ -148,12 +148,30 @@ namespace ast
         }
     };
 
+    class AssignNode : public StmtNode
+    {
+    public:
+        std::string name;
+        std::unique_ptr<Node> value;
+
+        AssignNode(std::string name, std::unique_ptr<Node> value)
+            : name(name), value(std::move(value)) {}
+        llvm::Value *codegen();
+
+        void print(int ind)
+        {
+            std::cout << std::string(ind, ' ') << "< assign '" << name << "' >" << '\n';
+            value->print(ind + 1);
+        }
+    };
+
     class BinOpStmt : public StmtNode
     {
     public:
         std::string op;
         std::unique_ptr<Node> lhs;
         std::unique_ptr<Node> rhs;
+        std::string desired_type;
 
         BinOpStmt(
             std::string op,
@@ -177,6 +195,7 @@ namespace ast
     public:
         std::string op;
         std::unique_ptr<Node> val;
+        std::string desired_type;
 
         UnOpStmt(
             std::string op,
@@ -192,28 +211,12 @@ namespace ast
         }
     };
 
-    class AssignStmt : public StmtNode
-    {
-    public:
-        std::string name;
-        std::unique_ptr<Node> value;
-
-        AssignStmt(std::string name, std::unique_ptr<Node> value)
-            : name(name), value(std::move(value)) {}
-        llvm::Value *codegen();
-
-        void print(int ind)
-        {
-            std::cout << std::string(ind, ' ') << "< assign '" << name << "' >" << '\n';
-            value->print(ind + 1);
-        }
-    };
-
     class CallStmt : public StmtNode
     {
     public:
         std::string name;
         std::vector<std::unique_ptr<Node>> args;
+        std::string desired_type;
 
         CallStmt(std::string name, std::vector<std::unique_ptr<Node>> args)
             : name(name), args(std::move(args)) {}
@@ -231,6 +234,7 @@ namespace ast
     {
     public:
         std::string name;
+        std::string desired_type;
 
         IdentStmt(std::string name) : name(name) {}
         llvm::Value *codegen();
@@ -238,23 +242,6 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< ident '" << name << "' >" << '\n';
-        }
-    };
-
-    class CastStmt : public StmtNode
-    {
-    public:
-        std::string type;
-        std::unique_ptr<Node> value;
-
-        CastStmt(std::string type, std::unique_ptr<Node> value)
-            : type(type), value(std::move(value)) {}
-        llvm::Value *codegen();
-
-        void print(int ind)
-        {
-            std::cout << std::string(ind, ' ') << "< cast '" << type << "' >" << '\n';
-            value->print(ind + 1);
         }
     };
 
@@ -266,6 +253,7 @@ namespace ast
         int radix;
         bool is_unsigned;
         bool is_float;
+        std::string desired_type;
 
         NumStmt(std::string value,
                 int width,
