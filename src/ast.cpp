@@ -37,7 +37,7 @@ int prio(const std::string &op)
     return -1;
 }
 
-std::unique_ptr<ast::StmtNode> parse_stmt();
+std::unique_ptr<ast::Node> parse_inst();
 std::unique_ptr<ast::StmtNode> parse_expr();
 std::unique_ptr<ast::StmtNode> parse_primary();
 
@@ -93,7 +93,7 @@ std::unique_ptr<ast::ScopeNode> parse_scope()
             nodes.push_back(parse_scope());
             break;
         default:
-            nodes.push_back(parse_stmt());
+            nodes.push_back(parse_inst());
         }
     }
 }
@@ -163,7 +163,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
         body = parse_scope();
         break;
     default:
-        body = parse_stmt();
+        body = parse_inst();
     }
 
     return std::make_unique<ast::FnDecl>(std::move(name), std::move(args), std::move(type), std::move(body), is_pub);
@@ -257,14 +257,14 @@ std::unique_ptr<ast::IfNode> parse_if()
 {
     lex::eat(); // eat if
 
-    std::unique_ptr<ast::Node> cond = parse_expr();
+    std::unique_ptr<ast::StmtNode> cond = parse_expr();
 
     std::unique_ptr<ast::Node> then;
 
     if (lex::tok.tok == lex::tok_curlys)
         then = parse_scope();
     else
-        then = parse_stmt();
+        then = parse_inst();
 
     std::unique_ptr<ast::Node> els;
 
@@ -275,7 +275,7 @@ std::unique_ptr<ast::IfNode> parse_if()
         if (lex::tok.tok == lex::tok_curlys)
             els = parse_scope();
         else
-            els = parse_stmt();
+            els = parse_inst();
     }
 
     return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els));
@@ -295,9 +295,9 @@ std::unique_ptr<ast::RetNode> parse_ret()
     return ret;
 }
 
-std::unique_ptr<ast::StmtNode> parse_stmt()
+std::unique_ptr<ast::Node> parse_inst()
 {
-    std::unique_ptr<ast::StmtNode> n;
+    std::unique_ptr<ast::Node> n;
 
     switch (lex::tok.tok)
     {

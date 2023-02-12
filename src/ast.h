@@ -16,6 +16,12 @@ namespace ast
         virtual llvm::Value *codegen() = 0;
     };
 
+    class StmtNode : public Node
+    {
+    public:
+        std::string desired_type;
+    };
+
     class FnDecl : public Node
     {
     public:
@@ -82,11 +88,7 @@ namespace ast
         }
     };
 
-    class StmtNode : public Node
-    {
-    };
-
-    class ScopeNode : public StmtNode
+    class ScopeNode : public Node
     {
     public:
         std::vector<std::unique_ptr<Node>> nodes;
@@ -102,7 +104,7 @@ namespace ast
         }
     };
 
-    class RetNode : public StmtNode
+    class RetNode : public Node
     {
     public:
         std::unique_ptr<StmtNode> value;
@@ -118,15 +120,15 @@ namespace ast
         }
     };
 
-    class IfNode : public StmtNode
+    class IfNode : public Node
     {
     public:
-        std::unique_ptr<Node> cond;
+        std::unique_ptr<StmtNode> cond;
         std::unique_ptr<Node> then;
         std::unique_ptr<Node> els;
 
         IfNode(
-            std::unique_ptr<Node> cond,
+            std::unique_ptr<StmtNode> cond,
             std::unique_ptr<Node> then,
             std::unique_ptr<Node> els)
             : cond(std::move(cond)),
@@ -148,13 +150,13 @@ namespace ast
         }
     };
 
-    class AssignNode : public StmtNode
+    class AssignNode : public Node
     {
     public:
         std::string name;
-        std::unique_ptr<Node> value;
+        std::unique_ptr<StmtNode> value;
 
-        AssignNode(std::string name, std::unique_ptr<Node> value)
+        AssignNode(std::string name, std::unique_ptr<StmtNode> value)
             : name(name), value(std::move(value)) {}
         llvm::Value *codegen();
 
@@ -171,7 +173,6 @@ namespace ast
         std::string op;
         std::unique_ptr<Node> lhs;
         std::unique_ptr<Node> rhs;
-        std::string desired_type;
 
         BinOpStmt(
             std::string op,
@@ -195,7 +196,6 @@ namespace ast
     public:
         std::string op;
         std::unique_ptr<Node> val;
-        std::string desired_type;
 
         UnOpStmt(
             std::string op,
@@ -216,7 +216,6 @@ namespace ast
     public:
         std::string name;
         std::vector<std::unique_ptr<Node>> args;
-        std::string desired_type;
 
         CallStmt(std::string name, std::vector<std::unique_ptr<Node>> args)
             : name(name), args(std::move(args)) {}
@@ -234,7 +233,6 @@ namespace ast
     {
     public:
         std::string name;
-        std::string desired_type;
 
         IdentStmt(std::string name) : name(name) {}
         llvm::Value *codegen();
@@ -253,7 +251,6 @@ namespace ast
         int radix;
         bool is_unsigned;
         bool is_float;
-        std::string desired_type;
 
         NumStmt(std::string value,
                 int width,
