@@ -22,8 +22,9 @@
 //     CastStmt - A typecast statement
 //     I32Stmt - An 32bit integer literal statement
 //     BoolStmt - A boolean literal statement
-//     VoidStmt - A void literal statement
 //===---------------------------------------------------------------------===//
+
+std::unique_ptr<ast::ProgramNode> ast::prog;
 
 // Get the priority of an operator, such as + or /
 int prio(const std::string &op)
@@ -332,7 +333,7 @@ std::unique_ptr<ast::StmtNode> parse_stmt()
 }
 
 // Generate the program AST
-std::unique_ptr<ast::ProgramNode> ast::gen_ast()
+void ast::gen_ast()
 {
     lex::eat(); // generate the first token
 
@@ -343,7 +344,8 @@ std::unique_ptr<ast::ProgramNode> ast::gen_ast()
         switch (lex::tok.tok)
         {
         case lex::tok_eof:
-            return std::make_unique<ProgramNode>(std::move(decls));
+            prog = std::make_unique<ProgramNode>(std::move(decls));
+            return;
         case lex::tok_pub:
             lex::eat();
             lex::exp(lex::tok_fn, "Expected 'fn' after public decorator");

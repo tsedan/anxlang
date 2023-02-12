@@ -286,16 +286,7 @@ namespace ast
         }
     };
 
-    class VoidStmt : public StmtNode
-    {
-    public:
-        llvm::Value *codegen();
+    extern std::unique_ptr<ast::ProgramNode> prog;
 
-        void print(int ind)
-        {
-            std::cout << std::string(ind, ' ') << "< void >" << '\n';
-        }
-    };
-
-    std::unique_ptr<ProgramNode> gen_ast();
+    void gen_ast();
 }

@@ -74,16 +74,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    std::unique_ptr<ast::ProgramNode> program = ast::gen_ast();
+    ast::gen_ast();
 
     if (verbose)
-        program->print(0);
+        ast::prog->print(0);
 
     ir::ctx = std::make_unique<llvm::LLVMContext>();
     ir::mod = std::make_unique<llvm::Module>("Anx Main", *ir::ctx);
     ir::builder = std::make_unique<llvm::IRBuilder<>>(*ir::ctx);
 
-    program->codegen();
+    ast::prog->codegen();
 
     llvm::InitializeAllTargetInfos();
     llvm::InitializeAllTargets();
@@ -135,14 +135,12 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
-    std::string linkercmd = "cc out.o";
+    std::string linkercmd = "cc -O3 out.o /Users/tomer/Documents/GitHub/anxlang/lib/intr.c";
     if (outfile)
     {
         linkercmd += " -o";
         linkercmd += outfile;
     }
-    if (verbose)
-        linkercmd += " -v";
 
     system(linkercmd.c_str());
     remove("out.o");
