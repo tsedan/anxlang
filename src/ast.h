@@ -171,13 +171,13 @@ namespace ast
     {
     public:
         std::string op;
-        std::unique_ptr<Node> lhs;
-        std::unique_ptr<Node> rhs;
+        std::unique_ptr<StmtNode> lhs;
+        std::unique_ptr<StmtNode> rhs;
 
         BinOpStmt(
             std::string op,
-            std::unique_ptr<Node> lhs,
-            std::unique_ptr<Node> rhs)
+            std::unique_ptr<StmtNode> lhs,
+            std::unique_ptr<StmtNode> rhs)
             : op(op),
               lhs(std::move(lhs)),
               rhs(std::move(rhs)) {}
@@ -195,11 +195,11 @@ namespace ast
     {
     public:
         std::string op;
-        std::unique_ptr<Node> val;
+        std::unique_ptr<StmtNode> val;
 
         UnOpStmt(
             std::string op,
-            std::unique_ptr<Node> val)
+            std::unique_ptr<StmtNode> val)
             : op(op),
               val(std::move(val)) {}
         llvm::Value *codegen();
@@ -215,9 +215,9 @@ namespace ast
     {
     public:
         std::string name;
-        std::vector<std::unique_ptr<Node>> args;
+        std::vector<std::unique_ptr<StmtNode>> args;
 
-        CallStmt(std::string name, std::vector<std::unique_ptr<Node>> args)
+        CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args)
             : name(name), args(std::move(args)) {}
         llvm::Value *codegen();
 

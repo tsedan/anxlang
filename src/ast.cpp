@@ -51,7 +51,7 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
     {
         lex::eat(); // eat (
 
-        std::vector<std::unique_ptr<ast::Node>> args;
+        std::vector<std::unique_ptr<ast::StmtNode>> args;
 
         if (lex::tok.tok != lex::tok_parene)
         {
