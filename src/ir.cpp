@@ -25,6 +25,33 @@ ir::Symbol search(std::string name)
     throw std::runtime_error("Unidentified symbol '" + name + "'");
 }
 
+llvm::Type *get_type(std::string ty, bool allow_void = false)
+{
+    if (ty == "void")
+    {
+        if (allow_void)
+            return llvm::Type::getVoidTy(*ir::ctx);
+        else
+            perr("Void type not allowed here");
+    }
+    else if (ty == "f32")
+        return llvm::Type::getFloatTy(*ir::ctx);
+    else if (ty == "f64")
+        return llvm::Type::getDoubleTy(*ir::ctx);
+    else if (ty == "i8" || ty == "u8")
+        return llvm::Type::getInt8Ty(*ir::ctx);
+    else if (ty == "i16" || ty == "u16")
+        return llvm::Type::getInt16Ty(*ir::ctx);
+    else if (ty == "i32" || ty == "u32")
+        return llvm::Type::getInt32Ty(*ir::ctx);
+    else if (ty == "i64" || ty == "u64")
+        return llvm::Type::getInt64Ty(*ir::ctx);
+    else if (ty == "i128" || ty == "u128")
+        return llvm::Type::getInt128Ty(*ir::ctx);
+
+    throw std::runtime_error("Unrecognized type '" + ty + "'");
+}
+
 llvm::Value *ast::ProgramNode::codegen()
 {
     for (auto &fn : decls)
@@ -35,9 +62,7 @@ llvm::Value *ast::ProgramNode::codegen()
 
     llvm::Value *mainFn = ir::mod->getFunction("main");
     if (!mainFn)
-    {
         perr("No main function defined");
-    }
 
     return mainFn;
 }
@@ -50,36 +75,12 @@ void ast::FnDecl::declare()
     std::vector<llvm::Type *> Params(args.size());
 
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-    {
-        if (args[i].second == "i32")
-            Params[i] = llvm::Type::getInt32Ty(*ir::ctx);
-        else if (args[i].second == "bool")
-            Params[i] = llvm::Type::getInt1Ty(*ir::ctx);
-        else
-        {
-            perr("Unknown parameter type '" + args[i].second + "'");
-        }
-    }
-
-    llvm::Type *Result;
-
-    if (type == "i32")
-        Result = llvm::Type::getInt32Ty(*ir::ctx);
-    else if (type == "bool")
-        Result = llvm::Type::getInt1Ty(*ir::ctx);
-    else if (type == "void")
-        Result = llvm::Type::getVoidTy(*ir::ctx);
-    else
-        throw std::runtime_error("Unknown return type '" + type + "'");
+        Params[i] = get_type(args[i].second);
 
     llvm::FunctionType *FT =
-        llvm::FunctionType::get(Result, Params, false);
+        llvm::FunctionType::get(get_type(type, true), Params, false);
 
-    llvm::Function::LinkageTypes linkage;
-    if (is_pub || name == "main")
-        linkage = llvm::Function::ExternalLinkage;
-    else
-        linkage = llvm::Function::InternalLinkage;
+    llvm::Function::LinkageTypes linkage = (is_pub || name == "main") ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
     F = llvm::Function::Create(FT, linkage, name, ir::mod.get());
 
@@ -163,7 +164,10 @@ llvm::Value *ast::IfStmt::codegen()
 
 llvm::Value *ast::NumStmt::codegen()
 {
-    return llvm::ConstantInt::get(*ir::ctx, llvm::APInt(32, value, 10));
+    if (is_float)
+        return llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), value));
+
+    return llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(width, value, radix), is_unsigned));
 }
 
 llvm::Value *ast::RetStmt::codegen()

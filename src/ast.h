@@ -262,13 +262,26 @@ namespace ast
     {
     public:
         std::string value;
+        int width;
+        int radix;
+        bool is_unsigned;
+        bool is_float;
 
-        NumStmt(std::string value) : value(value) {}
+        NumStmt(std::string value,
+                int width,
+                int radix,
+                bool is_unsigned,
+                bool is_float)
+            : value(value),
+              width(width),
+              radix(radix),
+              is_unsigned(is_unsigned),
+              is_float(is_float) {}
         llvm::Value *codegen();
 
         void print(int ind)
         {
-            std::cout << std::string(ind, ' ') << "< i32 " << value << " >" << '\n';
+            std::cout << std::string(ind, ' ') << "< number " << value << " >" << '\n';
         }
     };
 

@@ -40,8 +40,6 @@ void lex::eat()
             tok.tok = tok_if;
         else if (tok.val == "else")
             tok.tok = tok_else;
-        else if (tok.val == "true" || tok.val == "false")
-            tok.tok = tok_number;
         else
             tok.tok = tok_identifier;
 
@@ -50,7 +48,7 @@ void lex::eat()
 
     if (isdigit(lch))
     {
-        while (isdigit(lch = anxf.get()))
+        while (isdigit(lch = anxf.get()) || lch == '.')
             tok.val += lch;
 
         tok.tok = tok_number;

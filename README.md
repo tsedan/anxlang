@@ -12,9 +12,10 @@ We're starting simple, and expanding only once a first working version is create
 
 Here are a list of all of the datatypes available in Anx:
 ```
-i32
-bool
-void
+i8, i16, i32, i64, i128
+u8, u16, u32, u64, u128
+f32, f64
+void (only valid as a function return type)
 ```
 
 Here's a basic sample of the language syntax:

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/APFloat.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/Passes.h"
 #include "llvm/IR/DIBuilder.h"
