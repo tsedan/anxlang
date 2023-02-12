@@ -17,6 +17,15 @@
 
 namespace ir
 {
+    class Symbol final
+    {
+    public:
+        std::string ty;
+        llvm::Value *value;
+
+        Symbol(std::string ty, llvm::Value *value) : ty(ty), value(value) {}
+    };
+
     extern std::unique_ptr<llvm::LLVMContext> ctx;
     extern std::unique_ptr<llvm::Module> mod;
     extern std::unique_ptr<llvm::IRBuilder<>> builder;

@@ -12,7 +12,18 @@ std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 
-std::map<std::string, llvm::Value *> vars;
+std::vector<std::map<std::string, ir::Symbol>> symbols;
+
+ir::Symbol search(std::string name)
+{
+    std::__1::map<std::__1::string, ir::Symbol>::iterator sym;
+
+    for (auto it = symbols.rbegin(); it != symbols.rend(); ++it)
+        if ((sym = it->find(name)) != it->end())
+            return sym->second;
+
+    throw std::runtime_error("Unidentified symbol '" + name + "'");
+}
 
 llvm::Value *ast::ProgramNode::codegen()
 {
@@ -85,9 +96,10 @@ llvm::Value *ast::FnDecl::codegen()
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 
-    vars.clear();
+    symbols.push_back(std::map<std::string, ir::Symbol>());
+
     for (auto &Arg : F->args())
-        vars[std::string(Arg.getName())] = &Arg;
+        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol("", &Arg)));
 
     body->codegen();
 
@@ -108,6 +120,8 @@ llvm::Value *ast::FnDecl::codegen()
         llvm::errs() << '\n';
         F->print(llvm::errs());
     }
+
+    symbols.pop_back();
 
     return F;
 }
@@ -230,18 +244,15 @@ llvm::Value *ast::BinOpStmt::codegen()
 
 llvm::Value *ast::IdentStmt::codegen()
 {
-    llvm::Value *V = vars[name];
-
-    if (!V)
-        perr("Unknown variable name '" + name + "'");
-
-    return V;
+    return search(name).value;
 }
 
 llvm::Value *ast::ScopeNode::codegen()
 {
     if (nodes.empty())
         perr("Cannot have an empty scope!");
+
+    symbols.push_back(std::map<std::string, ir::Symbol>());
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -258,6 +269,8 @@ llvm::Value *ast::ScopeNode::codegen()
         ir::builder->CreateBr(BB2);
         ir::builder->SetInsertPoint(BB2);
     }
+
+    symbols.pop_back();
 
     return BB;
 }
