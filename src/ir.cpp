@@ -16,7 +16,7 @@ std::vector<std::map<std::string, ir::Symbol>> symbols;
 
 ir::Symbol search(std::string name)
 {
-    std::__1::map<std::__1::string, ir::Symbol>::iterator sym;
+    std::map<std::string, ir::Symbol>::iterator sym;
 
     for (auto it = symbols.rbegin(); it != symbols.rend(); ++it)
         if ((sym = it->find(name)) != it->end())

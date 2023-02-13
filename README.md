@@ -8,9 +8,10 @@ Anx is a highly experimental systems programming language written in C++.
 
 The purpose of Anx is to simplify the most common use cases for C, while also including a select few of the quality-of-life features that modern languages provide.
 
-We're starting simple, and expanding only once a first working version is created.
+Please note that Anx is still in its early stages of development, and there are several key language features that are still being prototyped.
+For a peek at language features in development, see the `test` directory.
 
-Here are a list of all of the datatypes available in Anx:
+Here is a list of all of the datatypes available in Anx:
 ```
 i8, i16, i32, i64, i128
 u8, u16, u32, u64, u128
@@ -29,7 +30,6 @@ fn recurseAdd(n: i32, s: i32) i32 {
 }
 ```
 
-Everything below this point is just a draft and should not be taken seriously.
 Here's Anx reading user input and printing it back out:
 
 ```
@@ -57,15 +57,16 @@ fn main() void { # return type required, even if void
 ```
 
 Errors and safety are a first-class concern in Anx. Here's an example of error handing:
+(note these features are still in the drafting phase)
 
 ```
-fn openFile(path: *u8) !bool {
+fn openFile(path: *u8) !u8 {
     # the ! indicates that this function can return an error
 
     # try to open the file. if an error occured, return it.
     try @fopen(path, "r");
 
-    ret true; # if we got here, success!
+    ret 1; # if we got here, success!
 }
 
 fn main() void {

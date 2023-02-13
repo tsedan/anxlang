@@ -16,8 +16,8 @@
 // 3. (ir.cpp) Generate LLVM IR from the AST - mvp complete
 // 4. (anx.cpp) Generate an executable from the LLVM IR - mvp complete
 //
-// The current todo item is implementing a more advanced type system.
-// In order to do this we need to build types into the tree and cast when needed.
+// The current todo item is implementing a more advanced type system;
+// the rules for this coercion system are currently being prototyped.
 //===---------------------------------------------------------------------===//
 
 std::ifstream anxf;
@@ -136,6 +136,7 @@ int main(int argc, char **argv)
     pass.run(*ir::mod);
     dest.flush();
 
+    // developer comment: the library location is currently hardcoded but will be eventually dealt with more formally.
     std::string linkercmd = "cc -O3 out.o /Users/tomer/Documents/GitHub/anxlang/lib/intr.c";
     if (outfile)
     {
