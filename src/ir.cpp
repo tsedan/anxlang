@@ -1,5 +1,3 @@
-#include <map>
-
 #include "anx.h"
 #include "ir.h"
 #include "ast.h"
@@ -11,50 +9,11 @@
 std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
-
-std::vector<std::map<std::string, ir::Symbol>> symbols;
-
-ir::Symbol search(std::string name)
-{
-    std::map<std::string, ir::Symbol>::iterator sym;
-
-    for (auto it = symbols.rbegin(); it != symbols.rend(); ++it)
-        if ((sym = it->find(name)) != it->end())
-            return sym->second;
-
-    throw std::runtime_error("Unidentified symbol '" + name + "'");
-}
-
-llvm::Type *get_type(std::string ty, bool allow_void = false)
-{
-    if (ty == "void")
-    {
-        if (allow_void)
-            return llvm::Type::getVoidTy(*ir::ctx);
-        else
-            perr("Void type not allowed here");
-    }
-    else if (ty == "f32")
-        return llvm::Type::getFloatTy(*ir::ctx);
-    else if (ty == "f64")
-        return llvm::Type::getDoubleTy(*ir::ctx);
-    else if (ty == "i8" || ty == "u8")
-        return llvm::Type::getInt8Ty(*ir::ctx);
-    else if (ty == "i16" || ty == "u16")
-        return llvm::Type::getInt16Ty(*ir::ctx);
-    else if (ty == "i32" || ty == "u32")
-        return llvm::Type::getInt32Ty(*ir::ctx);
-    else if (ty == "i64" || ty == "u64")
-        return llvm::Type::getInt64Ty(*ir::ctx);
-    else if (ty == "i128" || ty == "u128")
-        return llvm::Type::getInt128Ty(*ir::ctx);
-
-    throw std::runtime_error("Unrecognized type '" + ty + "'");
-}
+std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
 
 llvm::Value *ast::ProgramNode::codegen()
 {
-    symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &fn : decls)
         fn->declare();
@@ -66,7 +25,7 @@ llvm::Value *ast::ProgramNode::codegen()
     if (!mainFn)
         perr("No main function defined");
 
-    symbols.pop_back();
+    ir::symbols.pop_back();
 
     return mainFn;
 }
@@ -79,10 +38,10 @@ void ast::FnDecl::declare()
     std::vector<llvm::Type *> Params(args.size());
 
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-        Params[i] = get_type(args[i].second);
+        Params[i] = ir::get_type(args[i].second);
 
     llvm::FunctionType *FT =
-        llvm::FunctionType::get(get_type(type, true), Params, false);
+        llvm::FunctionType::get(ir::get_type(type, true), Params, false);
 
     llvm::Function::LinkageTypes linkage = (is_pub || name == "main") ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
@@ -92,7 +51,7 @@ void ast::FnDecl::declare()
     for (auto &Arg : F->args())
         Arg.setName(args[Idx++].first);
 
-    symbols.back().insert(std::make_pair(name, ir::Symbol(F)));
+    ir::symbols.back().insert(std::make_pair(name, ir::Symbol(F)));
 }
 
 llvm::Value *ast::FnDecl::codegen()
@@ -103,10 +62,10 @@ llvm::Value *ast::FnDecl::codegen()
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 
-    symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &Arg : F->args())
-        symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol(ir::sym_var, &Arg)));
+        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol(ir::sym_var, &Arg)));
 
     body->codegen();
 
@@ -128,7 +87,7 @@ llvm::Value *ast::FnDecl::codegen()
         F->print(llvm::errs());
     }
 
-    symbols.pop_back();
+    ir::symbols.pop_back();
 
     return F;
 }
@@ -189,7 +148,7 @@ llvm::Value *ast::RetNode::codegen()
 
 llvm::Value *ast::CallStmt::codegen()
 {
-    ir::Symbol sym = search(name);
+    ir::Symbol sym = ir::search(name);
 
     if (sym.kind != ir::sym_fn)
         perr("Attempted to call a non-function '" + name + "'");
@@ -206,7 +165,7 @@ llvm::Value *ast::CallStmt::codegen()
     if (CalleeF->getReturnType()->isVoidTy())
         return ir::builder->CreateCall(CalleeF, ArgsV);
 
-    return ir::builder->CreateCall(CalleeF, ArgsV, "calltmp");
+    return ir::builder->CreateCall(CalleeF, ArgsV, "call");
 }
 
 llvm::Value *ast::UnOpStmt::codegen()
@@ -214,7 +173,7 @@ llvm::Value *ast::UnOpStmt::codegen()
     llvm::Value *V = val->codegen();
 
     if (op == "!")
-        return ir::builder->CreateNot(V, "nottmp");
+        return ir::builder->CreateNot(V, "not");
 
     throw std::runtime_error("Invalid unary operator '" + op + "' used");
 }
@@ -225,34 +184,34 @@ llvm::Value *ast::BinOpStmt::codegen()
     llvm::Value *R = rhs->codegen();
 
     if (op == "+")
-        return ir::builder->CreateAdd(L, R, "addtmp");
+        return ir::builder->CreateAdd(L, R, "add");
     else if (op == "-")
-        return ir::builder->CreateSub(L, R, "subtmp");
+        return ir::builder->CreateSub(L, R, "sub");
     else if (op == "*")
-        return ir::builder->CreateMul(L, R, "multmp");
+        return ir::builder->CreateMul(L, R, "mul");
     else if (op == "/")
-        return ir::builder->CreateSDiv(L, R, "divtmp");
+        return ir::builder->CreateSDiv(L, R, "div");
     else if (op == "%")
-        return ir::builder->CreateSRem(L, R, "modtmp");
+        return ir::builder->CreateSRem(L, R, "mod");
     else if (op == "<")
-        return ir::builder->CreateICmpULT(L, R, "cmptmp");
+        return ir::builder->CreateICmpULT(L, R, "cmp");
     else if (op == ">")
-        return ir::builder->CreateICmpUGT(L, R, "cmptmp");
+        return ir::builder->CreateICmpUGT(L, R, "cmp");
     else if (op == "<=")
-        return ir::builder->CreateICmpULE(L, R, "cmptmp");
+        return ir::builder->CreateICmpULE(L, R, "cmp");
     else if (op == ">=")
-        return ir::builder->CreateICmpUGE(L, R, "cmptmp");
+        return ir::builder->CreateICmpUGE(L, R, "cmp");
     else if (op == "==")
-        return ir::builder->CreateICmpEQ(L, R, "cmptmp");
+        return ir::builder->CreateICmpEQ(L, R, "cmp");
     else if (op == "!=")
-        return ir::builder->CreateICmpNE(L, R, "cmptmp");
+        return ir::builder->CreateICmpNE(L, R, "cmp");
 
     throw std::runtime_error("Invalid binary operator '" + op + "' used");
 }
 
 llvm::Value *ast::IdentStmt::codegen()
 {
-    return search(name).value;
+    return ir::search(name).value;
 }
 
 llvm::Value *ast::ScopeNode::codegen()
@@ -260,7 +219,7 @@ llvm::Value *ast::ScopeNode::codegen()
     if (nodes.empty())
         perr("Cannot have an empty scope!");
 
-    symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -278,7 +237,7 @@ llvm::Value *ast::ScopeNode::codegen()
         ir::builder->SetInsertPoint(BB2);
     }
 
-    symbols.pop_back();
+    ir::symbols.pop_back();
 
     return BB;
 }

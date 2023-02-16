@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/APFloat.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
@@ -38,4 +40,9 @@ namespace ir
     extern std::unique_ptr<llvm::LLVMContext> ctx;
     extern std::unique_ptr<llvm::Module> mod;
     extern std::unique_ptr<llvm::IRBuilder<>> builder;
+    extern std::vector<std::map<std::string, ir::Symbol>> symbols;
+
+    Symbol search(std::string name);
+    llvm::Type *get_type(std::string ty, bool allow_void = false);
+    llvm::Value *coerce(llvm::Value *val, llvm::Type *destType, bool is_u = false);
 }
