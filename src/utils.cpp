@@ -4,9 +4,9 @@
 #include "ir.h"
 #include "ast.h"
 
-ir::Symbol ir::search(std::string name)
+anx::Symbol ir::search(std::string name)
 {
-    std::map<std::string, ir::Symbol>::iterator sym;
+    std::map<std::string, anx::Symbol>::iterator sym;
 
     for (auto it = ir::symbols.rbegin(); it != ir::symbols.rend(); ++it)
         if ((sym = it->find(name)) != it->end())

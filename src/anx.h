@@ -10,6 +10,21 @@
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetOptions.h"
+#include "llvm/ADT/STLExtras.h"
+#include "llvm/ADT/APFloat.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/IR/DIBuilder.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/IR/BasicBlock.h"
+#include "llvm/Support/Host.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 namespace anx
 {
@@ -31,6 +46,25 @@ namespace anx
 
         ty_f32,
         ty_f64,
+    };
+
+    class Symbol final
+    {
+    public:
+        enum
+        {
+            sym_fn,
+            sym_var,
+        } kind;
+        union
+        {
+            llvm::Value *value;
+            llvm::Function *function;
+        };
+        anx::Types type;
+
+        Symbol(llvm::Value *value, anx::Types type) : kind(sym_var), value(value), type(type) {}
+        Symbol(llvm::Function *function, anx::Types type) : kind(sym_fn), function(function), type(type) {}
     };
 
     extern std::ifstream anxf; // The anx input file

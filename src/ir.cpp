@@ -9,11 +9,11 @@
 std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
-std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
+std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
 
 llvm::Value *ast::ProgramNode::codegen()
 {
-    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
     for (auto &fn : decls)
         fn->declare();
@@ -51,7 +51,7 @@ void ast::FnDecl::declare()
     for (auto &Arg : F->args())
         Arg.setName(args[Idx++].first);
 
-    ir::symbols.back().insert(std::make_pair(name, ir::Symbol(F)));
+    ir::symbols.back().insert(std::make_pair(name, anx::Symbol(F, type)));
 }
 
 llvm::Value *ast::FnDecl::codegen()
@@ -62,10 +62,11 @@ llvm::Value *ast::FnDecl::codegen()
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 
-    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
+    int i = 0;
     for (auto &Arg : F->args())
-        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol(&Arg)));
+        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(&Arg, args[i++].second)));
 
     body->codegen();
 
@@ -148,7 +149,7 @@ llvm::Value *ast::RetNode::codegen()
 
 llvm::Value *ast::CallStmt::codegen()
 {
-    ir::Symbol sym = ir::search(name);
+    anx::Symbol sym = ir::search(name);
 
     if (sym.kind != sym.sym_fn)
         anx::perr("Attempted to call a non-function '" + name + "'");
@@ -219,7 +220,7 @@ llvm::Value *ast::ScopeNode::codegen()
     if (nodes.empty())
         anx::perr("Cannot have an empty scope!");
 
-    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
+    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 

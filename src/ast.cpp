@@ -1,6 +1,6 @@
 #include "anx.h"
-#include "lexer.h"
 #include "ast.h"
+#include "lexer.h"
 
 //===---------------------------------------------------------------------===//
 // AST - This module implements the Abstract Syntax Tree (AST) for Anx.
