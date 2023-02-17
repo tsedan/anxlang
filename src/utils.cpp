@@ -20,58 +20,58 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         if (isSFl(toType))
             return *this;
         else if (isDFl(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPExt, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPExt, v, destType, "cast"), toType);
         else if (isSInt(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
         else if (isUInt(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
     }
     else if (isDFl(typ))
     {
         if (isSFl(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPTrunc, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPTrunc, v, destType, "cast"), toType);
         else if (isDFl(toType))
             return *this;
         else if (isSInt(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
         else if (isUInt(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
     }
     else if (isSInt(typ))
     {
         if (isSFl(toType) || isDFl(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SIToFP, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
             uint32_t fw = width(typ), tw = width(toType);
             if (fw == tw)
                 return *this;
             if (fw < tw)
-                return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SExt, v, destType, "cast"), toType);
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
+                return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SExt, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
         }
         else if (isUInt(toType))
         {
             uint32_t fw = width(typ), tw = width(toType);
             if (fw == tw)
-                return anx::Symbol(v, toType);
+                return Symbol(v, toType);
             if (fw < tw)
-                return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
+                return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
         }
     }
     else if (isUInt(typ))
     {
         if (isSFl(toType) || isDFl(toType))
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::UIToFP, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::UIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
             uint32_t fw = width(typ), tw = width(toType);
             if (fw == tw)
-                return anx::Symbol(v, toType);
+                return Symbol(v, toType);
             if (fw < tw)
-                return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
+                return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
         }
         else if (isUInt(toType))
         {
@@ -79,8 +79,8 @@ anx::Symbol anx::Symbol::coerce(Types toType)
             if (fw == tw)
                 return *this;
             if (fw < tw)
-                return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
-            return anx::Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
+                return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
+            return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
         }
     }
 
@@ -179,30 +179,30 @@ llvm::Type *anx::getType(Types ty, bool allow_void)
 {
     switch (ty)
     {
-    case anx::ty_f32:
+    case ty_f32:
         return llvm::Type::getFloatTy(*ir::ctx);
-    case anx::ty_f64:
+    case ty_f64:
         return llvm::Type::getDoubleTy(*ir::ctx);
-    case anx::ty_i8:
-    case anx::ty_u8:
+    case ty_i8:
+    case ty_u8:
         return llvm::Type::getInt8Ty(*ir::ctx);
-    case anx::ty_i16:
-    case anx::ty_u16:
+    case ty_i16:
+    case ty_u16:
         return llvm::Type::getInt16Ty(*ir::ctx);
-    case anx::ty_i32:
-    case anx::ty_u32:
+    case ty_i32:
+    case ty_u32:
         return llvm::Type::getInt32Ty(*ir::ctx);
-    case anx::ty_i64:
-    case anx::ty_u64:
+    case ty_i64:
+    case ty_u64:
         return llvm::Type::getInt64Ty(*ir::ctx);
-    case anx::ty_i128:
-    case anx::ty_u128:
+    case ty_i128:
+    case ty_u128:
         return llvm::Type::getInt128Ty(*ir::ctx);
-    case anx::ty_void:
+    case ty_void:
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
-            anx::perr("Void type not allowed here");
+            perr("Void type not allowed here");
     default:
         throw std::runtime_error("Unrecognized type");
     }
