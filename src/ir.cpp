@@ -149,12 +149,7 @@ llvm::Value *ast::RetNode::codegen()
 
 llvm::Value *ast::CallStmt::codegen()
 {
-    anx::Symbol sym = ir::search(name);
-
-    if (sym.kind != sym.sym_fn)
-        anx::perr("Attempted to call a non-function '" + name + "'");
-
-    llvm::Function *CalleeF = sym.function;
+    llvm::Function *CalleeF = ir::search(name).fn();
 
     if (CalleeF->arg_size() != args.size())
         anx::perr("Incorrect # arguments passed");
@@ -212,7 +207,7 @@ llvm::Value *ast::BinOpStmt::codegen()
 
 llvm::Value *ast::IdentStmt::codegen()
 {
-    return ir::search(name).value;
+    return ir::search(name).val();
 }
 
 llvm::Value *ast::ScopeNode::codegen()

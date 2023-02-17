@@ -50,11 +50,12 @@ namespace anx
 
     class Symbol final
     {
-    public:
+    private:
         enum
         {
+            sym_empty,
             sym_fn,
-            sym_var,
+            sym_val,
         } kind;
         union
         {
@@ -63,8 +64,34 @@ namespace anx
         };
         anx::Types type;
 
-        Symbol(llvm::Value *value, anx::Types type) : kind(sym_var), value(value), type(type) {}
+    public:
+        Symbol(llvm::Value *value, anx::Types type) : kind(sym_val), value(value), type(type) {}
         Symbol(llvm::Function *function, anx::Types type) : kind(sym_fn), function(function), type(type) {}
+        Symbol() : kind(sym_empty) {}
+
+        llvm::Function *fn()
+        {
+            if (kind == sym_fn)
+                return function;
+
+            throw std::runtime_error("Attempted to access a non-function as if it were a function");
+        }
+
+        llvm::Value *val()
+        {
+            if (kind == sym_val)
+                return value;
+
+            throw std::runtime_error("Attempted to access a non-value as if it were a value");
+        }
+
+        anx::Types ty()
+        {
+            if (kind == sym_empty)
+                throw std::runtime_error("Attempted to access the type of an empty symbol");
+
+            return type;
+        }
     };
 
     extern std::ifstream anxf; // The anx input file
