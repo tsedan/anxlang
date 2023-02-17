@@ -20,20 +20,21 @@
 
 namespace ir
 {
-    enum SymbolEnum
-    {
-        sym_fn,  // function symbol
-        sym_var, // var symbol
-    };
-
     class Symbol final
     {
     public:
-        SymbolEnum kind;
-        llvm::Value *value;
-        llvm::Function *function;
+        enum
+        {
+            sym_fn,
+            sym_var,
+        } kind;
+        union
+        {
+            llvm::Value *value;
+            llvm::Function *function;
+        };
 
-        Symbol(SymbolEnum kind, llvm::Value *value) : kind(kind), value(value) {}
+        Symbol(llvm::Value *value) : kind(sym_var), value(value) {}
         Symbol(llvm::Function *function) : kind(sym_fn), function(function) {}
     };
 
