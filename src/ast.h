@@ -26,21 +26,24 @@ namespace ast
     {
     public:
         std::string name;
-        std::vector<std::pair<std::string, anx::Types>> args;
         anx::Types type;
+        std::vector<std::string> args;
+        std::vector<anx::Types> types;
         std::unique_ptr<Node> body;
         bool is_pub;
         llvm::Function *F;
 
         FnDecl(
             std::string name,
-            std::vector<std::pair<std::string, anx::Types>> args,
             anx::Types type,
+            std::vector<std::string> args,
+            std::vector<anx::Types> types,
             std::unique_ptr<Node> body,
             bool is_pub)
             : name(name),
-              args(std::move(args)),
               type(std::move(type)),
+              args(std::move(args)),
+              types(std::move(types)),
               body(std::move(body)),
               is_pub(is_pub) {}
         void declare();
@@ -49,8 +52,8 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< fn " << name << "( ";
-            for (auto &arg : args)
-                std::cout << arg.first << " : " << arg.second << ", ";
+            for (size_t i = 0; i < args.size(); i++)
+                std::cout << args[i] << " : " << types[i] << ", ";
             std::cout << ") " << type;
             std::cout << " >" << '\n';
             if (body)

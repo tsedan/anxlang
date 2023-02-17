@@ -63,11 +63,12 @@ namespace anx
             llvm::Value *value;
             llvm::Function *function;
         };
-        anx::Types type;
+        Types type;
+        std::vector<Types> types;
 
     public:
-        Symbol(llvm::Value *value, anx::Types type) : kind(sym_val), value(value), type(type) {}
-        Symbol(llvm::Function *function, anx::Types type) : kind(sym_fn), function(function), type(type) {}
+        Symbol(llvm::Value *value, Types type) : kind(sym_val), value(value), type(type) {}
+        Symbol(llvm::Function *function, Types type, std::vector<Types> types) : kind(sym_fn), function(function), type(type), types(types) {}
         Symbol() : kind(sym_empty) {}
 
         // return a new symbol that has been type-coerced to the desired type

@@ -103,7 +103,9 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
     }
 
-    throw std::runtime_error("Could not coerce value to the desired type");
+    std::cerr << fromType << " " << toType << '\n';
+
+    throw std::runtime_error("Could not coerce to the desired type");
 }
 
 bool anx::isSFl(Types ty)

@@ -10,6 +10,7 @@ std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
+std::string cf; // current function being generated
 
 anx::Symbol ir::search(std::string name)
 {
@@ -48,8 +49,8 @@ void ast::FnDecl::declare()
 
     std::vector<llvm::Type *> Params(args.size());
 
-    for (unsigned i = 0, e = args.size(); i != e; ++i)
-        Params[i] = anx::getType(args[i].second);
+    for (size_t i = 0, e = args.size(); i != e; ++i)
+        Params[i] = anx::getType(types[i]);
 
     llvm::FunctionType *FT =
         llvm::FunctionType::get(anx::getType(type, true), Params, false);
@@ -60,15 +61,17 @@ void ast::FnDecl::declare()
 
     unsigned Idx = 0;
     for (auto &Arg : F->args())
-        Arg.setName(args[Idx++].first);
+        Arg.setName(args[Idx++]);
 
-    ir::symbols.back().insert(std::make_pair(name, anx::Symbol(F, type)));
+    ir::symbols.back().insert(std::make_pair(name, anx::Symbol(F, type, types)));
 }
 
 anx::Symbol ast::FnDecl::codegen()
 {
     if (!body)
         return anx::Symbol();
+
+    cf = name;
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
@@ -77,13 +80,13 @@ anx::Symbol ast::FnDecl::codegen()
 
     int i = 0;
     for (auto &Arg : F->args())
-        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(&Arg, args[i++].second)));
+        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(&Arg, types[i++])));
 
     body->codegen();
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
     {
-        if (type == anx::ty_void)
+        if (types[0] == anx::ty_void)
             ir::builder->CreateRetVoid();
         else
             anx::perr("Expected return statement at end of function '" + name + "'");
@@ -101,7 +104,7 @@ anx::Symbol ast::FnDecl::codegen()
 
     ir::symbols.pop_back();
 
-    return anx::Symbol(F, type);
+    return anx::Symbol(F, type, types);
 }
 
 anx::Symbol ast::IfNode::codegen()
@@ -152,10 +155,17 @@ anx::Symbol ast::RetNode::codegen()
     if (ir::builder->GetInsertBlock()->getTerminator())
         throw std::runtime_error("Block already has terminator");
 
-    if (!value)
-        return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
+    anx::Symbol parent = ir::search(cf);
 
-    anx::Symbol v = value->codegen();
+    if (!value)
+    {
+        if (parent.ty() == anx::ty_void)
+            return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
+        else
+            anx::perr("Cannot return void from non-void function");
+    }
+
+    anx::Symbol v = value->codegen().coerce(parent.ty());
     return anx::Symbol(ir::builder->CreateRet(v.val()), v.ty());
 }
 
