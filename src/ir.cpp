@@ -106,7 +106,7 @@ anx::Symbol ast::FnDecl::codegen()
 
 anx::Symbol ast::IfNode::codegen()
 {
-    llvm::Value *CondV = cond->codegen().val();
+    llvm::Value *CondV = cond->codegen().coerce(anx::ty_bool).val();
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -208,17 +208,17 @@ anx::Symbol ast::BinOpStmt::codegen()
     else if (op == "%")
         return anx::Symbol(ir::builder->CreateSRem(L, R, "mod"), lsym.ty());
     else if (op == "<")
-        return anx::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), anx::ty_bool);
     else if (op == ">")
-        return anx::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), anx::ty_bool);
     else if (op == "<=")
-        return anx::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), anx::ty_bool);
     else if (op == ">=")
-        return anx::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), anx::ty_bool);
     else if (op == "==")
-        return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), anx::ty_bool);
     else if (op == "!=")
-        return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), lsym.ty());
+        return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), anx::ty_bool);
 
     throw std::runtime_error("Invalid binary operator '" + op + "' used");
 }

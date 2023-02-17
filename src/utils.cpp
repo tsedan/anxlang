@@ -6,16 +6,16 @@
 
 anx::Symbol anx::Symbol::coerce(Types toType)
 {
-    Types typ = ty();
+    Types fromType = ty();
     llvm::Value *v = val();
     llvm::Type *destType = getType(toType, true);
 
-    if (isVoid(typ))
+    if (isVoid(fromType))
     {
         if (isVoid(toType))
             return *this;
     }
-    else if (isSFl(typ))
+    else if (isSFl(fromType))
     {
         if (isSFl(toType))
             return *this;
@@ -25,8 +25,13 @@ anx::Symbol anx::Symbol::coerce(Types toType)
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
         else if (isUInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
+        else if (isBool(toType))
+        {
+            float cmp = 0;
+            return Symbol(ir::builder->CreateFCmpONE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(cmp)), "cmp"), toType);
+        }
     }
-    else if (isDFl(typ))
+    else if (isDFl(fromType))
     {
         if (isSFl(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPTrunc, v, destType, "cast"), toType);
@@ -36,14 +41,19 @@ anx::Symbol anx::Symbol::coerce(Types toType)
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
         else if (isUInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
+        else if (isBool(toType))
+        {
+            double cmp = 0;
+            return Symbol(ir::builder->CreateFCmpONE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(cmp)), "cmp"), toType);
+        }
     }
-    else if (isSInt(typ))
+    else if (isSInt(fromType))
     {
         if (isSFl(toType) || isDFl(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
-            uint32_t fw = width(typ), tw = width(toType);
+            uint32_t fw = width(fromType), tw = width(toType);
             if (fw == tw)
                 return *this;
             if (fw < tw)
@@ -52,21 +62,23 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
         else if (isUInt(toType))
         {
-            uint32_t fw = width(typ), tw = width(toType);
+            uint32_t fw = width(fromType), tw = width(toType);
             if (fw == tw)
                 return Symbol(v, toType);
             if (fw < tw)
                 return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
         }
+        else if (isBool(toType))
+            return Symbol(ir::builder->CreateICmpNE(v, llvm::ConstantInt::get(*ir::ctx, llvm::APInt(width(fromType), 0)), "cmp"), toType);
     }
-    else if (isUInt(typ))
+    else if (isUInt(fromType) || isBool(fromType))
     {
         if (isSFl(toType) || isDFl(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::UIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
-            uint32_t fw = width(typ), tw = width(toType);
+            uint32_t fw = width(fromType), tw = width(toType);
             if (fw == tw)
                 return Symbol(v, toType);
             if (fw < tw)
@@ -75,12 +87,19 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
         else if (isUInt(toType))
         {
-            uint32_t fw = width(typ), tw = width(toType);
+            uint32_t fw = width(fromType), tw = width(toType);
             if (fw == tw)
                 return *this;
             if (fw < tw)
                 return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::ZExt, v, destType, "cast"), toType);
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::Trunc, v, destType, "cast"), toType);
+        }
+        else if (isBool(toType))
+        {
+            if (isBool(fromType))
+                return *this;
+
+            return Symbol(ir::builder->CreateICmpNE(v, llvm::ConstantInt::get(*ir::ctx, llvm::APInt(width(fromType), 0)), "cmp"), toType);
         }
     }
 
@@ -112,12 +131,19 @@ bool anx::isVoid(Types ty)
     return ty == ty_void;
 }
 
+bool anx::isBool(Types ty)
+{
+    return ty == ty_bool;
+}
+
 uint32_t anx::width(Types ty)
 {
     switch (ty)
     {
     case ty_void:
         return 0;
+    case ty_bool:
+        return 1;
     case ty_f32:
         return 32;
     case ty_f64:
@@ -144,6 +170,9 @@ anx::Types anx::toType(std::string type)
 {
     if (type == "void")
         return ty_void;
+
+    if (type == "bool")
+        return ty_bool;
 
     if (type == "i8")
         return ty_i8;
@@ -183,6 +212,8 @@ llvm::Type *anx::getType(Types ty, bool allow_void)
         return llvm::Type::getFloatTy(*ir::ctx);
     case ty_f64:
         return llvm::Type::getDoubleTy(*ir::ctx);
+    case ty_bool:
+        return llvm::Type::getInt1Ty(*ir::ctx);
     case ty_i8:
     case ty_u8:
         return llvm::Type::getInt8Ty(*ir::ctx);

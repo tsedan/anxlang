@@ -31,6 +31,7 @@ namespace anx
     enum Types
     {
         ty_void,
+        ty_bool,
 
         ty_i8,
         ty_i16,
@@ -110,6 +111,7 @@ namespace anx
     bool isSFl(Types ty);
     bool isDFl(Types ty);
     bool isVoid(Types ty);
+    bool isBool(Types ty);
     uint32_t width(Types ty);
 
     Types toType(std::string type);
