@@ -23,7 +23,7 @@ llvm::Value *ast::ProgramNode::codegen()
 
     llvm::Value *mainFn = ir::mod->getFunction("main");
     if (!mainFn)
-        perr("No main function defined");
+        anx::perr("No main function defined");
 
     ir::symbols.pop_back();
 
@@ -33,7 +33,7 @@ llvm::Value *ast::ProgramNode::codegen()
 void ast::FnDecl::declare()
 {
     if (ir::mod->getFunction(name))
-        perr("No two functions can have the same name: '" + name + "'");
+        anx::perr("No two functions can have the same name: '" + name + "'");
 
     std::vector<llvm::Type *> Params(args.size());
 
@@ -74,14 +74,14 @@ llvm::Value *ast::FnDecl::codegen()
         if (type == "void")
             ir::builder->CreateRetVoid();
         else
-            perr("Expected return statement at end of function '" + name + "'");
+            anx::perr("Expected return statement at end of function '" + name + "'");
     }
 
     llvm::EliminateUnreachableBlocks(*F);
 
     llvm::verifyFunction(*F, &llvm::errs());
 
-    if (verbose)
+    if (anx::verbose)
     {
         llvm::errs() << '\n';
         F->print(llvm::errs());
@@ -151,12 +151,12 @@ llvm::Value *ast::CallStmt::codegen()
     ir::Symbol sym = ir::search(name);
 
     if (sym.kind != sym.sym_fn)
-        perr("Attempted to call a non-function '" + name + "'");
+        anx::perr("Attempted to call a non-function '" + name + "'");
 
     llvm::Function *CalleeF = sym.function;
 
     if (CalleeF->arg_size() != args.size())
-        perr("Incorrect # arguments passed");
+        anx::perr("Incorrect # arguments passed");
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
@@ -217,7 +217,7 @@ llvm::Value *ast::IdentStmt::codegen()
 llvm::Value *ast::ScopeNode::codegen()
 {
     if (nodes.empty())
-        perr("Cannot have an empty scope!");
+        anx::perr("Cannot have an empty scope!");
 
     ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 

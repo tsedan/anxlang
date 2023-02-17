@@ -22,7 +22,7 @@ llvm::Type *ir::get_type(std::string ty, bool allow_void)
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
-            perr("Void type not allowed here");
+            anx::perr("Void type not allowed here");
     }
     else if (ty == "f32")
         return llvm::Type::getFloatTy(*ir::ctx);

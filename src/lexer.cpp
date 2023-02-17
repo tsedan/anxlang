@@ -13,7 +13,7 @@ void lex::eat()
     static char lch = ' ';
 
     while (isspace(lch))
-        lch = anxf.get();
+        lch = anx::anxf.get();
 
     tok.val = lch;
 
@@ -25,7 +25,7 @@ void lex::eat()
 
     if (isalpha(lch))
     {
-        while (isalnum(lch = anxf.get()))
+        while (isalnum(lch = anx::anxf.get()))
             tok.val += lch;
 
         if (tok.val == "fn")
@@ -48,7 +48,7 @@ void lex::eat()
 
     if (isdigit(lch))
     {
-        while (isdigit(lch = anxf.get()) || lch == '.')
+        while (isdigit(lch = anx::anxf.get()) || lch == '.')
             tok.val += lch;
 
         tok.tok = tok_number;
@@ -58,7 +58,7 @@ void lex::eat()
     if (lch == '#')
     {
         do
-            lch = anxf.get();
+            lch = anx::anxf.get();
         while (lch != EOF && lch != '\n' && lch != '\r');
 
         if (lch == EOF)
@@ -70,7 +70,7 @@ void lex::eat()
     }
 
     char old = lch;
-    lch = anxf.get();
+    lch = anx::anxf.get();
 
     switch (old)
     {
@@ -108,14 +108,14 @@ void lex::eat()
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anxf.get();
+            lch = anx::anxf.get();
         }
         return;
     case '=':
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anxf.get();
+            lch = anx::anxf.get();
             tok.tok = tok_binop;
         }
         else
@@ -125,7 +125,7 @@ void lex::eat()
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anxf.get();
+            lch = anx::anxf.get();
             tok.tok = tok_binop;
         }
         else
@@ -133,11 +133,11 @@ void lex::eat()
         return;
     }
 
-    perr("Invalid token: '" + std::string(1, old) + "'");
+    anx::perr("Invalid token: '" + std::string(1, old) + "'");
 }
 
 void lex::exp(lex::TokEnum token, std::string msg)
 {
     if (tok.tok != token)
-        perr(msg);
+        anx::perr(msg);
 }

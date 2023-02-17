@@ -20,10 +20,10 @@
 // the rules for this coercion system are currently being prototyped.
 //===---------------------------------------------------------------------===//
 
-std::ifstream anxf;
-bool verbose = false;
+std::ifstream anx::anxf;
+bool anx::verbose = false;
 
-void perr(std::string msg)
+void anx::perr(std::string msg)
 {
     std::cerr << "Compilation Error:\n";
     std::cerr << "    " << msg << std::endl;
@@ -42,7 +42,7 @@ int main(int argc, char **argv)
         switch (c)
         {
         case 'v':
-            verbose = true;
+            anx::verbose = true;
             break;
         case 'o':
             outfile = optarg;
@@ -67,9 +67,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    anxf.open(argv[optind]);
+    anx::anxf.open(argv[optind]);
 
-    if (!anxf.is_open())
+    if (!anx::anxf.is_open())
     {
         std::cerr << "Could not open file: " << argv[optind] << '\n';
         return 1;
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 
     ast::gen_ast();
 
-    if (verbose)
+    if (anx::verbose)
         ast::prog->print(0);
 
     ir::ctx = std::make_unique<llvm::LLVMContext>();
