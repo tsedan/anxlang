@@ -23,13 +23,6 @@
 std::ifstream anx::anxf;
 bool anx::verbose = false;
 
-void anx::perr(std::string msg)
-{
-    std::cerr << "Compilation Error:\n";
-    std::cerr << "    " << msg << std::endl;
-    exit(1);
-}
-
 int main(int argc, char **argv)
 {
     char *outfile = nullptr;
@@ -148,4 +141,46 @@ int main(int argc, char **argv)
     remove("out.o");
 
     return 0;
+}
+
+void anx::perr(std::string msg)
+{
+    std::cerr << "Compilation Error:\n";
+    std::cerr << "    " << msg << std::endl;
+    exit(1);
+}
+
+anx::Types anx::toType(std::string type)
+{
+    if (type == "void")
+        return ty_void;
+
+    if (type == "i8")
+        return ty_i8;
+    if (type == "i16")
+        return ty_i16;
+    if (type == "i32")
+        return ty_i32;
+    if (type == "i64")
+        return ty_i64;
+    if (type == "i128")
+        return ty_i128;
+
+    if (type == "u8")
+        return ty_u8;
+    if (type == "u16")
+        return ty_u16;
+    if (type == "u32")
+        return ty_u32;
+    if (type == "u64")
+        return ty_u64;
+    if (type == "u128")
+        return ty_u128;
+
+    if (type == "f32")
+        return ty_f32;
+    if (type == "f64")
+        return ty_f64;
+
+    throw std::runtime_error("Invalid type '" + type + "'");
 }

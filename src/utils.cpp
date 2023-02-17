@@ -15,31 +15,37 @@ ir::Symbol ir::search(std::string name)
     throw std::runtime_error("Unidentified symbol '" + name + "'");
 }
 
-llvm::Type *ir::get_type(std::string ty, bool allow_void)
+llvm::Type *ir::get_type(anx::Types ty, bool allow_void)
 {
-    if (ty == "void")
+    switch (ty)
     {
+    case anx::ty_f32:
+        return llvm::Type::getFloatTy(*ir::ctx);
+    case anx::ty_f64:
+        return llvm::Type::getDoubleTy(*ir::ctx);
+    case anx::ty_i8:
+    case anx::ty_u8:
+        return llvm::Type::getInt8Ty(*ir::ctx);
+    case anx::ty_i16:
+    case anx::ty_u16:
+        return llvm::Type::getInt16Ty(*ir::ctx);
+    case anx::ty_i32:
+    case anx::ty_u32:
+        return llvm::Type::getInt32Ty(*ir::ctx);
+    case anx::ty_i64:
+    case anx::ty_u64:
+        return llvm::Type::getInt64Ty(*ir::ctx);
+    case anx::ty_i128:
+    case anx::ty_u128:
+        return llvm::Type::getInt128Ty(*ir::ctx);
+    case anx::ty_void:
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
             anx::perr("Void type not allowed here");
+    default:
+        throw std::runtime_error("Unrecognized type");
     }
-    else if (ty == "f32")
-        return llvm::Type::getFloatTy(*ir::ctx);
-    else if (ty == "f64")
-        return llvm::Type::getDoubleTy(*ir::ctx);
-    else if (ty == "i8" || ty == "u8")
-        return llvm::Type::getInt8Ty(*ir::ctx);
-    else if (ty == "i16" || ty == "u16")
-        return llvm::Type::getInt16Ty(*ir::ctx);
-    else if (ty == "i32" || ty == "u32")
-        return llvm::Type::getInt32Ty(*ir::ctx);
-    else if (ty == "i64" || ty == "u64")
-        return llvm::Type::getInt64Ty(*ir::ctx);
-    else if (ty == "i128" || ty == "u128")
-        return llvm::Type::getInt128Ty(*ir::ctx);
-
-    throw std::runtime_error("Unrecognized type '" + ty + "'");
 }
 
 llvm::Value *ir::coerce(llvm::Value *val, llvm::Type *destType, bool is_u)

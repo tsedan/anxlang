@@ -71,7 +71,7 @@ llvm::Value *ast::FnDecl::codegen()
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
     {
-        if (type == "void")
+        if (type == anx::ty_void)
             ir::builder->CreateRetVoid();
         else
             anx::perr("Expected return statement at end of function '" + name + "'");

@@ -112,7 +112,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     lex::eat(); // eat (
 
-    std::vector<std::pair<std::string, std::string>> args;
+    std::vector<std::pair<std::string, anx::Types>> args;
 
     if (lex::tok.tok != lex::tok_parene)
     {
@@ -130,7 +130,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
             lex::exp(lex::tok_identifier, "Expected identifier after type in function argument list in function declaration");
 
-            args.push_back(std::make_pair(name, lex::tok.val));
+            args.push_back(std::make_pair(name, anx::toType(lex::tok.val)));
 
             lex::eat(); // eat type
 
@@ -147,7 +147,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     lex::exp(lex::tok_identifier, "Expected return type after function argument list in function declaration");
 
-    std::string type = lex::tok.val;
+    anx::Types type = anx::toType(lex::tok.val);
 
     lex::eat(); // eat return type
 

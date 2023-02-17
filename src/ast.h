@@ -26,16 +26,16 @@ namespace ast
     {
     public:
         std::string name;
-        std::vector<std::pair<std::string, std::string>> args;
-        std::string type;
+        std::vector<std::pair<std::string, anx::Types>> args;
+        anx::Types type;
         std::unique_ptr<Node> body;
         bool is_pub;
         llvm::Function *F;
 
         FnDecl(
             std::string name,
-            std::vector<std::pair<std::string, std::string>> args,
-            std::string type,
+            std::vector<std::pair<std::string, anx::Types>> args,
+            anx::Types type,
             std::unique_ptr<Node> body,
             bool is_pub)
             : name(name),
