@@ -69,6 +69,7 @@ namespace anx
         Symbol(llvm::Function *function, anx::Types type) : kind(sym_fn), function(function), type(type) {}
         Symbol() : kind(sym_empty) {}
 
+        // get llvm function pointer of a function symbol
         llvm::Function *fn()
         {
             if (kind == sym_fn)
@@ -77,6 +78,7 @@ namespace anx
             throw std::runtime_error("Attempted to access a non-function as if it were a function");
         }
 
+        // get llvm value pointer of a value symbol
         llvm::Value *val()
         {
             if (kind == sym_val)
@@ -85,6 +87,7 @@ namespace anx
             throw std::runtime_error("Attempted to access a non-value as if it were a value");
         }
 
+        // get anx type of a non-empty symbol
         anx::Types ty()
         {
             if (kind == sym_empty)

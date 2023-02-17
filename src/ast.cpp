@@ -197,7 +197,7 @@ std::unique_ptr<ast::NumStmt> parse_num()
 
     lex::eat(); // eat integer
 
-    return std::make_unique<ast::NumStmt>(val, 32, 10, false, val.find('.') != std::string::npos);
+    return std::make_unique<ast::NumStmt>(val);
 }
 
 std::unique_ptr<ast::StmtNode> parse_primary()

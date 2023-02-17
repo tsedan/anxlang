@@ -11,7 +11,7 @@ std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
 
-llvm::Value *ast::ProgramNode::codegen()
+anx::Symbol ast::ProgramNode::codegen()
 {
     ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
@@ -21,13 +21,13 @@ llvm::Value *ast::ProgramNode::codegen()
     for (auto &fn : decls)
         fn->codegen();
 
-    llvm::Value *mainFn = ir::mod->getFunction("main");
+    llvm::Function *mainFn = ir::mod->getFunction("main");
     if (!mainFn)
         anx::perr("No main function defined");
 
     ir::symbols.pop_back();
 
-    return mainFn;
+    return anx::Symbol();
 }
 
 void ast::FnDecl::declare()
@@ -54,10 +54,10 @@ void ast::FnDecl::declare()
     ir::symbols.back().insert(std::make_pair(name, anx::Symbol(F, type)));
 }
 
-llvm::Value *ast::FnDecl::codegen()
+anx::Symbol ast::FnDecl::codegen()
 {
     if (!body)
-        return nullptr;
+        return anx::Symbol();
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
@@ -90,12 +90,12 @@ llvm::Value *ast::FnDecl::codegen()
 
     ir::symbols.pop_back();
 
-    return F;
+    return anx::Symbol(F, type);
 }
 
-llvm::Value *ast::IfNode::codegen()
+anx::Symbol ast::IfNode::codegen()
 {
-    llvm::Value *CondV = cond->codegen();
+    llvm::Value *CondV = cond->codegen().val();
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -125,92 +125,99 @@ llvm::Value *ast::IfNode::codegen()
     F->getBasicBlockList().push_back(MergeBB);
     ir::builder->SetInsertPoint(MergeBB);
 
-    return nullptr;
+    return anx::Symbol();
 }
 
-llvm::Value *ast::NumStmt::codegen()
+anx::Symbol ast::NumStmt::codegen()
 {
-    if (is_float)
-        return llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), value));
+    if (value.find('.') != std::string::npos)
+        return anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), value)), anx::ty_f32);
 
-    return llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(width, value, radix), is_unsigned));
+    return anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, value, 10), false)), anx::ty_i32);
 }
 
-llvm::Value *ast::RetNode::codegen()
+anx::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
         throw std::runtime_error("Block already has terminator");
 
     if (!value)
-        return ir::builder->CreateRetVoid();
+        return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
 
-    return ir::builder->CreateRet(value->codegen());
+    anx::Symbol v = value->codegen();
+    return anx::Symbol(ir::builder->CreateRet(v.val()), v.ty());
 }
 
-llvm::Value *ast::CallStmt::codegen()
+anx::Symbol ast::CallStmt::codegen()
 {
-    llvm::Function *CalleeF = ir::search(name).fn();
+    anx::Symbol sym = ir::search(name);
+    llvm::Function *CalleeF = sym.fn();
 
     if (CalleeF->arg_size() != args.size())
         anx::perr("Incorrect # arguments passed");
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-        ArgsV.push_back(args[i]->codegen());
+        ArgsV.push_back(args[i]->codegen().val());
 
-    if (CalleeF->getReturnType()->isVoidTy())
-        return ir::builder->CreateCall(CalleeF, ArgsV);
+    if (sym.ty() == anx::ty_void)
+        return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), anx::ty_void);
 
-    return ir::builder->CreateCall(CalleeF, ArgsV, "call");
+    return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV, "call"), sym.ty());
 }
 
-llvm::Value *ast::UnOpStmt::codegen()
+anx::Symbol ast::UnOpStmt::codegen()
 {
-    llvm::Value *V = val->codegen();
+    anx::Symbol sym = val->codegen();
+    llvm::Value *V = sym.val();
 
     if (op == "!")
-        return ir::builder->CreateNot(V, "not");
+        return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
 
     throw std::runtime_error("Invalid unary operator '" + op + "' used");
 }
 
-llvm::Value *ast::BinOpStmt::codegen()
+anx::Symbol ast::BinOpStmt::codegen()
 {
-    llvm::Value *L = lhs->codegen();
-    llvm::Value *R = rhs->codegen();
+    anx::Symbol lsym = lhs->codegen();
+    anx::Symbol rsym = rhs->codegen();
 
+    llvm::Value *L = lsym.val();
+    llvm::Value *R = rsym.val();
+
+    // todo: fix the types here since this is obviously incorrect
     if (op == "+")
-        return ir::builder->CreateAdd(L, R, "add");
+        return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), lsym.ty());
     else if (op == "-")
-        return ir::builder->CreateSub(L, R, "sub");
+        return anx::Symbol(ir::builder->CreateSub(L, R, "sub"), lsym.ty());
     else if (op == "*")
-        return ir::builder->CreateMul(L, R, "mul");
+        return anx::Symbol(ir::builder->CreateMul(L, R, "mul"), lsym.ty());
     else if (op == "/")
-        return ir::builder->CreateSDiv(L, R, "div");
+        return anx::Symbol(ir::builder->CreateSDiv(L, R, "div"), lsym.ty());
     else if (op == "%")
-        return ir::builder->CreateSRem(L, R, "mod");
+        return anx::Symbol(ir::builder->CreateSRem(L, R, "mod"), lsym.ty());
     else if (op == "<")
-        return ir::builder->CreateICmpULT(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), lsym.ty());
     else if (op == ">")
-        return ir::builder->CreateICmpUGT(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), lsym.ty());
     else if (op == "<=")
-        return ir::builder->CreateICmpULE(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), lsym.ty());
     else if (op == ">=")
-        return ir::builder->CreateICmpUGE(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), lsym.ty());
     else if (op == "==")
-        return ir::builder->CreateICmpEQ(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), lsym.ty());
     else if (op == "!=")
-        return ir::builder->CreateICmpNE(L, R, "cmp");
+        return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), lsym.ty());
 
     throw std::runtime_error("Invalid binary operator '" + op + "' used");
 }
 
-llvm::Value *ast::IdentStmt::codegen()
+anx::Symbol ast::IdentStmt::codegen()
 {
-    return ir::search(name).val();
+    return ir::search(name);
 }
 
-llvm::Value *ast::ScopeNode::codegen()
+anx::Symbol ast::ScopeNode::codegen()
 {
     if (nodes.empty())
         anx::perr("Cannot have an empty scope!");
@@ -235,5 +242,5 @@ llvm::Value *ast::ScopeNode::codegen()
 
     ir::symbols.pop_back();
 
-    return BB;
+    return anx::Symbol();
 }

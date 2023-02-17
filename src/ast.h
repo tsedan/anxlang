@@ -13,7 +13,7 @@ namespace ast
     public:
         virtual ~Node() {}
         virtual void print(int ind) {}
-        virtual llvm::Value *codegen() = 0;
+        virtual anx::Symbol codegen() = 0;
     };
 
     class StmtNode : public Node
@@ -44,7 +44,7 @@ namespace ast
               body(std::move(body)),
               is_pub(is_pub) {}
         void declare();
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -64,7 +64,7 @@ namespace ast
         std::vector<std::unique_ptr<FnDecl>> decls;
 
         ProgramNode(std::vector<std::unique_ptr<FnDecl>> decls) : decls(std::move(decls)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -80,7 +80,7 @@ namespace ast
         std::string type;
 
         VarDecl(std::string name, std::string type) : name(name), type(type) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -94,7 +94,7 @@ namespace ast
         std::vector<std::unique_ptr<Node>> nodes;
 
         ScopeNode(std::vector<std::unique_ptr<Node>> nodes) : nodes(std::move(nodes)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -110,7 +110,7 @@ namespace ast
         std::unique_ptr<StmtNode> value;
 
         RetNode(std::unique_ptr<StmtNode> value) : value(std::move(value)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -134,7 +134,7 @@ namespace ast
             : cond(std::move(cond)),
               then(std::move(then)),
               els(std::move(els)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -158,7 +158,7 @@ namespace ast
 
         AssignNode(std::string name, std::unique_ptr<StmtNode> value)
             : name(name), value(std::move(value)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -181,7 +181,7 @@ namespace ast
             : op(op),
               lhs(std::move(lhs)),
               rhs(std::move(rhs)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -202,7 +202,7 @@ namespace ast
             std::unique_ptr<StmtNode> val)
             : op(op),
               val(std::move(val)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -219,7 +219,7 @@ namespace ast
 
         CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args)
             : name(name), args(std::move(args)) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -235,7 +235,7 @@ namespace ast
         std::string name;
 
         IdentStmt(std::string name) : name(name) {}
-        llvm::Value *codegen();
+        anx::Symbol codegen();
 
         void print(int ind)
         {
@@ -247,22 +247,10 @@ namespace ast
     {
     public:
         std::string value;
-        int width;
-        int radix;
-        bool is_unsigned;
-        bool is_float;
 
-        NumStmt(std::string value,
-                int width,
-                int radix,
-                bool is_unsigned,
-                bool is_float)
-            : value(value),
-              width(width),
-              radix(radix),
-              is_unsigned(is_unsigned),
-              is_float(is_float) {}
-        llvm::Value *codegen();
+        NumStmt(std::string value)
+            : value(value) {}
+        anx::Symbol codegen();
 
         void print(int ind)
         {
