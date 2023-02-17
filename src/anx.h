@@ -69,6 +69,9 @@ namespace anx
         Symbol(llvm::Function *function, anx::Types type) : kind(sym_fn), function(function), type(type) {}
         Symbol() : kind(sym_empty) {}
 
+        // return a new symbol that has been type-coerced to the desired type
+        Symbol coerce(Types toType);
+
         // get llvm function pointer of a function symbol
         llvm::Function *fn()
         {
@@ -101,5 +104,14 @@ namespace anx
     extern bool verbose;       // Whether the compiler should print what it's doing
 
     void perr(std::string msg);
+
+    bool isSInt(Types ty);
+    bool isUInt(Types ty);
+    bool isSFl(Types ty);
+    bool isDFl(Types ty);
+    bool isVoid(Types ty);
+    uint32_t width(Types ty);
+
     Types toType(std::string type);
+    llvm::Type *getType(Types ty, bool allow_void = false);
 }

@@ -11,6 +11,17 @@ std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
 
+anx::Symbol ir::search(std::string name)
+{
+    std::map<std::string, anx::Symbol>::iterator sym;
+
+    for (auto it = ir::symbols.rbegin(); it != ir::symbols.rend(); ++it)
+        if ((sym = it->find(name)) != it->end())
+            return sym->second;
+
+    throw std::runtime_error("Unidentified symbol '" + name + "'");
+}
+
 anx::Symbol ast::ProgramNode::codegen()
 {
     ir::symbols.push_back(std::map<std::string, anx::Symbol>());
@@ -38,10 +49,10 @@ void ast::FnDecl::declare()
     std::vector<llvm::Type *> Params(args.size());
 
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-        Params[i] = ir::get_type(args[i].second);
+        Params[i] = anx::getType(args[i].second);
 
     llvm::FunctionType *FT =
-        llvm::FunctionType::get(ir::get_type(type, true), Params, false);
+        llvm::FunctionType::get(anx::getType(type, true), Params, false);
 
     llvm::Function::LinkageTypes linkage = (is_pub || name == "main") ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
