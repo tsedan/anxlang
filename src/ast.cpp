@@ -100,7 +100,7 @@ std::unique_ptr<ast::ScopeNode> parse_scope()
 
 std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 {
-    lex::eat(); // eat fn
+    lex::eat(); // eat fn/pub
 
     lex::exp(lex::tok_identifier, "Expected identifier after function declaration");
 
@@ -341,8 +341,6 @@ void ast::gen_ast()
             prog = std::make_unique<ProgramNode>(std::move(decls));
             return;
         case lex::tok_pub:
-            lex::eat();
-            lex::exp(lex::tok_fn, "Expected 'fn' after public decorator");
             decls.push_back(parse_fn(true));
             break;
         case lex::tok_fn:

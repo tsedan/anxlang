@@ -57,7 +57,10 @@ void ast::FnDecl::declare()
     llvm::FunctionType *FT =
         llvm::FunctionType::get(anx::getType(type, true), Params, false);
 
-    llvm::Function::LinkageTypes linkage = (is_pub || name == "main") ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
+    if (name == "main" && !is_pub)
+        anx::perr("Main function must be public (use `pub` keyword)");
+
+    llvm::Function::LinkageTypes linkage = is_pub ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
     F = llvm::Function::Create(FT, linkage, name, ir::mod.get());
 

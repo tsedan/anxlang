@@ -1,4 +1,4 @@
-fn main() {
+pub main() {
     takesingle(takeint(7.0));
 }
 
