@@ -147,11 +147,16 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     lex::eat(); // eat )
 
-    lex::exp(lex::tok_identifier, "Expected return type after function argument list in function declaration");
+    anx::Types type = anx::ty_void;
 
-    anx::Types type = anx::toType(lex::tok.val);
+    if (lex::tok.tok == lex::tok_type)
+    {
+        lex::eat(); // eat :
 
-    lex::eat(); // eat return type
+        type = anx::toType(lex::tok.val);
+
+        lex::eat(); // eat return type
+    }
 
     std::unique_ptr<ast::Node> body;
 

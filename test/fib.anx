@@ -1,11 +1,11 @@
-pub fn print(i: i32) void;
+pub fn print(i: i32);
 
-fn main() i32 {
+fn main(): i32 {
     print(fib(20));
     ret 0;
 }
 
-fn fib(n: i32) i32 {
+fn fib(n: i32): i32 {
     if n < 2 {
         ret n;
     }

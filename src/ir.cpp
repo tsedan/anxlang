@@ -241,9 +241,6 @@ anx::Symbol ast::IdentStmt::codegen()
 
 anx::Symbol ast::ScopeNode::codegen()
 {
-    if (nodes.empty())
-        anx::perr("Cannot have an empty scope!");
-
     ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();

@@ -11,7 +11,7 @@ The purpose of Anx is to simplify the most common use cases for C, while also in
 Please note that Anx is still in its early stages of development, and there are several key language features that are still being prototyped.
 For a peek at language features in development, see the `test` directory.
 
-Here is a list of all of the datatypes available in Anx:
+Here is a list of of the current datatypes available in Anx:
 ```
 i8, i16, i32, i64, i128
 u8, u16, u32, u64, u128
@@ -23,8 +23,8 @@ void (only valid as a function return type)
 Here's a basic sample of the language syntax:
 
 ```
-fn recurseAdd(n: i32, s: i32) i32 {
-    if (n == 0) ret s;
+fn recurseAdd(n: i32, s: i32): i32 {
+    if n == 0 ret s;
     var x: i32 = s * 2 + 1;
 
     ret recurseAdd(n - 1, x);
@@ -34,7 +34,7 @@ fn recurseAdd(n: i32, s: i32) i32 {
 Here's Anx reading user input and printing it back out:
 
 ```
-fn main() void { # return type required, even if void
+fn main() {
     # make a zero-initialized buffer of 256 chars
     var buf: [256]u8 = "";
 
@@ -61,7 +61,7 @@ Errors and safety are a first-class concern in Anx. Here's an example of error h
 (note these features are still in the drafting phase)
 
 ```
-fn openFile(path: *u8) !u8 {
+fn openFile(path: *u8): !u8 {
     # the ! indicates that this function can return an error
 
     # try to open the file. if an error occured, return it.
@@ -70,7 +70,7 @@ fn openFile(path: *u8) !u8 {
     ret 1; # if we got here, success!
 }
 
-fn main() void {
+fn main() {
     # try to open a file.
     openFile("doesnt_exist.txt") catch |err| {
         # this block is executed if an error occured
