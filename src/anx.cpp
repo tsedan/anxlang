@@ -24,8 +24,7 @@ bool anx::verbose = false;
 
 void anx::perr(std::string msg)
 {
-    std::cerr << "Compilation Error:\n";
-    std::cerr << "    " << msg << std::endl;
+    std::cerr << "\033[0;31merror: \033[0m" << msg << std::endl;
     exit(1);
 }
 

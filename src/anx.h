@@ -82,7 +82,7 @@ namespace anx
             if (kind == sym_fn)
                 return function;
 
-            perr("Attempted to access a non-function as if it were a function");
+            perr("attempted to access a non-function as if it were a function");
         }
 
         // get llvm value pointer of a value symbol
@@ -91,14 +91,14 @@ namespace anx
             if (kind == sym_val)
                 return value;
 
-            perr("Attempted to access a non-value as if it were a value");
+            perr("attempted to access a non-value as if it were a value");
         }
 
         // get anx type of a non-empty symbol
         anx::Types ty()
         {
             if (kind == sym_empty)
-                perr("Attempted to access the type of an empty symbol");
+                perr("attempted to access the type of an empty symbol");
 
             return type;
         }
@@ -107,7 +107,7 @@ namespace anx
         std::vector<anx::Types> atypes()
         {
             if (kind != sym_fn)
-                perr("Attempted to access types list of a non-function");
+                perr("attempted to access types list of a non-function");
 
             return types;
         }

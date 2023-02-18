@@ -22,7 +22,7 @@ anx::Symbol ir::search(std::string name)
         if ((sym = it->find(name)) != it->end())
             return sym->second;
 
-    anx::perr("Unidentified symbol '" + name + "'");
+    anx::perr("unidentified symbol '" + name + "'");
 }
 
 anx::Symbol ast::ProgramNode::codegen()
@@ -37,7 +37,7 @@ anx::Symbol ast::ProgramNode::codegen()
 
     llvm::Function *mainFn = ir::mod->getFunction("main");
     if (!mainFn)
-        anx::perr("No main function defined");
+        anx::perr("no main function defined");
 
     ir::symbols.pop_back();
 
@@ -47,7 +47,7 @@ anx::Symbol ast::ProgramNode::codegen()
 void ast::FnDecl::declare()
 {
     if (ir::mod->getFunction(name))
-        anx::perr("No two functions can have the same name '" + name + "'");
+        anx::perr("no two functions can have the same name '" + name + "'");
 
     std::vector<llvm::Type *> Params(args.size());
 
@@ -58,7 +58,7 @@ void ast::FnDecl::declare()
         llvm::FunctionType::get(anx::getType(type, true), Params, false);
 
     if (name == "main" && !is_pub)
-        anx::perr("Main function must be public (use `pub` keyword)");
+        anx::perr("main function must be public (use `pub` keyword)");
 
     llvm::Function::LinkageTypes linkage = is_pub ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
@@ -94,7 +94,7 @@ anx::Symbol ast::FnDecl::codegen()
         if (type == anx::ty_void)
             ir::builder->CreateRetVoid();
         else
-            anx::perr("Expected return statement at end of function '" + name + "'");
+            anx::perr("expected return statement at end of function '" + name + "'");
     }
 
     opti::optimize(F);
@@ -158,7 +158,7 @@ anx::Symbol ast::NumStmt::codegen()
 anx::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        anx::perr("Block already has terminator");
+        anx::perr("block already has terminator");
 
     anx::Symbol parent = ir::search(cf);
 
@@ -167,7 +167,7 @@ anx::Symbol ast::RetNode::codegen()
         if (parent.ty() == anx::ty_void)
             return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
         else
-            anx::perr("Cannot return void from non-void function");
+            anx::perr("cannot return void from non-void function");
     }
 
     anx::Symbol v = value->codegen().coerce(parent.ty());
@@ -181,7 +181,7 @@ anx::Symbol ast::CallStmt::codegen()
     std::vector<anx::Types> atypes = sym.atypes();
 
     if (CalleeF->arg_size() != args.size())
-        anx::perr("Incorrect # arguments passed");
+        anx::perr("expected " + std::to_string(CalleeF->arg_size()) + " arguments, got " + std::to_string(args.size()) + " instead");
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
@@ -201,7 +201,7 @@ anx::Symbol ast::UnOpStmt::codegen()
     if (op == "!")
         return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
 
-    anx::perr("Invalid unary operator '" + op + "' used");
+    anx::perr("invalid unary operator '" + op + "' used");
 }
 
 anx::Symbol ast::IdentStmt::codegen()
@@ -229,7 +229,7 @@ anx::Symbol ast::BinOpStmt::codegen()
 
     anx::Types dtype;
     if (anx::isVoid(lt) || anx::isVoid(rt))
-        anx::perr("Binary operations do not support void type");
+        anx::perr("binary operations do not support void type");
     else if (anx::isDouble(lt) || anx::isDouble(rt))
         dtype = anx::ty_f64;
     else if (anx::isSingle(lt) || anx::isSingle(rt))
@@ -335,8 +335,8 @@ anx::Symbol ast::BinOpStmt::codegen()
     }
     else
     {
-        anx::perr("Invalid binary operator '" + op + "' used");
+        anx::perr("invalid binary operator '" + op + "' used");
     }
 
-    anx::perr("Cannot do operation '" + op + "' on " + anx::toString(lt) + " and " + anx::toString(rt));
+    anx::perr("operation '" + op + "' does not support " + anx::toString(lt) + " and " + anx::toString(rt) + " type combination");
 }

@@ -133,7 +133,7 @@ void lex::eat()
         return;
     }
 
-    anx::perr("Invalid token: '" + std::string(1, old) + "'");
+    anx::perr("invalid token found: '" + std::string(1, old) + "'");
 }
 
 void lex::exp(lex::TokEnum token, std::string msg)

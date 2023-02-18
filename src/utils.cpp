@@ -101,7 +101,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
     }
 
-    perr("Cannot not coerce " + toString(fromType) + " to " + toString(toType));
+    perr("cannot coerce " + toString(fromType) + " to " + toString(toType));
 }
 
 bool anx::isSingle(Types ty)
@@ -199,7 +199,7 @@ anx::Types anx::toType(std::string type)
     if (type == "f64")
         return ty_f64;
 
-    perr("Invalid type '" + type + "'");
+    perr("invalid type '" + type + "'");
 }
 
 std::string anx::toString(Types type)
@@ -266,8 +266,8 @@ llvm::Type *anx::getType(Types ty, bool allow_void)
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
-            perr("Void type not allowed here");
+            perr("void type not allowed here");
     default:
-        perr("Unrecognized type");
+        perr("unrecognized type");
     }
 }
