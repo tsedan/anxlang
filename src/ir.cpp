@@ -10,8 +10,9 @@
 std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
+
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
-std::string cf; // current function being generated
+std::string cf;
 
 anx::Symbol ir::search(std::string name)
 {
@@ -238,79 +239,93 @@ anx::Symbol ast::BinOpStmt::codegen()
     llvm::Value *L = lsym.coerce(dtype).val();
     llvm::Value *R = rsym.coerce(dtype).val();
 
-    if (anx::isDouble(dtype) || anx::isSingle(dtype))
+    if (op == "+")
     {
-        if (op == "+")
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFAdd(L, R, "add"), dtype);
-        else if (op == "-")
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
+            return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), dtype);
+    }
+    else if (op == "-")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFSub(L, R, "sub"), dtype);
-        else if (op == "*")
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
+            return anx::Symbol(ir::builder->CreateSub(L, R, "sub"), dtype);
+    }
+    else if (op == "*")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFMul(L, R, "mul"), dtype);
-        else if (op == "/")
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
+            return anx::Symbol(ir::builder->CreateMul(L, R, "mul"), dtype);
+    }
+    else if (op == "/")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFDiv(L, R, "div"), dtype);
-        else if (op == "%")
-            return anx::Symbol(ir::builder->CreateFRem(L, R, "mod"), dtype);
-        else if (op == "<")
-            return anx::Symbol(ir::builder->CreateFCmpULT(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">")
-            return anx::Symbol(ir::builder->CreateFCmpUGT(L, R, "cmp"), anx::ty_bool);
-        else if (op == "<=")
-            return anx::Symbol(ir::builder->CreateFCmpULE(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">=")
-            return anx::Symbol(ir::builder->CreateFCmpUGE(L, R, "cmp"), anx::ty_bool);
-        else if (op == "==")
-            return anx::Symbol(ir::builder->CreateFCmpUEQ(L, R, "cmp"), anx::ty_bool);
-        else if (op == "!=")
-            return anx::Symbol(ir::builder->CreateFCmpUNE(L, R, "cmp"), anx::ty_bool);
-    }
-    else if (anx::isSInt(dtype))
-    {
-        if (op == "+")
-            return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), dtype);
-        else if (op == "-")
-            return anx::Symbol(ir::builder->CreateSub(L, R, "sub"), dtype);
-        else if (op == "*")
-            return anx::Symbol(ir::builder->CreateMul(L, R, "mul"), dtype);
-        else if (op == "/")
+        else if (anx::isSInt(dtype))
             return anx::Symbol(ir::builder->CreateSDiv(L, R, "div"), dtype);
-        else if (op == "%")
-            return anx::Symbol(ir::builder->CreateSRem(L, R, "mod"), dtype);
-        else if (op == "<")
-            return anx::Symbol(ir::builder->CreateICmpSLT(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">")
-            return anx::Symbol(ir::builder->CreateICmpSGT(L, R, "cmp"), anx::ty_bool);
-        else if (op == "<=")
-            return anx::Symbol(ir::builder->CreateICmpSLE(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">=")
-            return anx::Symbol(ir::builder->CreateICmpSGE(L, R, "cmp"), anx::ty_bool);
-        else if (op == "==")
-            return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), anx::ty_bool);
-        else if (op == "!=")
-            return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), anx::ty_bool);
-    }
-    else if (anx::isUInt(dtype))
-    {
-        if (op == "+")
-            return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), dtype);
-        else if (op == "-")
-            return anx::Symbol(ir::builder->CreateSub(L, R, "sub"), dtype);
-        else if (op == "*")
-            return anx::Symbol(ir::builder->CreateMul(L, R, "mul"), dtype);
-        else if (op == "/")
+        else if (anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateUDiv(L, R, "div"), dtype);
-        else if (op == "%")
-            return anx::Symbol(ir::builder->CreateURem(L, R, "mod"), dtype);
-        else if (op == "<")
+    }
+    else if (op == "%")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFRem(L, R, "rem"), dtype);
+        else if (anx::isSInt(dtype))
+            return anx::Symbol(ir::builder->CreateSRem(L, R, "rem"), dtype);
+        else if (anx::isUInt(dtype))
+            return anx::Symbol(ir::builder->CreateURem(L, R, "rem"), dtype);
+    }
+    else if (op == "<")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpULT(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype))
+            return anx::Symbol(ir::builder->CreateICmpSLT(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">")
+    }
+    else if (op == ">")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpUGT(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype))
+            return anx::Symbol(ir::builder->CreateICmpSGT(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), anx::ty_bool);
-        else if (op == "<=")
+    }
+    else if (op == "<=")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpULE(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype))
+            return anx::Symbol(ir::builder->CreateICmpSLE(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), anx::ty_bool);
-        else if (op == ">=")
+    }
+    else if (op == ">=")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpUGE(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype))
+            return anx::Symbol(ir::builder->CreateICmpSGE(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), anx::ty_bool);
-        else if (op == "==")
+    }
+    else if (op == "==")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpUEQ(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), anx::ty_bool);
-        else if (op == "!=")
+    }
+    else if (op == "!=")
+    {
+        if (anx::isDouble(dtype) || anx::isSingle(dtype))
+            return anx::Symbol(ir::builder->CreateFCmpUNE(L, R, "cmp"), anx::ty_bool);
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
             return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), anx::ty_bool);
     }
 
