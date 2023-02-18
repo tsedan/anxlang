@@ -53,8 +53,8 @@ namespace ast
         {
             std::cout << std::string(ind, ' ') << "< fn " << name << "( ";
             for (size_t i = 0; i < args.size(); i++)
-                std::cout << args[i] << " : " << types[i] << ", ";
-            std::cout << ") " << type;
+                std::cout << args[i] << " : " << anx::toString(types[i]) << ", ";
+            std::cout << ") " << anx::toString(type);
             std::cout << " >" << '\n';
             if (body)
                 body->print(ind + 1);
@@ -80,14 +80,14 @@ namespace ast
     {
     public:
         std::string name;
-        std::string type;
+        anx::Types type;
 
-        VarDecl(std::string name, std::string type) : name(name), type(type) {}
+        VarDecl(std::string name, anx::Types type) : name(name), type(type) {}
         anx::Symbol codegen();
 
         void print(int ind)
         {
-            std::cout << std::string(ind, ' ') << "< var " << name << " : " << type << " >" << '\n';
+            std::cout << std::string(ind, ' ') << "< var " << name << " : " << anx::toString(type) << " >" << '\n';
         }
     };
 

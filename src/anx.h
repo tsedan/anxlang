@@ -125,5 +125,6 @@ namespace anx
     uint32_t width(Types ty);
 
     Types toType(std::string type);
+    std::string toString(Types type);
     llvm::Type *getType(Types ty, bool allow_void = false);
 }

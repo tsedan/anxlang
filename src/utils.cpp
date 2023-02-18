@@ -101,9 +101,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
     }
 
-    std::cerr << fromType << " " << toType << '\n';
-
-    perr("Could not coerce to the desired type");
+    perr("Cannot not coerce " + toString(fromType) + " to " + toString(toType));
 }
 
 bool anx::isSingle(Types ty)
@@ -202,6 +200,41 @@ anx::Types anx::toType(std::string type)
         return ty_f64;
 
     perr("Invalid type '" + type + "'");
+}
+
+std::string anx::toString(Types type)
+{
+    switch (type)
+    {
+    case ty_void:
+        return "void";
+    case ty_bool:
+        return "bool";
+    case ty_f32:
+        return "f32";
+    case ty_f64:
+        return "f64";
+    case ty_i8:
+        return "i8";
+    case ty_u8:
+        return "u8";
+    case ty_i16:
+        return "i16";
+    case ty_u16:
+        return "u16";
+    case ty_i32:
+        return "i32";
+    case ty_u32:
+        return "u32";
+    case ty_i64:
+        return "i64";
+    case ty_u64:
+        return "u64";
+    case ty_i128:
+        return "i128";
+    case ty_u128:
+        return "u128";
+    }
 }
 
 llvm::Type *anx::getType(Types ty, bool allow_void)

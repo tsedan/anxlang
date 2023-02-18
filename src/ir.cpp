@@ -47,7 +47,7 @@ anx::Symbol ast::ProgramNode::codegen()
 void ast::FnDecl::declare()
 {
     if (ir::mod->getFunction(name))
-        anx::perr("No two functions can have the same name: '" + name + "'");
+        anx::perr("No two functions can have the same name '" + name + "'");
 
     std::vector<llvm::Type *> Params(args.size());
 
@@ -227,9 +227,9 @@ anx::Symbol ast::BinOpStmt::codegen()
     anx::Symbol rsym = rhs->codegen();
     anx::Types lt = lsym.ty(), rt = rsym.ty();
 
-    anx::Types dtype; // desired type
+    anx::Types dtype;
     if (anx::isVoid(lt) || anx::isVoid(rt))
-        anx::perr("Binary operation does not support void type");
+        anx::perr("Binary operations do not support void type");
     else if (anx::isDouble(lt) || anx::isDouble(rt))
         dtype = anx::ty_f64;
     else if (anx::isSingle(lt) || anx::isSingle(rt))
@@ -338,5 +338,5 @@ anx::Symbol ast::BinOpStmt::codegen()
         anx::perr("Invalid binary operator '" + op + "' used");
     }
 
-    anx::perr("Cannot do operation '" + op + "' on datatypes used");
+    anx::perr("Cannot do operation '" + op + "' on " + anx::toString(lt) + " and " + anx::toString(rt));
 }
