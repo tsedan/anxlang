@@ -16,7 +16,7 @@
 // 3. (ir.cpp) Generate LLVM IR from the AST
 // 4. (anx.cpp) Generate an executable from the LLVM IR
 //
-// The current todo item is implementing a more advanced type system.
+// The current todo item is including more robust error messages
 //===---------------------------------------------------------------------===//
 
 std::ifstream anx::anxf;
