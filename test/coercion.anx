@@ -1,7 +1,7 @@
 fn main() {
-    takedouble(takeint(7.0));
+    takesingle(takeint(7.0));
 }
 
-fn takeint(n: i32): f32 ret n;
+fn takeint(n: i32): f64 ret n + 5.2;
 
-fn takedouble(x: f64): i32 ret x;
+fn takesingle(x: f32): i32 ret x;

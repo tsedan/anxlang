@@ -30,10 +30,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         else if (isUInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
         else if (isBool(toType))
-        {
-            float cmp = 0;
-            return Symbol(ir::builder->CreateFCmpONE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(cmp)), "cmp"), toType);
-        }
+            return Symbol(ir::builder->CreateFCmpUNE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat((float)0)), "cmp"), toType);
     }
     else if (isDouble(fromType))
     {
@@ -46,10 +43,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         else if (isUInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToUI, v, destType, "cast"), toType);
         else if (isBool(toType))
-        {
-            double cmp = 0;
-            return Symbol(ir::builder->CreateFCmpONE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(cmp)), "cmp"), toType);
-        }
+            return Symbol(ir::builder->CreateFCmpUNE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat((double)0)), "cmp"), toType);
     }
     else if (isSInt(fromType))
     {
