@@ -236,8 +236,10 @@ anx::Symbol ast::BinOpStmt::codegen()
         dtype = anx::ty_f32;
     else if (anx::isSInt(lt) || anx::isSInt(rt))
         dtype = anx::toType('i' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
-    else
+    else if (anx::isUInt(lt) || anx::isUInt(rt))
         dtype = anx::toType('u' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
+    else
+        dtype = anx::ty_bool;
 
     llvm::Value *L = lsym.coerce(dtype).val();
     llvm::Value *R = rsym.coerce(dtype).val();
@@ -321,16 +323,20 @@ anx::Symbol ast::BinOpStmt::codegen()
     {
         if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFCmpUEQ(L, R, "cmp"), anx::ty_bool);
-        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype) || anx::isBool(dtype))
             return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), anx::ty_bool);
     }
     else if (op == "!=")
     {
         if (anx::isDouble(dtype) || anx::isSingle(dtype))
             return anx::Symbol(ir::builder->CreateFCmpUNE(L, R, "cmp"), anx::ty_bool);
-        else if (anx::isSInt(dtype) || anx::isUInt(dtype))
+        else if (anx::isSInt(dtype) || anx::isUInt(dtype) || anx::isBool(dtype))
             return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), anx::ty_bool);
     }
+    else
+    {
+        anx::perr("Invalid binary operator '" + op + "' used");
+    }
 
-    anx::perr("Invalid binary operator '" + op + "' used");
+    anx::perr("Cannot do operation '" + op + "' on datatypes used");
 }
