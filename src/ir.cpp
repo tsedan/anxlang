@@ -1,6 +1,7 @@
 #include "anx.h"
 #include "ir.h"
 #include "ast.h"
+#include "opti.h"
 
 //===---------------------------------------------------------------------===//
 // IR - This module generates LLVM IR from the Anx AST.
@@ -92,7 +93,7 @@ anx::Symbol ast::FnDecl::codegen()
             anx::perr("Expected return statement at end of function '" + name + "'");
     }
 
-    llvm::EliminateUnreachableBlocks(*F);
+    opti::optimize(F);
 
     llvm::verifyFunction(*F, &llvm::errs());
 
@@ -243,21 +244,8 @@ anx::Symbol ast::ScopeNode::codegen()
 {
     ir::symbols.push_back(std::map<std::string, anx::Symbol>());
 
-    llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
-
-    llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
-    ir::builder->CreateBr(BB);
-    ir::builder->SetInsertPoint(BB);
-
     for (auto &stmt : nodes)
         stmt->codegen();
-
-    if (!ir::builder->GetInsertBlock()->getTerminator())
-    {
-        llvm::BasicBlock *BB2 = llvm::BasicBlock::Create(*ir::ctx, "scope", F);
-        ir::builder->CreateBr(BB2);
-        ir::builder->SetInsertPoint(BB2);
-    }
 
     ir::symbols.pop_back();
 

@@ -4,6 +4,10 @@
 #include "ir.h"
 #include "ast.h"
 
+//===---------------------------------------------------------------------===//
+// Utils - This module defines utility functions.
+//===---------------------------------------------------------------------===//
+
 anx::Symbol anx::Symbol::coerce(Types toType)
 {
     Types fromType = ty();
