@@ -86,7 +86,7 @@ anx::Symbol ast::FnDecl::codegen()
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
     {
-        if (types[0] == anx::ty_void)
+        if (type == anx::ty_void)
             ir::builder->CreateRetVoid();
         else
             anx::perr("Expected return statement at end of function '" + name + "'");
@@ -173,13 +173,14 @@ anx::Symbol ast::CallStmt::codegen()
 {
     anx::Symbol sym = ir::search(name);
     llvm::Function *CalleeF = sym.fn();
+    std::vector<anx::Types> atypes = sym.atypes();
 
     if (CalleeF->arg_size() != args.size())
         anx::perr("Incorrect # arguments passed");
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-        ArgsV.push_back(args[i]->codegen().val());
+        ArgsV.push_back(args[i]->codegen().coerce(atypes[i]).val());
 
     if (sym.ty() == anx::ty_void)
         return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), anx::ty_void);

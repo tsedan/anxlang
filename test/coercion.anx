@@ -1,0 +1,7 @@
+fn main() void {
+    takedouble(takeint(7.0));
+}
+
+fn takeint(n: i32) f32 ret n;
+
+fn takedouble(x: f64) i32 ret x;

@@ -100,6 +100,15 @@ namespace anx
 
             return type;
         }
+
+        // get anx types list of a function
+        std::vector<anx::Types> atypes()
+        {
+            if (kind != sym_fn)
+                throw std::runtime_error("Attempted to access types list of a non-function");
+
+            return types;
+        }
     };
 
     extern std::ifstream anxf; // The anx input file
