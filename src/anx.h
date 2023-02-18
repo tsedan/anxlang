@@ -28,6 +28,8 @@
 
 namespace anx
 {
+    [[noreturn]] void perr(std::string msg);
+
     enum Types
     {
         ty_void,
@@ -80,7 +82,7 @@ namespace anx
             if (kind == sym_fn)
                 return function;
 
-            throw std::runtime_error("Attempted to access a non-function as if it were a function");
+            perr("Attempted to access a non-function as if it were a function");
         }
 
         // get llvm value pointer of a value symbol
@@ -89,14 +91,14 @@ namespace anx
             if (kind == sym_val)
                 return value;
 
-            throw std::runtime_error("Attempted to access a non-value as if it were a value");
+            perr("Attempted to access a non-value as if it were a value");
         }
 
         // get anx type of a non-empty symbol
         anx::Types ty()
         {
             if (kind == sym_empty)
-                throw std::runtime_error("Attempted to access the type of an empty symbol");
+                perr("Attempted to access the type of an empty symbol");
 
             return type;
         }
@@ -105,7 +107,7 @@ namespace anx
         std::vector<anx::Types> atypes()
         {
             if (kind != sym_fn)
-                throw std::runtime_error("Attempted to access types list of a non-function");
+                perr("Attempted to access types list of a non-function");
 
             return types;
         }
@@ -114,12 +116,10 @@ namespace anx
     extern std::ifstream anxf; // The anx input file
     extern bool verbose;       // Whether the compiler should print what it's doing
 
-    void perr(std::string msg);
-
     bool isSInt(Types ty);
     bool isUInt(Types ty);
-    bool isSFl(Types ty);
-    bool isDFl(Types ty);
+    bool isSingle(Types ty);
+    bool isDouble(Types ty);
     bool isVoid(Types ty);
     bool isBool(Types ty);
     uint32_t width(Types ty);

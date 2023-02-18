@@ -26,7 +26,7 @@ void anx::perr(std::string msg)
 {
     std::cerr << "Compilation Error:\n";
     std::cerr << "    " << msg << std::endl;
-    exit(1);
+    abort();
 }
 
 int main(int argc, char **argv)

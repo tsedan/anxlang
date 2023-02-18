@@ -21,7 +21,7 @@ anx::Symbol ir::search(std::string name)
         if ((sym = it->find(name)) != it->end())
             return sym->second;
 
-    throw std::runtime_error("Unidentified symbol '" + name + "'");
+    anx::perr("Unidentified symbol '" + name + "'");
 }
 
 anx::Symbol ast::ProgramNode::codegen()
@@ -154,7 +154,7 @@ anx::Symbol ast::NumStmt::codegen()
 anx::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        throw std::runtime_error("Block already has terminator");
+        anx::perr("Block already has terminator");
 
     anx::Symbol parent = ir::search(cf);
 
@@ -197,18 +197,47 @@ anx::Symbol ast::UnOpStmt::codegen()
     if (op == "!")
         return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
 
-    throw std::runtime_error("Invalid unary operator '" + op + "' used");
+    anx::perr("Invalid unary operator '" + op + "' used");
+}
+
+anx::Symbol ast::IdentStmt::codegen()
+{
+    return ir::search(name);
+}
+
+anx::Symbol ast::ScopeNode::codegen()
+{
+    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
+
+    for (auto &stmt : nodes)
+        stmt->codegen();
+
+    ir::symbols.pop_back();
+
+    return anx::Symbol();
 }
 
 anx::Symbol ast::BinOpStmt::codegen()
 {
     anx::Symbol lsym = lhs->codegen();
     anx::Symbol rsym = rhs->codegen();
+    anx::Types lt = lsym.ty(), rt = rsym.ty();
 
-    llvm::Value *L = lsym.val();
-    llvm::Value *R = rsym.val();
+    anx::Types dtype; // desired type
+    if (anx::isVoid(lt) || anx::isVoid(rt))
+        anx::perr("Binary operation does not support void type");
+    else if (anx::isDouble(lt) || anx::isDouble(rt))
+        dtype = anx::ty_f64;
+    else if (anx::isSingle(lt) || anx::isSingle(rt))
+        dtype = anx::ty_f32;
+    else if (anx::isSInt(lt) || anx::isSInt(rt))
+        dtype = anx::toType('i' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
+    else
+        dtype = anx::toType('u' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
 
-    // todo: fix the types here since this is obviously incorrect
+    llvm::Value *L = lsym.coerce(dtype).val();
+    llvm::Value *R = rsym.coerce(dtype).val();
+
     if (op == "+")
         return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), lsym.ty());
     else if (op == "-")
@@ -232,22 +261,5 @@ anx::Symbol ast::BinOpStmt::codegen()
     else if (op == "!=")
         return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), anx::ty_bool);
 
-    throw std::runtime_error("Invalid binary operator '" + op + "' used");
-}
-
-anx::Symbol ast::IdentStmt::codegen()
-{
-    return ir::search(name);
-}
-
-anx::Symbol ast::ScopeNode::codegen()
-{
-    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
-
-    for (auto &stmt : nodes)
-        stmt->codegen();
-
-    ir::symbols.pop_back();
-
-    return anx::Symbol();
+    anx::perr("Invalid binary operator '" + op + "' used");
 }

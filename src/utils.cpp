@@ -19,11 +19,11 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         if (isVoid(toType))
             return *this;
     }
-    else if (isSFl(fromType))
+    else if (isSingle(fromType))
     {
-        if (isSFl(toType))
+        if (isSingle(toType))
             return *this;
-        else if (isDFl(toType))
+        else if (isDouble(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPExt, v, destType, "cast"), toType);
         else if (isSInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
@@ -35,11 +35,11 @@ anx::Symbol anx::Symbol::coerce(Types toType)
             return Symbol(ir::builder->CreateFCmpONE(v, llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(cmp)), "cmp"), toType);
         }
     }
-    else if (isDFl(fromType))
+    else if (isDouble(fromType))
     {
-        if (isSFl(toType))
+        if (isSingle(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPTrunc, v, destType, "cast"), toType);
-        else if (isDFl(toType))
+        else if (isDouble(toType))
             return *this;
         else if (isSInt(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::FPToSI, v, destType, "cast"), toType);
@@ -53,7 +53,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
     }
     else if (isSInt(fromType))
     {
-        if (isSFl(toType) || isDFl(toType))
+        if (isSingle(toType) || isDouble(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::SIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
@@ -78,7 +78,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
     }
     else if (isUInt(fromType) || isBool(fromType))
     {
-        if (isSFl(toType) || isDFl(toType))
+        if (isSingle(toType) || isDouble(toType))
             return Symbol(ir::builder->CreateCast(llvm::Instruction::CastOps::UIToFP, v, destType, "cast"), toType);
         else if (isSInt(toType))
         {
@@ -109,15 +109,15 @@ anx::Symbol anx::Symbol::coerce(Types toType)
 
     std::cerr << fromType << " " << toType << '\n';
 
-    throw std::runtime_error("Could not coerce to the desired type");
+    perr("Could not coerce to the desired type");
 }
 
-bool anx::isSFl(Types ty)
+bool anx::isSingle(Types ty)
 {
     return ty == ty_f32;
 }
 
-bool anx::isDFl(Types ty)
+bool anx::isDouble(Types ty)
 {
     return ty == ty_f64;
 }
@@ -207,7 +207,7 @@ anx::Types anx::toType(std::string type)
     if (type == "f64")
         return ty_f64;
 
-    throw std::runtime_error("Invalid type '" + type + "'");
+    perr("Invalid type '" + type + "'");
 }
 
 llvm::Type *anx::getType(Types ty, bool allow_void)
@@ -241,6 +241,6 @@ llvm::Type *anx::getType(Types ty, bool allow_void)
         else
             perr("Void type not allowed here");
     default:
-        throw std::runtime_error("Unrecognized type");
+        perr("Unrecognized type");
     }
 }
