@@ -1,11 +1,28 @@
 #include "anx.h"
 #include "lexer.h"
 
+#include <iostream>
+
 //===---------------------------------------------------------------------===//
 // Lexer - This module tokenizes an input Anx file.
 //===---------------------------------------------------------------------===//
 
 lex::Token lex::tok;
+size_t lex::row = 0, lex::col = 0;
+
+char grab()
+{
+    while (lex::col == anx::file[lex::row].size())
+    {
+        if (lex::row == anx::file.size() - 1)
+            return EOF;
+
+        lex::col = 0;
+        lex::row++;
+    }
+
+    return anx::file[lex::row][lex::col++];
+}
 
 // Get the next token from the input file and update the global token variable
 void lex::eat()
@@ -13,7 +30,7 @@ void lex::eat()
     static char lch = ' ';
 
     while (isspace(lch))
-        lch = anx::anxf.get();
+        lch = grab();
 
     tok.val = lch;
 
@@ -25,7 +42,7 @@ void lex::eat()
 
     if (isalpha(lch))
     {
-        while (isalnum(lch = anx::anxf.get()))
+        while (isalnum(lch = grab()))
             tok.val += lch;
 
         if (tok.val == "fn")
@@ -48,7 +65,7 @@ void lex::eat()
 
     if (isdigit(lch))
     {
-        while (isdigit(lch = anx::anxf.get()) || lch == '.')
+        while (isdigit(lch = grab()) || lch == '.')
             tok.val += lch;
 
         tok.tok = tok_number;
@@ -58,7 +75,7 @@ void lex::eat()
     if (lch == '#')
     {
         do
-            lch = anx::anxf.get();
+            lch = grab();
         while (lch != EOF && lch != '\n' && lch != '\r');
 
         if (lch == EOF)
@@ -70,7 +87,7 @@ void lex::eat()
     }
 
     char old = lch;
-    lch = anx::anxf.get();
+    lch = grab();
 
     switch (old)
     {
@@ -108,14 +125,14 @@ void lex::eat()
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anx::anxf.get();
+            lch = grab();
         }
         return;
     case '=':
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anx::anxf.get();
+            lch = grab();
             tok.tok = tok_binop;
         }
         else
@@ -125,7 +142,7 @@ void lex::eat()
         if (lch == '=')
         {
             tok.val += lch;
-            lch = anx::anxf.get();
+            lch = grab();
             tok.tok = tok_binop;
         }
         else

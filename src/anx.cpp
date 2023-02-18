@@ -19,7 +19,7 @@
 // The current todo item is including more robust error messages
 //===---------------------------------------------------------------------===//
 
-std::ifstream anx::anxf;
+std::vector<std::string> anx::file;
 bool anx::verbose = false;
 
 void anx::perr(std::string msg)
@@ -46,32 +46,26 @@ int main(int argc, char **argv)
             outfile = optarg;
             break;
         case '?':
-            std::cerr << "Unknown option '-" << optopt << "'.\n";
-            return 1;
+            anx::perr(std::string("unknown compiler option '-") + (char)optopt + "' (use -h for help)");
         case 'h':
-            std::cout << "USAGE: anx [options] file\n";
-            std::cout << "OPTIONS:\n";
-            std::cout << "  -v    Verbose mode\n";
-            std::cout << "  -h    Print this help message\n";
-            return 1;
+            std::cerr << "USAGE: anx [options] file\n";
+            std::cerr << "OPTIONS:\n";
+            std::cerr << "  -v    Verbose mode\n";
+            std::cerr << "  -h    Print this help message\n";
         default:
             exit(1);
         }
     }
 
     if (argc - optind != 1)
-    {
-        std::cerr << "USAGE: anx [options] file\n";
-        return 1;
-    }
+        anx::perr("usage: anx [options] file (use -h for help)");
 
-    anx::anxf.open(argv[optind]);
+    std::ifstream anxf(argv[optind]);
+    if (!anxf.is_open())
+        anx::perr("could not open file '" + std::string(argv[optind]) + "'");
 
-    if (!anx::anxf.is_open())
-    {
-        std::cerr << "Could not open file: " << argv[optind] << '\n';
-        return 1;
-    }
+    for (std::string line; std::getline(anxf, line);)
+        anx::file.push_back(line);
 
     ast::gen_ast();
 
@@ -94,13 +88,10 @@ int main(int argc, char **argv)
     ir::mod->setTargetTriple(TargetTriple);
 
     std::string Error;
-    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
 
+    auto Target = llvm::TargetRegistry::lookupTarget(TargetTriple, Error);
     if (!Target)
-    {
-        llvm::errs() << Error;
-        return 1;
-    }
+        anx::perr(Error);
 
     auto CPU = "generic";
     auto Features = "";
@@ -117,19 +108,13 @@ int main(int argc, char **argv)
     llvm::raw_fd_ostream dest(Filename, EC, llvm::sys::fs::OF_None);
 
     if (EC)
-    {
-        llvm::errs() << "Could not open file: " << EC.message();
-        return 1;
-    }
+        anx::perr("could not open file '" + EC.message() + "'");
 
     llvm::legacy::PassManager pass;
     auto FileType = llvm::CGFT_ObjectFile;
 
     if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType))
-    {
-        llvm::errs() << "TheTargetMachine can't emit a file of this type";
-        return 1;
-    }
+        anx::perr("targetmachine cannot emit a file of this type");
 
     pass.run(*ir::mod);
     dest.flush();

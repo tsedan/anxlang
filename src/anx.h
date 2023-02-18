@@ -113,8 +113,9 @@ namespace anx
         }
     };
 
-    extern std::ifstream anxf; // The anx input file
-    extern bool verbose;       // Whether the compiler should print what it's doing
+    extern std::vector<std::string> file;
+
+    extern bool verbose; // Whether the compiler should print what it's doing
 
     bool isSInt(Types ty);
     bool isUInt(Types ty);

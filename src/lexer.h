@@ -48,6 +48,8 @@ namespace lex
     };
 
     extern Token tok;
+    extern size_t row;
+    extern size_t col;
     void eat();
     void exp(TokEnum token, std::string msg);
 }
