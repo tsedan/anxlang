@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string>
 
 #include "anx.h"
 #include "ast.h"
@@ -22,28 +23,6 @@
 std::vector<std::string> anx::file;
 bool anx::verbose = false;
 std::string src;
-
-void anx::perr(std::string msg, size_t r, size_t c)
-{
-    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
-
-    size_t len = std::max(file[r].size(), c + 1);
-
-    std::string ep1(std::min(len, c), '~');
-    std::string ep2(len - 1 - ep1.size(), '~');
-
-    std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1 << '\n';
-    std::cerr << "    " << file[r] << '\n';
-    std::cerr << "    " << ep1 << "\033[0;31m" << '^' << "\033[0m" << ep2 << '\n';
-
-    exit(1);
-}
-
-void anx::perr(std::string msg)
-{
-    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
-    exit(1);
-}
 
 int main(int argc, char **argv)
 {
@@ -150,4 +129,34 @@ int main(int argc, char **argv)
     remove("out.o");
 
     return 0;
+}
+
+void anx::perr(std::string msg, size_t r, size_t c, size_t s)
+{
+    std::string line = file[r];
+    size_t p = c, begin = line.find_first_not_of(" \t"), end = line.find_last_not_of(" \t");
+    if (begin != std::string::npos)
+    {
+        line = line.substr(begin, end - begin + 1);
+        p -= begin;
+    }
+
+    size_t len = std::max(line.size(), p + s);
+    std::string ep0(c - p, ' ');
+    std::string ep1(p, '~');
+    std::string ep2(s, '^');
+    std::string ep3(len - s - p, '~');
+
+    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
+    std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1 << '\n';
+    std::cerr << "   | " << ep0 << line << '\n';
+    std::cerr << "   | " << ep0 << ep1 << "\033[0;31m" << ep2 << "\033[0m" << ep3 << '\n';
+
+    exit(1);
+}
+
+void anx::perr(std::string msg)
+{
+    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
+    exit(1);
 }
