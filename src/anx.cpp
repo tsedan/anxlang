@@ -32,7 +32,7 @@ void anx::perr(std::string msg, size_t r, size_t c)
     std::string ep1(std::min(len, c), '~');
     std::string ep2(len - 1 - ep1.size(), '~');
 
-    std::cerr << "  --> " << src << ':' << r << ':' << c << '\n';
+    std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1 << '\n';
     std::cerr << "    " << file[r] << '\n';
     std::cerr << "    " << ep1 << "\033[0;31m" << '^' << "\033[0m" << ep2 << '\n';
 
