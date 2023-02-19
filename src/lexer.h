@@ -45,10 +45,11 @@ namespace lex
     {
         TokEnum tok;
         std::string val;
-        size_t row, col;
     };
 
     extern Token tok;
+    extern size_t cr, cc;
+    extern size_t lr, lc;
     void eat();
     void exp(TokEnum token, std::string msg);
 }

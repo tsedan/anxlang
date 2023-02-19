@@ -220,7 +220,7 @@ std::unique_ptr<ast::StmtNode> parse_primary()
     case lex::tok_unop:
         return parse_unary();
     default:
-        anx::perr("expected an expression");
+        anx::perr("expected an expression", lex::lr, lex::lc);
     }
 
     return nullptr;
@@ -317,7 +317,7 @@ std::unique_ptr<ast::Node> parse_inst()
         n = parse_ret();
         break;
     default:
-        anx::perr("unexpected token '" + lex::tok.val + "'");
+        anx::perr("expected an instruction", lex::cr, lex::cc);
     }
 
     lex::exp(lex::tok_eol, "expected ';' after instruction");
@@ -347,7 +347,7 @@ void ast::gen_ast()
             decls.push_back(parse_fn(false));
             break;
         default:
-            anx::perr("only declarations are permitted at the top level");
+            anx::perr("only declarations permitted at the top level", lex::cr, lex::cc);
         }
     }
 }
