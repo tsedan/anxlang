@@ -29,6 +29,7 @@
 namespace anx
 {
     [[noreturn]] void perr(std::string msg);
+    [[noreturn]] void perr(std::string msg, size_t r, size_t c);
 
     enum Types
     {

@@ -102,13 +102,13 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 {
     lex::eat(); // eat fn/pub
 
-    lex::exp(lex::tok_identifier, "expected identifier after function declaration");
+    lex::exp(lex::tok_identifier, "expected name after function declaration");
 
     std::string name = lex::tok.val;
 
     lex::eat(); // eat identifier
 
-    lex::exp(lex::tok_parens, "expected '(' after function name in function declaration");
+    lex::exp(lex::tok_parens, "expected '(' after function name");
 
     lex::eat(); // eat (
 
@@ -119,17 +119,17 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
     {
         while (1)
         {
-            lex::exp(lex::tok_identifier, "expected identifier in function argument list in function declaration, got '" + lex::tok.val + "' instead");
+            lex::exp(lex::tok_identifier, "expected parameter name in function argument list");
 
             std::string name = lex::tok.val;
 
             lex::eat(); // eat name
 
-            lex::exp(lex::tok_type, "expected ':' after variable name in argument list in function declaration");
+            lex::exp(lex::tok_type, "expected ':' after parameter name");
 
             lex::eat(); // eat :
 
-            lex::exp(lex::tok_identifier, "expected identifier after type in function argument list in function declaration");
+            lex::exp(lex::tok_identifier, "expected type after parameter name");
 
             args.push_back(name);
             types.push_back(anx::toType(lex::tok.val));
@@ -139,7 +139,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
             if (lex::tok.tok == lex::tok_parene)
                 break;
 
-            lex::exp(lex::tok_comma, "expected ',' or ')' in argument list in function declaration");
+            lex::exp(lex::tok_comma, "expected ',' or ')' to continue or close argument list");
 
             lex::eat(); // eat ,
         }
@@ -182,7 +182,7 @@ std::unique_ptr<ast::StmtNode> parse_paren_expr()
 
     std::unique_ptr<ast::StmtNode> expr = parse_expr();
 
-    lex::exp(lex::tok_parene, "expected ')' to close parenthetical expression");
+    lex::exp(lex::tok_parene, "expected a closing parenthesis ')'");
 
     lex::eat(); // eat )
 
@@ -220,7 +220,7 @@ std::unique_ptr<ast::StmtNode> parse_primary()
     case lex::tok_unop:
         return parse_unary();
     default:
-        anx::perr("expected expression, got '" + lex::tok.val + "' instead");
+        anx::perr("expected an expression");
     }
 
     return nullptr;
@@ -320,7 +320,7 @@ std::unique_ptr<ast::Node> parse_inst()
         anx::perr("unexpected token '" + lex::tok.val + "'");
     }
 
-    lex::exp(lex::tok_eol, "expected ';' at end of statement");
+    lex::exp(lex::tok_eol, "expected ';' after instruction");
     lex::eat(); // eat ;
 
     return n;
@@ -347,7 +347,7 @@ void ast::gen_ast()
             decls.push_back(parse_fn(false));
             break;
         default:
-            anx::perr("only declarations are permitted at the top level, got '" + lex::tok.val + "' instead");
+            anx::perr("only declarations are permitted at the top level");
         }
     }
 }

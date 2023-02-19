@@ -21,10 +21,27 @@
 
 std::vector<std::string> anx::file;
 bool anx::verbose = false;
+std::string src;
+
+void anx::perr(std::string msg, size_t r, size_t c)
+{
+    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
+
+    size_t len = std::max(file[r].size(), c + 1);
+
+    std::string ep1(std::min(len, c), '~');
+    std::string ep2(len - 1 - ep1.size(), '~');
+
+    std::cerr << "  --> " << src << ':' << r << ':' << c << '\n';
+    std::cerr << "    " << file[r] << '\n';
+    std::cerr << "    " << ep1 << "\033[0;31m" << '^' << "\033[0m" << ep2 << '\n';
+
+    exit(1);
+}
 
 void anx::perr(std::string msg)
 {
-    std::cerr << "\033[0;31merror: \033[0m" << msg << std::endl;
+    std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
     exit(1);
 }
 
@@ -60,9 +77,11 @@ int main(int argc, char **argv)
     if (argc - optind != 1)
         anx::perr("usage: anx [options] file (use -h for help)");
 
-    std::ifstream anxf(argv[optind]);
+    src = argv[optind];
+
+    std::ifstream anxf(src);
     if (!anxf.is_open())
-        anx::perr("could not open file '" + std::string(argv[optind]) + "'");
+        anx::perr("could not open file '" + src + "'");
 
     for (std::string line; std::getline(anxf, line);)
         anx::file.push_back(line);
