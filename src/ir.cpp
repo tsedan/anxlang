@@ -157,20 +157,11 @@ anx::Symbol ast::NumStmt::codegen()
     if (prsd.size() >= 2 && prsd[0] == '0')
     {
         if (prsd[1] == 'x')
-        {
             radix = 16;
-            prsd = prsd.substr(2);
-        }
         else if (prsd[1] == 'b')
-        {
             radix = 2;
-            prsd = prsd.substr(2);
-        }
         else if (prsd[1] == 'o')
-        {
             radix = 8;
-            prsd = prsd.substr(2);
-        }
     }
 
     anx::Types dtype = anx::ty_void;
@@ -183,6 +174,9 @@ anx::Symbol ast::NumStmt::codegen()
             break;
         }
     }
+
+    if (radix != 10)
+        prsd = prsd.substr(2);
 
     prsd.erase(remove(prsd.begin(), prsd.end(), '_'), prsd.end());
 
