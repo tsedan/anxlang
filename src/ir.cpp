@@ -225,9 +225,7 @@ anx::Symbol ast::BinOpStmt::codegen()
     anx::Types lt = lsym.ty(), rt = rsym.ty();
 
     anx::Types dtype;
-    if (anx::isVoid(lt) || anx::isVoid(rt))
-        anx::perr("binary operations do not support void type");
-    else if (anx::isDouble(lt) || anx::isDouble(rt))
+    if (anx::isDouble(lt) || anx::isDouble(rt))
         dtype = anx::ty_f64;
     else if (anx::isSingle(lt) || anx::isSingle(rt))
         dtype = anx::ty_f32;
@@ -332,8 +330,8 @@ anx::Symbol ast::BinOpStmt::codegen()
     }
     else
     {
-        anx::perr("invalid binary operator '" + op + "' used");
+        anx::perr("invalid binary operator", nrow, ncol, op.size());
     }
 
-    anx::perr("operation '" + op + "' does not support " + anx::toString(lt) + " and " + anx::toString(rt) + " type combination");
+    anx::perr("operation '" + op + "' does not support '" + anx::toString(lt) + "' and '" + anx::toString(rt) + "' type combination", nrow, ncol, op.size());
 }

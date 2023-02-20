@@ -244,17 +244,16 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
             return lhs;
 
         std::string op = lex::tok.val;
+        size_t nrow = lex::cr, ncol = lex::cc;
 
         lex::eat(); // eat op
 
         std::unique_ptr<ast::StmtNode> rhs = parse_primary();
 
-        int next_prio = prio(lex::tok.val);
-
-        if (c_prio < next_prio)
+        if (c_prio < prio(lex::tok.val))
             rhs = parse_binop(c_prio + 1, std::move(rhs));
 
-        lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs));
+        lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs), nrow, ncol);
     }
 }
 

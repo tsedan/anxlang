@@ -185,14 +185,17 @@ namespace ast
         std::string op;
         std::unique_ptr<StmtNode> lhs;
         std::unique_ptr<StmtNode> rhs;
+        size_t nrow, ncol;
 
         BinOpStmt(
             std::string op,
             std::unique_ptr<StmtNode> lhs,
-            std::unique_ptr<StmtNode> rhs)
+            std::unique_ptr<StmtNode> rhs,
+            size_t nrow, size_t ncol)
             : op(op),
               lhs(std::move(lhs)),
-              rhs(std::move(rhs)) {}
+              rhs(std::move(rhs)),
+              nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)
