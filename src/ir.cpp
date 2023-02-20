@@ -149,15 +149,18 @@ anx::Symbol ast::IfNode::codegen()
     return anx::Symbol();
 }
 
-uint32_t min_width(const std::string &str, int radix)
+uint32_t min_width(const std::string &str, uint8_t radix)
 {
-    size_t len = str.length(), mid = len / 2;
-    std::string str1 = str.substr(0, mid);
-    std::string str2 = str.substr(mid);
-
-    uint64_t num1 = std::strtoull(str1.c_str(), nullptr, radix);
-    uint64_t num2 = std::strtoull(str2.c_str(), nullptr, radix);
-    __uint128_t num = ((__uint128_t)(num1) << 64) | num2;
+    __uint128_t num = 0;
+    for (char c : str)
+    {
+        if (c >= '0' && c <= '9')
+            num = num * radix + (c - '0');
+        else if (c >= 'a' && c <= 'z')
+            num = num * radix + (c - 'a' + 10);
+        else if (c >= 'A' && c <= 'Z')
+            num = num * radix + (c - 'A' + 10);
+    }
 
     uint32_t width = 0;
     while (num)
