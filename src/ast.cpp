@@ -211,7 +211,7 @@ std::unique_ptr<ast::NumStmt> parse_num()
     std::string val = lex::tok.val;
     size_t nrow = lex::cr, ncol = lex::cc;
 
-    lex::eat(); // eat integer
+    lex::eat(); // eat number
 
     return std::make_unique<ast::NumStmt>(val, nrow, ncol);
 }

@@ -152,12 +152,53 @@ anx::Symbol ast::IfNode::codegen()
 anx::Symbol ast::NumStmt::codegen()
 {
     std::string prsd = value;
+
+    anx::Types dtype = anx::ty_void;
+    for (size_t i = prsd.size() - 1; i > 0; i--)
+    {
+        if (prsd[i] == 'i' || prsd[i] == 'u' || prsd[i] == 'f')
+        {
+            dtype = anx::toType(prsd.substr(i), false, nrow, ncol + i, prsd.size() - i);
+            prsd = prsd.substr(0, i);
+            break;
+        }
+    }
+
+    uint8_t radix = 10;
+    if (prsd.size() > 2 && prsd[0] == '0')
+    {
+        if (prsd[1] == 'x')
+        {
+            radix = 16;
+            prsd = prsd.substr(2);
+        }
+        else if (prsd[1] == 'b')
+        {
+            radix = 2;
+            prsd = prsd.substr(2);
+        }
+        else if (prsd[1] == 'o')
+        {
+            radix = 8;
+            prsd = prsd.substr(2);
+        }
+    }
+
     prsd.erase(remove(prsd.begin(), prsd.end(), '_'), prsd.end());
 
-    if (prsd.find('.') != std::string::npos)
-        return anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), anx::ty_f32);
+    if (!prsd.size())
+        anx::perr("invalid number", nrow, ncol, value.size());
 
-    return anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, prsd, 10), false)), anx::ty_i32);
+    anx::Symbol sym;
+    if (prsd.find('.') == std::string::npos)
+        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, prsd, radix), false)), anx::ty_i32);
+    else
+        sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), anx::ty_f32);
+
+    if (dtype != anx::ty_void)
+        return sym.coerce(dtype, nrow, ncol, value.size());
+
+    return sym;
 }
 
 anx::Symbol ast::RetNode::codegen()
