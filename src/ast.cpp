@@ -232,6 +232,12 @@ std::unique_ptr<ast::StmtNode> parse_primary()
     case lex::tok_parens:
         primary = parse_paren_expr();
         break;
+    case lex::tok_binop:
+        if (lex::tok.val == "-")
+            primary = parse_unary();
+        else
+            anx::perr("expected an expression", lex::lr, lex::lc + lex::ls);
+        break;
     case lex::tok_unop:
         primary = parse_unary();
         break;

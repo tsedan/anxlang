@@ -17,7 +17,7 @@
 // 3. (ir.cpp) Generate LLVM IR from the AST
 // 4. (anx.cpp) Generate an executable from the LLVM IR
 //
-// The current todo item is negation, and then stack-allocated variables.
+// The current todo item is stack-allocated variables.
 //===---------------------------------------------------------------------===//
 
 std::vector<std::string> anx::file;

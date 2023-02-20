@@ -276,13 +276,28 @@ anx::Symbol ast::CallStmt::codegen()
 anx::Symbol ast::UnOpStmt::codegen()
 {
     anx::Symbol sym = val->codegen();
-    llvm::Value *V = sym.val();
 
     if (anx::isVoid(sym.ty()))
         anx::perr("cannot use void type as operand", val->srow, val->scol, val->ssize);
 
     if (op == "!")
-        return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
+        return anx::Symbol(ir::builder->CreateNot(sym.coerce(anx::ty_bool, val->srow, val->scol, val->ssize).val(), "not"), sym.ty());
+    if (op == "-")
+    {
+        if (anx::isBool(sym.ty()))
+            anx::perr("cannot negate boolean type, use `!` instead", val->srow, val->scol, val->ssize);
+
+        if (anx::isUInt(sym.ty()))
+        {
+            uint32_t width = anx::width(sym.ty());
+            return anx::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), anx::toType("i" + std::to_string(width), false));
+        }
+
+        if (anx::isSingle(sym.ty()) || anx::isDouble(sym.ty()))
+            return anx::Symbol(ir::builder->CreateFNeg(sym.val(), "neg"), sym.ty());
+
+        return anx::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), sym.ty());
+    }
 
     anx::perr("invalid unary operator", nrow, ncol, op.size());
 }
