@@ -250,6 +250,8 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
 {
     while (1)
     {
+        size_t srow = lhs->srow, scol = lhs->scol;
+
         int c_prio = prio(lex::tok.val);
 
         if (c_prio < priority)
@@ -267,8 +269,12 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
 
         lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs), nrow, ncol);
 
-        if (lex::lc + lex::ls > lhs->scol)
+        lhs->srow = srow;
+        lhs->scol = scol;
+        if (lex::lr == srow)
             lhs->ssize = lex::lc + lex::ls - lhs->scol;
+        else
+            lhs->ssize = anx::file[srow].size() - lhs->scol;
     }
 }
 
