@@ -215,7 +215,7 @@ anx::Symbol ast::NumStmt::codegen()
     if (prsd.find('.') == std::string::npos)
     {
         uint32_t width = min_width(prsd, radix);
-        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(width, prsd, radix), true)), anx::toType("u" + std::to_string(width), false));
+        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APInt(width, prsd, radix)), anx::toType("u" + std::to_string(width), false));
     }
     else
     {
