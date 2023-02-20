@@ -203,7 +203,7 @@ anx::Types anx::toType(std::string type, bool allow_void, size_t r, size_t c, si
     if (type == "f64")
         return ty_f64;
 
-    perr("invalid type", r, c, s);
+    perr("unrecognized type", r, c, s);
 }
 
 std::string anx::toString(Types type)
