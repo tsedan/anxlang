@@ -113,7 +113,7 @@ anx::Symbol ast::FnDecl::codegen()
 
 anx::Symbol ast::IfNode::codegen()
 {
-    llvm::Value *CondV = cond->codegen().coerce(anx::ty_bool).val();
+    llvm::Value *CondV = cond->codegen().coerce(anx::ty_bool, cond->srow, cond->scol, cond->ssize).val();
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
 
@@ -167,7 +167,7 @@ anx::Symbol ast::RetNode::codegen()
             anx::perr("cannot return void from non-void function", drow, dcol);
     }
 
-    anx::Symbol v = value->codegen().coerce(cf.ty());
+    anx::Symbol v = value->codegen().coerce(cf.ty(), value->srow, value->scol, value->ssize);
     return anx::Symbol(ir::builder->CreateRet(v.val()), v.ty());
 }
 
@@ -182,7 +182,7 @@ anx::Symbol ast::CallStmt::codegen()
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
-        ArgsV.push_back(args[i]->codegen().coerce(atypes[i]).val());
+        ArgsV.push_back(args[i]->codegen().coerce(atypes[i], args[i]->srow, args[i]->scol, args[i]->ssize).val());
 
     if (sym.ty() == anx::ty_void)
         return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), anx::ty_void);
@@ -194,6 +194,9 @@ anx::Symbol ast::UnOpStmt::codegen()
 {
     anx::Symbol sym = val->codegen();
     llvm::Value *V = sym.val();
+
+    if (anx::isVoid(sym.ty()))
+        anx::perr("cannot use void type as operand", val->srow, val->scol, val->ssize);
 
     if (op == "!")
         return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
@@ -225,7 +228,11 @@ anx::Symbol ast::BinOpStmt::codegen()
     anx::Types lt = lsym.ty(), rt = rsym.ty();
 
     anx::Types dtype;
-    if (anx::isDouble(lt) || anx::isDouble(rt))
+    if (anx::isVoid(lt))
+        anx::perr("cannot use void type as operand", lhs->srow, lhs->scol, lhs->ssize);
+    else if (anx::isVoid(rt))
+        anx::perr("cannot use void type as operand", rhs->srow, rhs->scol, rhs->ssize);
+    else if (anx::isDouble(lt) || anx::isDouble(rt))
         dtype = anx::ty_f64;
     else if (anx::isSingle(lt) || anx::isSingle(rt))
         dtype = anx::ty_f32;
@@ -236,8 +243,8 @@ anx::Symbol ast::BinOpStmt::codegen()
     else
         dtype = anx::ty_bool;
 
-    llvm::Value *L = lsym.coerce(dtype).val();
-    llvm::Value *R = rsym.coerce(dtype).val();
+    llvm::Value *L = lsym.coerce(dtype, lhs->srow, lhs->scol, lhs->ssize).val();
+    llvm::Value *R = rsym.coerce(dtype, lhs->srow, lhs->scol, lhs->ssize).val();
 
     if (op == "+")
     {

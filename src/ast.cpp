@@ -209,29 +209,41 @@ std::unique_ptr<ast::StmtNode> parse_unary()
 std::unique_ptr<ast::NumStmt> parse_num()
 {
     std::string val = lex::tok.val;
+    size_t nrow = lex::cr, ncol = lex::cc;
 
     lex::eat(); // eat integer
 
-    return std::make_unique<ast::NumStmt>(val);
+    return std::make_unique<ast::NumStmt>(val, nrow, ncol);
 }
 
 std::unique_ptr<ast::StmtNode> parse_primary()
 {
+    std::unique_ptr<ast::StmtNode> primary;
+    size_t srow = lex::cr, scol = lex::cc;
+
     switch (lex::tok.tok)
     {
     case lex::tok_identifier:
-        return parse_identifier();
+        primary = parse_identifier();
+        break;
     case lex::tok_number:
-        return parse_num();
+        primary = parse_num();
+        break;
     case lex::tok_parens:
-        return parse_paren_expr();
+        primary = parse_paren_expr();
+        break;
     case lex::tok_unop:
-        return parse_unary();
+        primary = parse_unary();
+        break;
     default:
         anx::perr("expected an expression", lex::lr, lex::lc + lex::ls);
     }
 
-    return nullptr;
+    primary->srow = srow;
+    primary->scol = scol;
+    primary->ssize = lex::lc + lex::ls - scol;
+
+    return primary;
 }
 
 std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::StmtNode> lhs)
@@ -254,6 +266,9 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority, std::unique_ptr<ast::St
             rhs = parse_binop(c_prio + 1, std::move(rhs));
 
         lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs), std::move(rhs), nrow, ncol);
+
+        if (lex::lc + lex::ls > lhs->scol)
+            lhs->ssize = lex::lc + lex::ls - lhs->scol;
     }
 }
 

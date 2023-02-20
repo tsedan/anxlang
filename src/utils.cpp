@@ -8,7 +8,7 @@
 // Utils - This module defines utility functions.
 //===---------------------------------------------------------------------===//
 
-anx::Symbol anx::Symbol::coerce(Types toType)
+anx::Symbol anx::Symbol::coerce(Types toType, size_t r, size_t c, size_t s)
 {
     Types fromType = ty();
     llvm::Value *v = val();
@@ -101,7 +101,7 @@ anx::Symbol anx::Symbol::coerce(Types toType)
         }
     }
 
-    perr("cannot coerce " + toString(fromType) + " to " + toString(toType));
+    perr("cannot coerce type '" + toString(fromType) + "' to '" + toString(toType) + "'", r, c, s);
 }
 
 bool anx::isSingle(Types ty)

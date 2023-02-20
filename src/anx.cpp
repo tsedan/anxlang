@@ -139,10 +139,14 @@ void anx::perr(std::string msg, size_t r, size_t c, size_t s)
     {
         ep0 = line.substr(0, begin);
         line = line.substr(begin, end - begin + 1);
-        p -= begin;
+        if (p > begin)
+            p -= begin;
+        else
+            p = 0;
     }
 
     size_t len = std::max(line.size(), p + s);
+
     std::string ep1(p, '~'), ep2(s, '^'), ep3(len - s - p, '~');
 
     std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';

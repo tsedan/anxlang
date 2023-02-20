@@ -75,7 +75,7 @@ namespace anx
         Symbol() : kind(sym_empty) {}
 
         // return a new symbol that has been type-coerced to the desired type
-        Symbol coerce(Types toType);
+        Symbol coerce(Types toType, size_t r, size_t c, size_t s);
 
         // get llvm function pointer of a function symbol
         llvm::Function *fn()

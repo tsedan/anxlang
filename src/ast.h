@@ -18,6 +18,8 @@ namespace ast
 
     class StmtNode : public Node
     {
+    public:
+        size_t srow, scol, ssize;
     };
 
     class FnDecl : public Node
@@ -267,9 +269,10 @@ namespace ast
     {
     public:
         std::string value;
+        size_t nrow, ncol;
 
-        NumStmt(std::string value)
-            : value(value) {}
+        NumStmt(std::string value, size_t nrow, size_t ncol)
+            : value(value), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)
