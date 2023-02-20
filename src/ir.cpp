@@ -90,7 +90,7 @@ anx::Symbol ast::FnDecl::codegen()
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
     {
-        if (type == anx::ty_void)
+        if (anx::isVoid(type))
             ir::builder->CreateRetVoid();
         else
             anx::perr("expected return statement at end of non-void function '" + name + "'", erow, ecol);
@@ -149,6 +149,42 @@ anx::Symbol ast::IfNode::codegen()
     return anx::Symbol();
 }
 
+__uint128_t parse_uint128(const std::string &str, int radix)
+{
+    size_t len = str.length();
+    size_t mid = len / 2;
+    std::string str1 = str.substr(0, mid);
+    std::string str2 = str.substr(mid);
+
+    uint64_t num1 = std::strtoull(str1.c_str(), nullptr, radix);
+    uint64_t num2 = std::strtoull(str2.c_str(), nullptr, radix);
+
+    __uint128_t result = ((__uint128_t)(num1) << 64) | num2;
+    return result;
+}
+
+uint32_t min_width(const std::string &str, int radix)
+{
+    __uint128_t num = parse_uint128(str, radix);
+    uint32_t width = 0;
+
+    while (num)
+    {
+        num >>= 1;
+        width++;
+    }
+
+    if (width < 8)
+        return 8;
+    else if (width < 16)
+        return 16;
+    else if (width < 32)
+        return 32;
+    else if (width < 64)
+        return 64;
+    return 128;
+}
+
 anx::Symbol ast::NumStmt::codegen()
 {
     std::string prsd = value;
@@ -185,11 +221,19 @@ anx::Symbol ast::NumStmt::codegen()
 
     anx::Symbol sym;
     if (prsd.find('.') == std::string::npos)
-        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, prsd, radix), false)), anx::ty_i32);
+    {
+        uint32_t width = min_width(prsd, radix);
+        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(width, prsd, radix), true)), anx::toType("u" + std::to_string(width), false));
+    }
     else
-        sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), anx::ty_f32);
+    {
+        if (anx::isDouble(dtype))
+            sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEdouble(), prsd)), anx::ty_f64);
+        else
+            sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), anx::ty_f32);
+    }
 
-    if (dtype != anx::ty_void)
+    if (!anx::isVoid(dtype))
         return sym.coerce(dtype, nrow, ncol, value.size());
 
     return sym;
@@ -202,7 +246,7 @@ anx::Symbol ast::RetNode::codegen()
 
     if (!value)
     {
-        if (cf.ty() == anx::ty_void)
+        if (anx::isVoid(cf.ty()))
             return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
         else
             anx::perr("cannot return void from non-void function", drow, dcol);
@@ -228,7 +272,7 @@ anx::Symbol ast::CallStmt::codegen()
     for (unsigned i = 0, e = args.size(); i != e; ++i)
         ArgsV.push_back(args[i]->codegen().coerce(atypes[i], args[i]->srow, args[i]->scol, args[i]->ssize).val());
 
-    if (sym.ty() == anx::ty_void)
+    if (anx::isVoid(sym.ty()))
         return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), anx::ty_void);
 
     return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV, "call"), sym.ty());
