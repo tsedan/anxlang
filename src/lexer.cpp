@@ -72,8 +72,67 @@ void lex::eat()
 
     if (isdigit(lch))
     {
+        if (lch == '0')
+        {
+            lch = grab();
+
+            if (lch == 'x')
+            {
+                do
+                {
+                    tok.val += lch;
+                    lch = grab();
+                } while (isxdigit(lch) || lch == '_');
+
+                if (lch == '.')
+                    anx::perr("hexadecimal float literal is not supported", cr, cc, tok.val.size());
+
+                goto numtype;
+            }
+            else if (lch == 'b')
+            {
+                do
+                {
+                    tok.val += lch;
+                    lch = grab();
+                } while (lch == '0' || lch == '1' || lch == '_');
+
+                if (lch == '.')
+                    anx::perr("binary float literal is not supported", cr, cc, tok.val.size());
+
+                goto numtype;
+            }
+            else if (lch == 'o')
+            {
+                do
+                {
+                    tok.val += lch;
+                    lch = grab();
+                } while ((lch >= '0' && lch <= '7') || lch == '_');
+
+                if (lch == '.')
+                    anx::perr("octal float literal is not supported", cr, cc, tok.val.size());
+
+                goto numtype;
+            }
+            else if (isdigit(lch) || lch == '.' || lch == '_')
+            {
+                tok.val += lch;
+            }
+            else
+                goto numtype;
+        }
+
         while (isdigit(lch = grab()) || lch == '.' || lch == '_')
             tok.val += lch;
+
+    numtype:
+        if (lch == 'i' || lch == 'u' || lch == 'f')
+        {
+            do
+                tok.val += lch;
+            while (isdigit(lch = grab()));
+        }
 
         tok.tok = tok_number;
         return;
