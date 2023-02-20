@@ -153,19 +153,8 @@ anx::Symbol ast::NumStmt::codegen()
 {
     std::string prsd = value;
 
-    anx::Types dtype = anx::ty_void;
-    for (size_t i = prsd.size() - 1; i > 0; i--)
-    {
-        if (prsd[i] == 'i' || prsd[i] == 'u' || prsd[i] == 'f')
-        {
-            dtype = anx::toType(prsd.substr(i), false, nrow, ncol + i, prsd.size() - i);
-            prsd = prsd.substr(0, i);
-            break;
-        }
-    }
-
     uint8_t radix = 10;
-    if (prsd.size() > 2 && prsd[0] == '0')
+    if (prsd.size() >= 2 && prsd[0] == '0')
     {
         if (prsd[1] == 'x')
         {
@@ -184,10 +173,21 @@ anx::Symbol ast::NumStmt::codegen()
         }
     }
 
+    anx::Types dtype = anx::ty_void;
+    for (size_t i = prsd.size() - 1; i > 0; i--)
+    {
+        if (prsd[i] == 'i' || prsd[i] == 'u' || (radix == 10 && prsd[i] == 'f'))
+        {
+            dtype = anx::toType(prsd.substr(i), false, nrow, ncol + i, prsd.size() - i);
+            prsd = prsd.substr(0, i);
+            break;
+        }
+    }
+
     prsd.erase(remove(prsd.begin(), prsd.end(), '_'), prsd.end());
 
     if (!prsd.size())
-        anx::perr("invalid number", nrow, ncol, value.size());
+        anx::perr("number literal has no value", nrow, ncol, value.size());
 
     anx::Symbol sym;
     if (prsd.find('.') == std::string::npos)

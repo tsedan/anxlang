@@ -87,7 +87,15 @@ void lex::eat()
                 if (lch == '.')
                     anx::perr("hexadecimal float literal is not supported", cr, cc, tok.val.size());
 
-                goto numtype;
+                if (lch == 'i' || lch == 'u')
+                {
+                    do
+                        tok.val += lch;
+                    while (isdigit(lch = grab()));
+                }
+
+                tok.tok = tok_number;
+                return;
             }
             else if (lch == 'b')
             {
@@ -97,10 +105,21 @@ void lex::eat()
                     lch = grab();
                 } while (lch == '0' || lch == '1' || lch == '_');
 
-                if (lch == '.')
+                if (isdigit(lch))
+                    anx::perr("invalid digit in binary literal", tr, tc - 1);
+
+                if (lch == '.' || lch == 'f')
                     anx::perr("binary float literal is not supported", cr, cc, tok.val.size());
 
-                goto numtype;
+                if (lch == 'i' || lch == 'u')
+                {
+                    do
+                        tok.val += lch;
+                    while (isdigit(lch = grab()));
+                }
+
+                tok.tok = tok_number;
+                return;
             }
             else if (lch == 'o')
             {
@@ -110,10 +129,21 @@ void lex::eat()
                     lch = grab();
                 } while ((lch >= '0' && lch <= '7') || lch == '_');
 
-                if (lch == '.')
+                if (isdigit(lch))
+                    anx::perr("invalid digit in octal literal", tr, tc - 1);
+
+                if (lch == '.' || lch == 'f')
                     anx::perr("octal float literal is not supported", cr, cc, tok.val.size());
 
-                goto numtype;
+                if (lch == 'i' || lch == 'u')
+                {
+                    do
+                        tok.val += lch;
+                    while (isdigit(lch = grab()));
+                }
+
+                tok.tok = tok_number;
+                return;
             }
             else if (isdigit(lch) || lch == '.' || lch == '_')
             {
