@@ -72,7 +72,7 @@ void lex::eat()
 
     if (isdigit(lch))
     {
-        while (isdigit(lch = grab()) || lch == '.')
+        while (isdigit(lch = grab()) || lch == '.' || lch == '_')
             tok.val += lch;
 
         tok.tok = tok_number;

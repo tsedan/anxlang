@@ -151,10 +151,13 @@ anx::Symbol ast::IfNode::codegen()
 
 anx::Symbol ast::NumStmt::codegen()
 {
-    if (value.find('.') != std::string::npos)
-        return anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), value)), anx::ty_f32);
+    std::string prsd = value;
+    prsd.erase(remove(prsd.begin(), prsd.end(), '_'), prsd.end());
 
-    return anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, value, 10), false)), anx::ty_i32);
+    if (prsd.find('.') != std::string::npos)
+        return anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), anx::ty_f32);
+
+    return anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APSInt(llvm::APInt(32, prsd, 10), false)), anx::ty_i32);
 }
 
 anx::Symbol ast::RetNode::codegen()
