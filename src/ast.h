@@ -118,8 +118,10 @@ namespace ast
     {
     public:
         std::unique_ptr<StmtNode> value;
+        size_t drow, dcol;
 
-        RetNode(std::unique_ptr<StmtNode> value) : value(std::move(value)) {}
+        RetNode(std::unique_ptr<StmtNode> value, size_t drow, size_t dcol)
+            : value(std::move(value)), drow(drow), dcol(dcol) {}
         anx::Symbol codegen();
 
         void print(int ind)
@@ -226,9 +228,10 @@ namespace ast
     public:
         std::string name;
         std::vector<std::unique_ptr<StmtNode>> args;
+        size_t nrow, ncol;
 
-        CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args)
-            : name(name), args(std::move(args)) {}
+        CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args, size_t nrow, size_t ncol)
+            : name(name), args(std::move(args)), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)
@@ -243,8 +246,9 @@ namespace ast
     {
     public:
         std::string name;
+        size_t nrow, ncol;
 
-        IdentStmt(std::string name) : name(name) {}
+        IdentStmt(std::string name, size_t nrow, size_t ncol) : name(name), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)

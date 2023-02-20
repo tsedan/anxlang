@@ -12,9 +12,9 @@ std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
-std::string cf;
+anx::Symbol cf;
 
-anx::Symbol ir::search(std::string name)
+anx::Symbol ir::search(std::string name, size_t row, size_t col)
 {
     std::map<std::string, anx::Symbol>::iterator sym;
 
@@ -22,7 +22,7 @@ anx::Symbol ir::search(std::string name)
         if ((sym = it->find(name)) != it->end())
             return sym->second;
 
-    anx::perr("unidentified symbol '" + name + "'");
+    anx::perr("unrecognized symbol", row, col, name.size());
 }
 
 anx::Symbol ast::ProgramNode::codegen()
@@ -75,7 +75,7 @@ anx::Symbol ast::FnDecl::codegen()
     if (!body)
         return anx::Symbol();
 
-    cf = name;
+    cf = anx::Symbol(F, type, types);
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
@@ -108,7 +108,7 @@ anx::Symbol ast::FnDecl::codegen()
 
     ir::symbols.pop_back();
 
-    return anx::Symbol(F, type, types);
+    return cf;
 }
 
 anx::Symbol ast::IfNode::codegen()
@@ -157,30 +157,28 @@ anx::Symbol ast::NumStmt::codegen()
 anx::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        anx::perr("block already has terminator");
-
-    anx::Symbol parent = ir::search(cf);
+        anx::perr("statement is unreachable", drow, dcol);
 
     if (!value)
     {
-        if (parent.ty() == anx::ty_void)
+        if (cf.ty() == anx::ty_void)
             return anx::Symbol(ir::builder->CreateRetVoid(), anx::ty_void);
         else
-            anx::perr("cannot return void from non-void function");
+            anx::perr("cannot return void from non-void function", drow, dcol);
     }
 
-    anx::Symbol v = value->codegen().coerce(parent.ty());
+    anx::Symbol v = value->codegen().coerce(cf.ty());
     return anx::Symbol(ir::builder->CreateRet(v.val()), v.ty());
 }
 
 anx::Symbol ast::CallStmt::codegen()
 {
-    anx::Symbol sym = ir::search(name);
+    anx::Symbol sym = ir::search(name, nrow, ncol);
     llvm::Function *CalleeF = sym.fn();
     std::vector<anx::Types> atypes = sym.atypes();
 
     if (CalleeF->arg_size() != args.size())
-        anx::perr("expected " + std::to_string(CalleeF->arg_size()) + " arguments, got " + std::to_string(args.size()) + " instead");
+        anx::perr("expected " + std::to_string(CalleeF->arg_size()) + " argument(s), got " + std::to_string(args.size()) + " instead", nrow, ncol, name.size());
 
     std::vector<llvm::Value *> ArgsV;
     for (unsigned i = 0, e = args.size(); i != e; ++i)
@@ -205,7 +203,7 @@ anx::Symbol ast::UnOpStmt::codegen()
 
 anx::Symbol ast::IdentStmt::codegen()
 {
-    return ir::search(name);
+    return ir::search(name, nrow, ncol);
 }
 
 anx::Symbol ast::ScopeNode::codegen()

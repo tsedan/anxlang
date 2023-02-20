@@ -43,6 +43,7 @@ std::unique_ptr<ast::StmtNode> parse_primary();
 
 std::unique_ptr<ast::StmtNode> parse_identifier()
 {
+    size_t nrow = lex::cr, ncol = lex::cc;
     std::string name = lex::tok.val;
 
     lex::eat(); // eat identifier
@@ -70,10 +71,10 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
 
         lex::eat(); // eat )
 
-        return std::make_unique<ast::CallStmt>(std::move(name), std::move(args));
+        return std::make_unique<ast::CallStmt>(std::move(name), std::move(args), nrow, ncol);
     }
 
-    return std::make_unique<ast::IdentStmt>(std::move(name));
+    return std::make_unique<ast::IdentStmt>(std::move(name), nrow, ncol);
 }
 
 std::unique_ptr<ast::ScopeNode> parse_scope()
@@ -296,6 +297,8 @@ std::unique_ptr<ast::IfNode> parse_if()
 
 std::unique_ptr<ast::RetNode> parse_ret()
 {
+    size_t drow = lex::cr, dcol = lex::cc;
+
     lex::eat(); // eat ret
 
     std::unique_ptr<ast::StmtNode> val = nullptr;
@@ -303,7 +306,7 @@ std::unique_ptr<ast::RetNode> parse_ret()
     if (lex::tok.tok != lex::tok_eol)
         val = parse_expr();
 
-    std::unique_ptr<ast::RetNode> ret = std::make_unique<ast::RetNode>(std::move(val));
+    std::unique_ptr<ast::RetNode> ret = std::make_unique<ast::RetNode>(std::move(val), drow, dcol);
 
     return ret;
 }
