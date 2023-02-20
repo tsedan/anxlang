@@ -100,11 +100,15 @@ std::unique_ptr<ast::ScopeNode> parse_scope()
 
 std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 {
+    size_t drow = lex::cr, dcol = lex::cc;
+
     lex::eat(); // eat fn/pub
 
     lex::exp(lex::tok_identifier, "expected name after function declaration");
 
     std::string name = lex::tok.val;
+
+    size_t nrow = lex::cr, ncol = lex::cc;
 
     lex::eat(); // eat identifier
 
@@ -173,7 +177,9 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
         body = parse_inst();
     }
 
-    return std::make_unique<ast::FnDecl>(std::move(name), std::move(type), std::move(args), std::move(types), std::move(body), is_pub);
+    size_t erow = lex::lr, ecol = lex::lc;
+
+    return std::make_unique<ast::FnDecl>(std::move(name), std::move(type), std::move(args), std::move(types), std::move(body), is_pub, drow, dcol, nrow, ncol, erow, ecol);
 }
 
 std::unique_ptr<ast::StmtNode> parse_paren_expr()

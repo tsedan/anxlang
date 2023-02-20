@@ -18,8 +18,6 @@ namespace ast
 
     class StmtNode : public Node
     {
-    public:
-        std::string desired_type;
     };
 
     class FnDecl : public Node
@@ -32,6 +30,9 @@ namespace ast
         std::unique_ptr<Node> body;
         bool is_pub;
         llvm::Function *F;
+        size_t drow, dcol;
+        size_t nrow, ncol;
+        size_t erow, ecol;
 
         FnDecl(
             std::string name,
@@ -39,13 +40,19 @@ namespace ast
             std::vector<std::string> args,
             std::vector<anx::Types> types,
             std::unique_ptr<Node> body,
-            bool is_pub)
+            bool is_pub,
+            size_t drow, size_t dcol,
+            size_t nrow, size_t ncol,
+            size_t erow, size_t ecol)
             : name(name),
               type(std::move(type)),
               args(std::move(args)),
               types(std::move(types)),
               body(std::move(body)),
-              is_pub(is_pub) {}
+              is_pub(is_pub),
+              drow(drow), dcol(dcol),
+              nrow(nrow), ncol(ncol),
+              erow(erow), ecol(ecol) {}
         void declare();
         anx::Symbol codegen();
 

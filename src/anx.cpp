@@ -133,19 +133,17 @@ int main(int argc, char **argv)
 
 void anx::perr(std::string msg, size_t r, size_t c, size_t s)
 {
-    std::string line = file[r];
+    std::string line = file[r], ep0;
     size_t p = c, begin = line.find_first_not_of(" \t"), end = line.find_last_not_of(" \t");
     if (begin != std::string::npos)
     {
+        ep0 = line.substr(0, begin);
         line = line.substr(begin, end - begin + 1);
         p -= begin;
     }
 
     size_t len = std::max(line.size(), p + s);
-    std::string ep0(c - p, ' ');
-    std::string ep1(p, '~');
-    std::string ep2(s, '^');
-    std::string ep3(len - s - p, '~');
+    std::string ep1(p, '~'), ep2(s, '^'), ep3(len - s - p, '~');
 
     std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
 

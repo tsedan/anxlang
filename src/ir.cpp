@@ -35,9 +35,8 @@ anx::Symbol ast::ProgramNode::codegen()
     for (auto &fn : decls)
         fn->codegen();
 
-    llvm::Function *mainFn = ir::mod->getFunction("main");
-    if (!mainFn)
-        anx::perr("no main function defined");
+    if (!ir::mod->getFunction("main"))
+        anx::perr("no `main()` function defined; there is no program entry point");
 
     ir::symbols.pop_back();
 
@@ -47,7 +46,7 @@ anx::Symbol ast::ProgramNode::codegen()
 void ast::FnDecl::declare()
 {
     if (ir::mod->getFunction(name))
-        anx::perr("no two functions can have the same name '" + name + "'");
+        anx::perr("a function with this name already exists", nrow, ncol, name.size());
 
     std::vector<llvm::Type *> Params(args.size());
 
@@ -58,7 +57,7 @@ void ast::FnDecl::declare()
         llvm::FunctionType::get(anx::getType(type, true), Params, false);
 
     if (name == "main" && !is_pub)
-        anx::perr("main function must be public (use `pub` keyword)");
+        anx::perr("main function must be public (use `pub` keyword)", drow, dcol);
 
     llvm::Function::LinkageTypes linkage = is_pub ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
@@ -94,7 +93,7 @@ anx::Symbol ast::FnDecl::codegen()
         if (type == anx::ty_void)
             ir::builder->CreateRetVoid();
         else
-            anx::perr("expected return statement at end of function '" + name + "'");
+            anx::perr("expected return statement at end of non-void function '" + name + "'", erow, ecol);
     }
 
     opti::optimize(F);
