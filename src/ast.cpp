@@ -290,6 +290,8 @@ std::unique_ptr<ast::StmtNode> parse_expr()
 
 std::unique_ptr<ast::IfNode> parse_if()
 {
+    size_t drow = lex::cr, dcol = lex::cc;
+
     lex::eat(); // eat if
 
     std::unique_ptr<ast::StmtNode> cond = parse_expr();
@@ -313,7 +315,7 @@ std::unique_ptr<ast::IfNode> parse_if()
             els = parse_inst();
     }
 
-    return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els));
+    return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els), drow, dcol);
 }
 
 std::unique_ptr<ast::RetNode> parse_ret()

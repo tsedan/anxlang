@@ -140,14 +140,17 @@ namespace ast
         std::unique_ptr<StmtNode> cond;
         std::unique_ptr<Node> then;
         std::unique_ptr<Node> els;
+        size_t drow, dcol;
 
         IfNode(
             std::unique_ptr<StmtNode> cond,
             std::unique_ptr<Node> then,
-            std::unique_ptr<Node> els)
+            std::unique_ptr<Node> els,
+            size_t drow, size_t dcol)
             : cond(std::move(cond)),
               then(std::move(then)),
-              els(std::move(els)) {}
+              els(std::move(els)),
+              drow(drow), dcol(dcol) {}
         anx::Symbol codegen();
 
         void print(int ind)

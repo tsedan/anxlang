@@ -113,6 +113,9 @@ anx::Symbol ast::FnDecl::codegen()
 
 anx::Symbol ast::IfNode::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("statement is unreachable", drow, dcol);
+
     llvm::Value *CondV = cond->codegen().coerce(anx::ty_bool, cond->srow, cond->scol, cond->ssize).val();
 
     llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
@@ -173,6 +176,9 @@ anx::Symbol ast::RetNode::codegen()
 
 anx::Symbol ast::CallStmt::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("statement is unreachable", nrow, ncol);
+
     anx::Symbol sym = ir::search(name, nrow, ncol);
     llvm::Function *CalleeF = sym.fn();
     std::vector<anx::Types> atypes = sym.atypes();
