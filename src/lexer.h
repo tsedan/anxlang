@@ -49,7 +49,7 @@ namespace lex
 
     extern Token tok;
     extern size_t cr, cc;
-    extern size_t lr, lc;
+    extern size_t lr, lc, ls;
     void eat();
     void exp(TokEnum token, std::string msg);
 }

@@ -148,7 +148,12 @@ void anx::perr(std::string msg, size_t r, size_t c, size_t s)
     std::string ep3(len - s - p, '~');
 
     std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
-    std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1 << '\n';
+
+    std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1;
+    if (s > 1)
+        std::cerr << '-' << c + s;
+    std::cerr << '\n';
+
     std::cerr << "   | " << ep0 << line << '\n';
     std::cerr << "   | " << ep0 << ep1 << "\033[0;31m" << ep2 << "\033[0m" << ep3 << '\n';
 
