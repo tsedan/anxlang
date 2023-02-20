@@ -149,25 +149,17 @@ anx::Symbol ast::IfNode::codegen()
     return anx::Symbol();
 }
 
-__uint128_t parse_uint128(const std::string &str, int radix)
+uint32_t min_width(const std::string &str, int radix)
 {
-    size_t len = str.length();
-    size_t mid = len / 2;
+    size_t len = str.length(), mid = len / 2;
     std::string str1 = str.substr(0, mid);
     std::string str2 = str.substr(mid);
 
     uint64_t num1 = std::strtoull(str1.c_str(), nullptr, radix);
     uint64_t num2 = std::strtoull(str2.c_str(), nullptr, radix);
+    __uint128_t num = ((__uint128_t)(num1) << 64) | num2;
 
-    __uint128_t result = ((__uint128_t)(num1) << 64) | num2;
-    return result;
-}
-
-uint32_t min_width(const std::string &str, int radix)
-{
-    __uint128_t num = parse_uint128(str, radix);
     uint32_t width = 0;
-
     while (num)
     {
         num >>= 1;
