@@ -137,7 +137,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
             lex::exp(lex::tok_identifier, "expected type after parameter name");
 
             args.push_back(name);
-            types.push_back(anx::toType(lex::tok.val));
+            types.push_back(anx::toType(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size()));
 
             lex::eat(); // eat type
 
@@ -158,7 +158,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
     {
         lex::eat(); // eat :
 
-        type = anx::toType(lex::tok.val);
+        type = anx::toType(lex::tok.val, true, lex::cr, lex::cc, lex::tok.val.size());
 
         lex::eat(); // eat return type
     }

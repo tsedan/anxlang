@@ -51,7 +51,7 @@ void ast::FnDecl::declare()
     std::vector<llvm::Type *> Params(args.size());
 
     for (size_t i = 0, e = args.size(); i != e; ++i)
-        Params[i] = anx::getType(types[i]);
+        Params[i] = anx::getType(types[i], false);
 
     llvm::FunctionType *FT =
         llvm::FunctionType::get(anx::getType(type, true), Params, false);
@@ -237,9 +237,9 @@ anx::Symbol ast::BinOpStmt::codegen()
     else if (anx::isSingle(lt) || anx::isSingle(rt))
         dtype = anx::ty_f32;
     else if (anx::isSInt(lt) || anx::isSInt(rt))
-        dtype = anx::toType('i' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
+        dtype = anx::toType('i' + std::to_string(std::max(anx::width(lt), anx::width(rt))), false);
     else if (anx::isUInt(lt) || anx::isUInt(rt))
-        dtype = anx::toType('u' + std::to_string(std::max(anx::width(lt), anx::width(rt))));
+        dtype = anx::toType('u' + std::to_string(std::max(anx::width(lt), anx::width(rt))), false);
     else
         dtype = anx::ty_bool;
 

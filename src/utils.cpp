@@ -164,10 +164,14 @@ uint32_t anx::width(Types ty)
     }
 }
 
-anx::Types anx::toType(std::string type)
+anx::Types anx::toType(std::string type, bool allow_void, size_t r, size_t c, size_t s)
 {
     if (type == "void")
-        return ty_void;
+    {
+        if (allow_void)
+            return ty_void;
+        perr("void is only valid as a function return type", r, c, s);
+    }
 
     if (type == "bool")
         return ty_bool;
@@ -199,7 +203,7 @@ anx::Types anx::toType(std::string type)
     if (type == "f64")
         return ty_f64;
 
-    perr("invalid type '" + type + "'");
+    perr("invalid type", r, c, s);
 }
 
 std::string anx::toString(Types type)
@@ -237,16 +241,16 @@ std::string anx::toString(Types type)
     }
 }
 
-llvm::Type *anx::getType(Types ty, bool allow_void)
+llvm::Type *anx::getType(Types ty, bool allow_void, size_t r, size_t c, size_t s)
 {
     switch (ty)
     {
+    case ty_bool:
+        return llvm::Type::getInt1Ty(*ir::ctx);
     case ty_f32:
         return llvm::Type::getFloatTy(*ir::ctx);
     case ty_f64:
         return llvm::Type::getDoubleTy(*ir::ctx);
-    case ty_bool:
-        return llvm::Type::getInt1Ty(*ir::ctx);
     case ty_i8:
     case ty_u8:
         return llvm::Type::getInt8Ty(*ir::ctx);
@@ -266,8 +270,6 @@ llvm::Type *anx::getType(Types ty, bool allow_void)
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
-            perr("void type not allowed here");
-    default:
-        perr("unrecognized type");
+            perr("void is only valid as a function return type", r, c, s);
     }
 }

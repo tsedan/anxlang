@@ -126,7 +126,7 @@ namespace anx
     bool isBool(Types ty);
     uint32_t width(Types ty);
 
-    Types toType(std::string type);
     std::string toString(Types type);
-    llvm::Type *getType(Types ty, bool allow_void = false);
+    Types toType(std::string type, bool allow_void, size_t r = 0, size_t c = 0, size_t s = 0);
+    llvm::Type *getType(Types ty, bool allow_void, size_t r = 0, size_t c = 0, size_t s = 0);
 }
