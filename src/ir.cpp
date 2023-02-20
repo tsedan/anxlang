@@ -198,7 +198,7 @@ anx::Symbol ast::UnOpStmt::codegen()
     if (op == "!")
         return anx::Symbol(ir::builder->CreateNot(V, "not"), sym.ty());
 
-    anx::perr("invalid unary operator '" + op + "' used");
+    anx::perr("invalid unary operator", nrow, ncol, op.size());
 }
 
 anx::Symbol ast::IdentStmt::codegen()

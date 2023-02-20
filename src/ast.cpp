@@ -199,10 +199,11 @@ std::unique_ptr<ast::StmtNode> parse_paren_expr()
 std::unique_ptr<ast::StmtNode> parse_unary()
 {
     std::string op = lex::tok.val;
+    size_t nrow = lex::cr, ncol = lex::cc;
 
     lex::eat(); // eat op
 
-    return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary());
+    return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary(), nrow, ncol);
 }
 
 std::unique_ptr<ast::NumStmt> parse_num()

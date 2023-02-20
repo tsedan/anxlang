@@ -208,12 +208,15 @@ namespace ast
     public:
         std::string op;
         std::unique_ptr<StmtNode> val;
+        size_t nrow, ncol;
 
         UnOpStmt(
             std::string op,
-            std::unique_ptr<StmtNode> val)
+            std::unique_ptr<StmtNode> val,
+            size_t nrow, size_t ncol)
             : op(op),
-              val(std::move(val)) {}
+              val(std::move(val)),
+              nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)
