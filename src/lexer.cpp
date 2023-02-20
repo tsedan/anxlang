@@ -15,13 +15,14 @@ size_t tr = 0, tc = 0; // true current row and column
 
 char grab()
 {
-    while (tc == anx::file[tr].size())
+    if (tc == anx::file[tr].size())
     {
         if (tr == anx::file.size() - 1)
             return EOF;
 
-        tc = 0;
-        tr++;
+        tc = 0, tr++;
+
+        return '\n';
     }
 
     return anx::file[tr][tc++];
