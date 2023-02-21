@@ -60,11 +60,13 @@ namespace anx
             sym_empty,
             sym_fn,
             sym_val,
+            sym_var
         } kind;
         union
         {
             llvm::Value *value;
             llvm::Function *function;
+            llvm::AllocaInst *variable;
         };
         Types type;
         std::vector<Types> types;
@@ -72,6 +74,7 @@ namespace anx
     public:
         Symbol(llvm::Value *value, Types type) : kind(sym_val), value(value), type(type) {}
         Symbol(llvm::Function *function, Types type, std::vector<Types> types) : kind(sym_fn), function(function), type(type), types(types) {}
+        Symbol(llvm::AllocaInst *variable, Types type) : kind(sym_var), variable(variable), type(type) {}
         Symbol() : kind(sym_empty) {}
 
         // return a new symbol that has been type-coerced to the desired type
@@ -91,6 +94,9 @@ namespace anx
         {
             if (kind == sym_val)
                 return value;
+
+            if (kind == sym_var)
+                return variable;
 
             perr("attempted to access a non-value as if it were a value");
         }

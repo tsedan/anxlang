@@ -10,5 +10,7 @@ fn fib(n: i32): i32 {
         ret n;
     }
 
+    # var a: i32 = n - 2;
+
     ret fib(n - 1) + fib(n - 2);
 }
