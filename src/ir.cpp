@@ -137,6 +137,17 @@ anx::Symbol ast::VarDecl::codegen()
     return sym;
 }
 
+anx::Symbol ast::AssignStmt::codegen()
+{
+    anx::Symbol sym = ir::search(name, nrow, ncol);
+
+    anx::Symbol v = value->codegen().coerce(sym.ty(), value->srow, value->scol, value->ssize);
+
+    ir::builder->CreateStore(v.val(), sym.inst());
+
+    return v;
+}
+
 anx::Symbol ast::IfNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())

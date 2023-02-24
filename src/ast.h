@@ -172,14 +172,15 @@ namespace ast
         }
     };
 
-    class AssignNode : public Node
+    class AssignStmt : public StmtNode
     {
     public:
         std::string name;
         std::unique_ptr<StmtNode> value;
+        size_t nrow, ncol;
 
-        AssignNode(std::string name, std::unique_ptr<StmtNode> value)
-            : name(name), value(std::move(value)) {}
+        AssignStmt(std::string name, std::unique_ptr<StmtNode> value, size_t nrow, size_t ncol)
+            : name(name), value(std::move(value)), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)

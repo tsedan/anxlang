@@ -13,7 +13,7 @@
 //   ScopeNode - A node consisting of a list of nodes
 //   RetNode - A return
 //   IfNode - An if/else block
-//   AssignNode - A variable assignment
+//   AssignStmt - A variable assignment
 //   StmtNode - A node that evaluates
 //     BinOpStmt - A binary operation statement
 //     UnOpStmt - A unary operation statement
@@ -72,6 +72,13 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
         lex::eat(); // eat )
 
         return std::make_unique<ast::CallStmt>(std::move(name), std::move(args), nrow, ncol);
+    }
+
+    if (lex::tok.tok == lex::tok_assign)
+    {
+        lex::eat(); // eat =
+
+        return std::make_unique<ast::AssignStmt>(std::move(name), parse_expr(), nrow, ncol);
     }
 
     return std::make_unique<ast::IdentStmt>(std::move(name), nrow, ncol);
