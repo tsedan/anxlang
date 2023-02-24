@@ -10,6 +10,7 @@
 std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
+std::unique_ptr<llvm::legacy::FunctionPassManager> ir::fpm;
 
 std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
 anx::Symbol cf;
@@ -101,7 +102,7 @@ anx::Symbol ast::FnDecl::codegen()
             anx::perr("expected return statement at end of non-void function '" + name + "'", erow, ecol);
     }
 
-    opti::optimize(F);
+    opti::fun(F);
 
     llvm::verifyFunction(*F, &llvm::errs());
 
@@ -114,6 +115,20 @@ anx::Symbol ast::FnDecl::codegen()
     ir::symbols.pop_back();
 
     return cf;
+}
+
+anx::Symbol ast::VarDecl::codegen()
+{
+    llvm::AllocaInst *a = ir::builder->CreateAlloca(anx::getType(type, false), nullptr, name);
+
+    if (init)
+        ir::builder->CreateStore(init->codegen().val(), a);
+
+    anx::Symbol sym(a, type);
+
+    ir::symbols.back().insert(std::make_pair(name, sym));
+
+    return sym;
 }
 
 anx::Symbol ast::IfNode::codegen()

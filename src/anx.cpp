@@ -70,9 +70,7 @@ int main(int argc, char **argv)
     if (anx::verbose)
         ast::prog->print(0);
 
-    ir::ctx = std::make_unique<llvm::LLVMContext>();
-    ir::mod = std::make_unique<llvm::Module>("Anx Main", *ir::ctx);
-    ir::builder = std::make_unique<llvm::IRBuilder<>>(*ir::ctx);
+    ir::init();
 
     ast::prog->codegen();
 

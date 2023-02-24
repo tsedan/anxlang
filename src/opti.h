@@ -2,5 +2,5 @@
 
 namespace opti
 {
-    void optimize(llvm::Function *F);
+    void fun(llvm::Function *F);
 }

@@ -8,6 +8,21 @@
 // Utils - This module defines utility functions.
 //===---------------------------------------------------------------------===//
 
+void ir::init()
+{
+    ctx = std::make_unique<llvm::LLVMContext>();
+    mod = std::make_unique<llvm::Module>("Anx Main", *ctx);
+    builder = std::make_unique<llvm::IRBuilder<>>(*ctx);
+
+    fpm = std::make_unique<llvm::legacy::FunctionPassManager>(ir::mod.get());
+    fpm->add(llvm::createPromoteMemoryToRegisterPass());
+    fpm->add(llvm::createInstructionCombiningPass());
+    fpm->add(llvm::createReassociatePass());
+    fpm->add(llvm::createGVNPass());
+    fpm->add(llvm::createCFGSimplificationPass());
+    fpm->doInitialization();
+}
+
 anx::Symbol anx::Symbol::coerce(Types toType, size_t r, size_t c, size_t s)
 {
     Types fromType = ty();

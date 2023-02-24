@@ -340,6 +340,31 @@ std::unique_ptr<ast::RetNode> parse_ret()
     return ret;
 }
 
+std::unique_ptr<ast::VarDecl> parse_var()
+{
+    lex::eat(); // eat var
+
+    std::string name = lex::tok.val;
+
+    lex::eat(); // eat name
+
+    lex::exp(lex::tok_type, "expected a ':' denoting the variable's type");
+    lex::eat(); // eat :
+
+    anx::Types type = anx::toType(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size());
+
+    lex::eat(); // eat type
+
+    if (lex::tok.tok == lex::tok_assign)
+    {
+        lex::eat(); // eat =
+
+        return std::make_unique<ast::VarDecl>(std::move(name), type, parse_expr());
+    }
+
+    return std::make_unique<ast::VarDecl>(std::move(name), type, nullptr);
+}
+
 std::unique_ptr<ast::Node> parse_inst()
 {
     std::unique_ptr<ast::Node> n;
@@ -353,6 +378,9 @@ std::unique_ptr<ast::Node> parse_inst()
         break;
     case lex::tok_ret:
         n = parse_ret();
+        break;
+    case lex::tok_var:
+        n = parse_var();
         break;
     default:
         anx::perr("expected an instruction", lex::cr, lex::cc, lex::tok.val.size());

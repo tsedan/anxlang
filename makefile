@@ -21,7 +21,7 @@ bin/ir.o : src/ir.cpp src/ir.h src/ast.h src/anx.h src/opti.h | bin
 bin/utils.o : src/utils.cpp src/ir.h src/ast.h src/anx.h | bin
 	$(CC) -g -c -o bin/utils.o src/utils.cpp $(CFLAGS) $(LLVMFLAGS)
 
-bin/opti.o : src/opti.cpp src/opti.h src/anx.h | bin
+bin/opti.o : src/opti.cpp src/opti.h src/anx.h src/ir.h | bin
 	$(CC) -g -c -o bin/opti.o src/opti.cpp $(CFLAGS) $(LLVMFLAGS)
 
 clean:

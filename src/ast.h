@@ -90,13 +90,17 @@ namespace ast
     public:
         std::string name;
         anx::Types type;
+        std::unique_ptr<StmtNode> init;
 
-        VarDecl(std::string name, anx::Types type) : name(name), type(type) {}
+        VarDecl(std::string name, anx::Types type, std::unique_ptr<StmtNode> init)
+            : name(name), type(type), init(std::move(init)) {}
         anx::Symbol codegen();
 
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< var " << name << " : " << anx::toString(type) << " >" << '\n';
+            if (init)
+                init->print(ind + 1);
         }
     };
 
