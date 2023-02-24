@@ -86,7 +86,8 @@ anx::Symbol ast::FnDecl::codegen()
     int i = 0;
     for (auto &Arg : F->args())
     {
-        llvm::AllocaInst *a = ir::builder->CreateAlloca(anx::getType(types[i], false), nullptr, Arg.getName());
+        llvm::IRBuilder<> eb(&F->getEntryBlock(), F->getEntryBlock().begin());
+        llvm::AllocaInst *a = eb.CreateAlloca(anx::getType(types[i], false), nullptr, Arg.getName());
         ir::builder->CreateStore(&Arg, a);
         ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(a, types[i])));
         i++;
@@ -119,10 +120,11 @@ anx::Symbol ast::FnDecl::codegen()
 
 anx::Symbol ast::VarDecl::codegen()
 {
-    llvm::AllocaInst *a = ir::builder->CreateAlloca(anx::getType(type, false), nullptr, name);
+    llvm::IRBuilder<> eb(&cf.fn()->getEntryBlock(), cf.fn()->getEntryBlock().begin());
+    llvm::AllocaInst *a = eb.CreateAlloca(anx::getType(type, false), nullptr, name);
 
     if (init)
-        ir::builder->CreateStore(init->codegen().val(), a);
+        ir::builder->CreateStore(init->codegen().coerce(type, init->srow, init->scol, init->ssize).val(), a);
 
     anx::Symbol sym(a, type);
 
