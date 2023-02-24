@@ -91,9 +91,10 @@ namespace ast
         std::string name;
         anx::Types type;
         std::unique_ptr<StmtNode> init;
+        size_t nrow, ncol;
 
-        VarDecl(std::string name, anx::Types type, std::unique_ptr<StmtNode> init)
-            : name(name), type(type), init(std::move(init)) {}
+        VarDecl(std::string name, anx::Types type, std::unique_ptr<StmtNode> init, size_t nrow, size_t ncol)
+            : name(name), type(type), init(std::move(init)), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)

@@ -345,6 +345,7 @@ std::unique_ptr<ast::VarDecl> parse_var()
     lex::eat(); // eat var
 
     std::string name = lex::tok.val;
+    size_t nrow = lex::cr, ncol = lex::cc;
 
     lex::eat(); // eat name
 
@@ -359,10 +360,10 @@ std::unique_ptr<ast::VarDecl> parse_var()
     {
         lex::eat(); // eat =
 
-        return std::make_unique<ast::VarDecl>(std::move(name), type, parse_expr());
+        return std::make_unique<ast::VarDecl>(std::move(name), type, parse_expr(), nrow, ncol);
     }
 
-    return std::make_unique<ast::VarDecl>(std::move(name), type, nullptr);
+    return std::make_unique<ast::VarDecl>(std::move(name), type, nullptr, nrow, ncol);
 }
 
 std::unique_ptr<ast::Node> parse_inst()

@@ -120,6 +120,10 @@ anx::Symbol ast::FnDecl::codegen()
 
 anx::Symbol ast::VarDecl::codegen()
 {
+    std::map<std::string, anx::Symbol>::iterator it;
+    if ((it = ir::symbols.back().find(name)) != ir::symbols.back().end())
+        anx::perr("variable name is already used in this scope", nrow, ncol, name.size());
+
     llvm::IRBuilder<> eb(&cf.fn()->getEntryBlock(), cf.fn()->getEntryBlock().begin());
     llvm::AllocaInst *a = eb.CreateAlloca(anx::getType(type, false), nullptr, name);
 
