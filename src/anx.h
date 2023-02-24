@@ -95,10 +95,15 @@ namespace anx
             if (kind == sym_val)
                 return value;
 
+            perr("attempted to access a non-value as if it were a value");
+        }
+
+        llvm::AllocaInst *inst()
+        {
             if (kind == sym_var)
                 return variable;
 
-            perr("attempted to access a non-value as if it were a value");
+            perr("attempted to access a non-variable as if it were a variable");
         }
 
         // get anx type of a non-empty symbol

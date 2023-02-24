@@ -84,7 +84,12 @@ anx::Symbol ast::FnDecl::codegen()
 
     int i = 0;
     for (auto &Arg : F->args())
-        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(&Arg, types[i++])));
+    {
+        llvm::AllocaInst *a = ir::builder->CreateAlloca(anx::getType(types[i], false), nullptr, Arg.getName());
+        ir::builder->CreateStore(&Arg, a);
+        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(a, types[i])));
+        i++;
+    }
 
     body->codegen();
 
@@ -304,7 +309,10 @@ anx::Symbol ast::UnOpStmt::codegen()
 
 anx::Symbol ast::IdentStmt::codegen()
 {
-    return ir::search(name, nrow, ncol);
+    anx::Symbol sym = ir::search(name, nrow, ncol);
+    llvm::AllocaInst *inst = sym.inst();
+
+    return anx::Symbol(ir::builder->CreateLoad(inst->getAllocatedType(), inst, name.c_str()), sym.ty());
 }
 
 anx::Symbol ast::ScopeNode::codegen()
