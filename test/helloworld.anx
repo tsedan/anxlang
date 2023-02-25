@@ -1,4 +1,4 @@
-pub print(c: i32);
+pub print(c: i8);
 
 pub main() {
     print('h');
