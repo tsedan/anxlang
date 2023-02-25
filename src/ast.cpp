@@ -370,6 +370,12 @@ std::unique_ptr<ast::VarDecl> parse_var()
 
     lex::eat(); // eat name
 
+    if (lex::tok.tok == lex::tok_assign)
+    {
+        lex::eat(); // eat =
+        return std::make_unique<ast::VarDecl>(std::move(name), anx::ty_void, parse_expr(), nrow, ncol);
+    }
+
     lex::exp(lex::tok_type, "expected a ':' denoting the variable's type");
     lex::eat(); // eat :
 
@@ -380,7 +386,6 @@ std::unique_ptr<ast::VarDecl> parse_var()
     if (lex::tok.tok == lex::tok_assign)
     {
         lex::eat(); // eat =
-
         return std::make_unique<ast::VarDecl>(std::move(name), type, parse_expr(), nrow, ncol);
     }
 

@@ -124,11 +124,20 @@ anx::Symbol ast::VarDecl::codegen()
     if ((it = ir::symbols.back().find(name)) != ir::symbols.back().end())
         anx::perr("variable name is already used in this scope", nrow, ncol, name.size());
 
+    anx::Symbol cd;
+    if (init)
+    {
+        cd = init->codegen();
+
+        if (type == anx::ty_void)
+            type = cd.ty();
+    }
+
     llvm::IRBuilder<> eb(&cf.fn()->getEntryBlock(), cf.fn()->getEntryBlock().begin());
     llvm::AllocaInst *a = eb.CreateAlloca(anx::getType(type, false), nullptr, name);
 
     if (init)
-        ir::builder->CreateStore(init->codegen().coerce(type, init->srow, init->scol, init->ssize).val(), a);
+        ir::builder->CreateStore(cd.coerce(type, init->srow, init->scol, init->ssize).val(), a);
 
     anx::Symbol sym(a, type);
 
