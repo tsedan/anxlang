@@ -1,0 +1,16 @@
+pub print(c: i32);
+
+pub main() {
+    print('h');
+    print('e');
+    print('l');
+    print('l');
+    print('o');
+    print(' ');
+    print('w');
+    print('o');
+    print('r');
+    print('l');
+    print('d');
+    print('\n');
+}

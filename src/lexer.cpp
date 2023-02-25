@@ -244,6 +244,42 @@ void lex::eat()
         else
             tok.tok = tok_unop;
         return;
+    case '\'':
+        size_t st = cc;
+
+        switch (lch)
+        {
+        case '\'':
+            anx::perr("cannot have empty character literal", tr, cc, 2);
+        case '\\':
+            lch = grab();
+            switch (lch)
+            {
+            case '0':
+                tok.val = '\0';
+                break;
+            case 'n':
+                tok.val = '\n';
+                break;
+            case '\'':
+                tok.val = '\'';
+                break;
+            default:
+                anx::perr("unrecognized escape character", tr, tc - 1);
+            }
+            break;
+        default:
+            tok.val = lch;
+        }
+
+        lch = grab();
+
+        if (lch != '\'')
+            anx::perr("missing apostrophe or literal too large for a single character", cr, st, tc - st);
+        lch = grab();
+
+        tok.tok = tok_character;
+        return;
     }
 
     anx::perr("invalid token found", cr, cc);

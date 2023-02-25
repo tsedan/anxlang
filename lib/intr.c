@@ -4,7 +4,12 @@
 // Intr - This module houses the standard library of the Anx compiler.
 //===---------------------------------------------------------------------===//
 
-extern void print(int x)
+extern void printi(int i)
 {
-    printf("%d\n", x);
+    printf("%d\n", i);
+}
+
+extern void print(char c)
+{
+    putchar(c);
 }

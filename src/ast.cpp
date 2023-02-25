@@ -223,6 +223,17 @@ std::unique_ptr<ast::NumStmt> parse_num()
     return std::make_unique<ast::NumStmt>(val, nrow, ncol);
 }
 
+std::unique_ptr<ast::NumStmt> parse_char()
+{
+    char c = lex::tok.val[0];
+    std::string val = std::to_string(c) + "i8";
+    size_t nrow = lex::cr, ncol = lex::cc;
+
+    lex::eat(); // eat char
+
+    return std::make_unique<ast::NumStmt>(val, nrow, ncol);
+}
+
 std::unique_ptr<ast::StmtNode> parse_primary()
 {
     std::unique_ptr<ast::StmtNode> primary;
@@ -235,6 +246,9 @@ std::unique_ptr<ast::StmtNode> parse_primary()
         break;
     case lex::tok_number:
         primary = parse_num();
+        break;
+    case lex::tok_character:
+        primary = parse_char();
         break;
     case lex::tok_parens:
         primary = parse_paren_expr();

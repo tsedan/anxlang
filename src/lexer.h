@@ -39,6 +39,7 @@ namespace lex
         // identifiers
         tok_identifier, // identifier
         tok_number,     // literal number
+        tok_character,  // literal ascii character
     };
 
     struct Token
