@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "../anx.h"
+#include "../codegen/ir.h"
 
 namespace ast
 {
@@ -13,7 +14,7 @@ namespace ast
     public:
         virtual ~Node() {}
         virtual void print(int ind) {}
-        virtual anx::Symbol codegen() = 0;
+        virtual ir::Symbol codegen() = 0;
     };
 
     class StmtNode : public Node
@@ -56,7 +57,7 @@ namespace ast
               nrow(nrow), ncol(ncol),
               erow(erow), ecol(ecol) {}
         void declare();
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -76,7 +77,7 @@ namespace ast
         std::vector<std::unique_ptr<FnDecl>> decls;
 
         ProgramNode(std::vector<std::unique_ptr<FnDecl>> decls) : decls(std::move(decls)) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -95,7 +96,7 @@ namespace ast
 
         VarDecl(std::string name, ty::Type type, std::unique_ptr<StmtNode> init, size_t nrow, size_t ncol)
             : name(name), type(type), init(std::move(init)), nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -111,7 +112,7 @@ namespace ast
         std::vector<std::unique_ptr<Node>> nodes;
 
         ScopeNode(std::vector<std::unique_ptr<Node>> nodes) : nodes(std::move(nodes)) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -129,7 +130,7 @@ namespace ast
 
         RetNode(std::unique_ptr<StmtNode> value, size_t drow, size_t dcol)
             : value(std::move(value)), drow(drow), dcol(dcol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -156,7 +157,7 @@ namespace ast
               then(std::move(then)),
               els(std::move(els)),
               drow(drow), dcol(dcol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -181,7 +182,7 @@ namespace ast
 
         AssignStmt(std::string name, std::unique_ptr<StmtNode> value, size_t nrow, size_t ncol)
             : name(name), value(std::move(value)), nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -207,7 +208,7 @@ namespace ast
               lhs(std::move(lhs)),
               rhs(std::move(rhs)),
               nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -231,7 +232,7 @@ namespace ast
             : op(op),
               val(std::move(val)),
               nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -249,7 +250,7 @@ namespace ast
 
         CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args, size_t nrow, size_t ncol)
             : name(name), args(std::move(args)), nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -266,7 +267,7 @@ namespace ast
         size_t nrow, ncol;
 
         IdentStmt(std::string name, size_t nrow, size_t ncol) : name(name), nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {
@@ -282,7 +283,7 @@ namespace ast
 
         NumStmt(std::string value, size_t nrow, size_t ncol)
             : value(value), nrow(nrow), ncol(ncol) {}
-        anx::Symbol codegen();
+        ir::Symbol codegen();
 
         void print(int ind)
         {

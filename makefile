@@ -1,3 +1,5 @@
+# note: it is recommended to run make with the -j option to significantly reduce build times
+
 CC = clang++
 CFLAGS = -O3 -Wall -pedantic -std=c++17
 LLVMFLAGS = `llvm-config --cxxflags`
@@ -12,7 +14,7 @@ bin/anx.o: src/anx.cpp src/anx.h src/frontend/ast.h src/codegen/ir.h | bin
 bin/lexer.o: src/frontend/lexer.cpp src/frontend/lexer.h src/anx.h | bin
 	$(CC) -c -o bin/lexer.o src/frontend/lexer.cpp $(CFLAGS) $(LLVMFLAGS)
 
-bin/ast.o : src/frontend/ast.cpp src/frontend/ast.h src/frontend/lexer.h src/anx.h | bin
+bin/ast.o : src/frontend/ast.cpp src/frontend/ast.h src/frontend/lexer.h src/codegen/ir.h src/anx.h | bin
 	$(CC) -c -o bin/ast.o src/frontend/ast.cpp $(CFLAGS) $(LLVMFLAGS)
 
 bin/ir.o : src/codegen/ir.cpp src/codegen/ir.h src/frontend/ast.h src/codegen/opti.h src/anx.h | bin

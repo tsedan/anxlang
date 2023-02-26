@@ -11,12 +11,12 @@ std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 std::unique_ptr<llvm::legacy::FunctionPassManager> ir::fpm;
 
-std::vector<std::map<std::string, anx::Symbol>> ir::symbols;
-anx::Symbol cf;
+std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
+ir::Symbol cf;
 
-anx::Symbol ir::search(std::string name, size_t row, size_t col)
+ir::Symbol ir::search(std::string name, size_t row, size_t col)
 {
-    std::map<std::string, anx::Symbol>::iterator sym;
+    std::map<std::string, ir::Symbol>::iterator sym;
 
     for (auto it = ir::symbols.rbegin(); it != ir::symbols.rend(); ++it)
         if ((sym = it->find(name)) != it->end())
@@ -25,9 +25,9 @@ anx::Symbol ir::search(std::string name, size_t row, size_t col)
     anx::perr("unrecognized symbol", row, col, name.size());
 }
 
-anx::Symbol ast::ProgramNode::codegen()
+ir::Symbol ast::ProgramNode::codegen()
 {
-    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &fn : decls)
         fn->declare();
@@ -40,7 +40,7 @@ anx::Symbol ast::ProgramNode::codegen()
 
     ir::symbols.pop_back();
 
-    return anx::Symbol();
+    return ir::Symbol();
 }
 
 void ast::FnDecl::declare()
@@ -67,20 +67,20 @@ void ast::FnDecl::declare()
     for (auto &Arg : F->args())
         Arg.setName(args[Idx++]);
 
-    ir::symbols.back().insert(std::make_pair(name, anx::Symbol(F, type, types)));
+    ir::symbols.back().insert(std::make_pair(name, ir::Symbol(F, type, types)));
 }
 
-anx::Symbol ast::FnDecl::codegen()
+ir::Symbol ast::FnDecl::codegen()
 {
     if (!body)
-        return anx::Symbol();
+        return ir::Symbol();
 
-    cf = anx::Symbol(F, type, types);
+    cf = ir::Symbol(F, type, types);
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
 
-    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     int i = 0;
     for (auto &Arg : F->args())
@@ -88,7 +88,7 @@ anx::Symbol ast::FnDecl::codegen()
         llvm::IRBuilder<> eb(&F->getEntryBlock(), F->getEntryBlock().begin());
         llvm::AllocaInst *a = eb.CreateAlloca(ty::toLLVM(types[i], false), nullptr, Arg.getName());
         ir::builder->CreateStore(&Arg, a);
-        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), anx::Symbol(a, types[i])));
+        ir::symbols.back().insert(std::make_pair(std::string(Arg.getName()), ir::Symbol(a, types[i])));
         i++;
     }
 
@@ -117,13 +117,13 @@ anx::Symbol ast::FnDecl::codegen()
     return cf;
 }
 
-anx::Symbol ast::VarDecl::codegen()
+ir::Symbol ast::VarDecl::codegen()
 {
-    std::map<std::string, anx::Symbol>::iterator it;
+    std::map<std::string, ir::Symbol>::iterator it;
     if ((it = ir::symbols.back().find(name)) != ir::symbols.back().end())
         anx::perr("variable name is already used in this scope", nrow, ncol, name.size());
 
-    anx::Symbol cd;
+    ir::Symbol cd;
     if (init)
     {
         cd = init->codegen();
@@ -138,25 +138,25 @@ anx::Symbol ast::VarDecl::codegen()
     if (init)
         ir::builder->CreateStore(cd.coerce(type, init->srow, init->scol, init->ssize).val(), a);
 
-    anx::Symbol sym(a, type);
+    ir::Symbol sym(a, type);
 
     ir::symbols.back().insert(std::make_pair(name, sym));
 
     return sym;
 }
 
-anx::Symbol ast::AssignStmt::codegen()
+ir::Symbol ast::AssignStmt::codegen()
 {
-    anx::Symbol sym = ir::search(name, nrow, ncol);
+    ir::Symbol sym = ir::search(name, nrow, ncol);
 
-    anx::Symbol v = value->codegen().coerce(sym.typ(), value->srow, value->scol, value->ssize);
+    ir::Symbol v = value->codegen().coerce(sym.typ(), value->srow, value->scol, value->ssize);
 
     ir::builder->CreateStore(v.val(), sym.inst());
 
     return v;
 }
 
-anx::Symbol ast::IfNode::codegen()
+ir::Symbol ast::IfNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
         anx::perr("statement is unreachable", drow, dcol);
@@ -191,7 +191,7 @@ anx::Symbol ast::IfNode::codegen()
     F->getBasicBlockList().push_back(MergeBB);
     ir::builder->SetInsertPoint(MergeBB);
 
-    return anx::Symbol();
+    return ir::Symbol();
 }
 
 uint32_t min_width(const std::string &str, uint8_t radix)
@@ -225,7 +225,7 @@ uint32_t min_width(const std::string &str, uint8_t radix)
     return 128;
 }
 
-anx::Symbol ast::NumStmt::codegen()
+ir::Symbol ast::NumStmt::codegen()
 {
     std::string prsd = value;
 
@@ -259,18 +259,18 @@ anx::Symbol ast::NumStmt::codegen()
     if (!prsd.size())
         anx::perr("number literal has no value", nrow, ncol, value.size());
 
-    anx::Symbol sym;
+    ir::Symbol sym;
     if (prsd.find('.') == std::string::npos)
     {
         uint32_t width = min_width(prsd, radix);
-        sym = anx::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APInt(width, prsd, radix)), ty::fromString("u" + std::to_string(width), false));
+        sym = ir::Symbol(llvm::ConstantInt::get(*ir::ctx, llvm::APInt(width, prsd, radix)), ty::fromString("u" + std::to_string(width), false));
     }
     else
     {
         if (ty::isDouble(dtype))
-            sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEdouble(), prsd)), ty::ty_f64);
+            sym = ir::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEdouble(), prsd)), ty::ty_f64);
         else
-            sym = anx::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), ty::ty_f32);
+            sym = ir::Symbol(llvm::ConstantFP::get(*ir::ctx, llvm::APFloat(llvm::APFloatBase::IEEEsingle(), prsd)), ty::ty_f32);
     }
 
     if (!ty::isVoid(dtype))
@@ -279,7 +279,7 @@ anx::Symbol ast::NumStmt::codegen()
     return sym;
 }
 
-anx::Symbol ast::RetNode::codegen()
+ir::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
         anx::perr("statement is unreachable", drow, dcol);
@@ -287,21 +287,21 @@ anx::Symbol ast::RetNode::codegen()
     if (!value)
     {
         if (ty::isVoid(cf.typ()))
-            return anx::Symbol(ir::builder->CreateRetVoid(), ty::ty_void);
+            return ir::Symbol(ir::builder->CreateRetVoid(), ty::ty_void);
         else
             anx::perr("cannot return void from non-void function", drow, dcol);
     }
 
-    anx::Symbol v = value->codegen().coerce(cf.typ(), value->srow, value->scol, value->ssize);
-    return anx::Symbol(ir::builder->CreateRet(v.val()), v.typ());
+    ir::Symbol v = value->codegen().coerce(cf.typ(), value->srow, value->scol, value->ssize);
+    return ir::Symbol(ir::builder->CreateRet(v.val()), v.typ());
 }
 
-anx::Symbol ast::CallStmt::codegen()
+ir::Symbol ast::CallStmt::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
         anx::perr("statement is unreachable", nrow, ncol);
 
-    anx::Symbol sym = ir::search(name, nrow, ncol);
+    ir::Symbol sym = ir::search(name, nrow, ncol);
     llvm::Function *CalleeF = sym.fn();
     std::vector<ty::Type> atypes = sym.atypes();
 
@@ -313,20 +313,20 @@ anx::Symbol ast::CallStmt::codegen()
         ArgsV.push_back(args[i]->codegen().coerce(atypes[i], args[i]->srow, args[i]->scol, args[i]->ssize).val());
 
     if (ty::isVoid(sym.typ()))
-        return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), ty::ty_void);
+        return ir::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), ty::ty_void);
 
-    return anx::Symbol(ir::builder->CreateCall(CalleeF, ArgsV, "call"), sym.typ());
+    return ir::Symbol(ir::builder->CreateCall(CalleeF, ArgsV, "call"), sym.typ());
 }
 
-anx::Symbol ast::UnOpStmt::codegen()
+ir::Symbol ast::UnOpStmt::codegen()
 {
-    anx::Symbol sym = val->codegen();
+    ir::Symbol sym = val->codegen();
 
     if (ty::isVoid(sym.typ()))
         anx::perr("cannot use void type as operand", val->srow, val->scol, val->ssize);
 
     if (op == "!")
-        return anx::Symbol(ir::builder->CreateNot(sym.coerce(ty::ty_bool, val->srow, val->scol, val->ssize).val(), "not"), sym.typ());
+        return ir::Symbol(ir::builder->CreateNot(sym.coerce(ty::ty_bool, val->srow, val->scol, val->ssize).val(), "not"), sym.typ());
     if (op == "-")
     {
         if (ty::isBool(sym.typ()))
@@ -335,42 +335,42 @@ anx::Symbol ast::UnOpStmt::codegen()
         if (ty::isUInt(sym.typ()))
         {
             uint32_t width = ty::width(sym.typ());
-            return anx::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), ty::fromString("i" + std::to_string(width), false));
+            return ir::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), ty::fromString("i" + std::to_string(width), false));
         }
 
         if (ty::isSingle(sym.typ()) || ty::isDouble(sym.typ()))
-            return anx::Symbol(ir::builder->CreateFNeg(sym.val(), "neg"), sym.typ());
+            return ir::Symbol(ir::builder->CreateFNeg(sym.val(), "neg"), sym.typ());
 
-        return anx::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), sym.typ());
+        return ir::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), sym.typ());
     }
 
     anx::perr("invalid unary operator", nrow, ncol, op.size());
 }
 
-anx::Symbol ast::IdentStmt::codegen()
+ir::Symbol ast::IdentStmt::codegen()
 {
-    anx::Symbol sym = ir::search(name, nrow, ncol);
+    ir::Symbol sym = ir::search(name, nrow, ncol);
     llvm::AllocaInst *inst = sym.inst();
 
-    return anx::Symbol(ir::builder->CreateLoad(inst->getAllocatedType(), inst, name.c_str()), sym.typ());
+    return ir::Symbol(ir::builder->CreateLoad(inst->getAllocatedType(), inst, name.c_str()), sym.typ());
 }
 
-anx::Symbol ast::ScopeNode::codegen()
+ir::Symbol ast::ScopeNode::codegen()
 {
-    ir::symbols.push_back(std::map<std::string, anx::Symbol>());
+    ir::symbols.push_back(std::map<std::string, ir::Symbol>());
 
     for (auto &stmt : nodes)
         stmt->codegen();
 
     ir::symbols.pop_back();
 
-    return anx::Symbol();
+    return ir::Symbol();
 }
 
-anx::Symbol ast::BinOpStmt::codegen()
+ir::Symbol ast::BinOpStmt::codegen()
 {
-    anx::Symbol lsym = lhs->codegen();
-    anx::Symbol rsym = rhs->codegen();
+    ir::Symbol lsym = lhs->codegen();
+    ir::Symbol rsym = rhs->codegen();
     ty::Type lt = lsym.typ(), rt = rsym.typ();
 
     ty::Type dtype;
@@ -395,91 +395,91 @@ anx::Symbol ast::BinOpStmt::codegen()
     if (op == "+")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFAdd(L, R, "add"), dtype);
+            return ir::Symbol(ir::builder->CreateFAdd(L, R, "add"), dtype);
         else if (ty::isSInt(dtype) || ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateAdd(L, R, "add"), dtype);
+            return ir::Symbol(ir::builder->CreateAdd(L, R, "add"), dtype);
     }
     else if (op == "-")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFSub(L, R, "sub"), dtype);
+            return ir::Symbol(ir::builder->CreateFSub(L, R, "sub"), dtype);
         else if (ty::isSInt(dtype) || ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateSub(L, R, "sub"), dtype);
+            return ir::Symbol(ir::builder->CreateSub(L, R, "sub"), dtype);
     }
     else if (op == "*")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFMul(L, R, "mul"), dtype);
+            return ir::Symbol(ir::builder->CreateFMul(L, R, "mul"), dtype);
         else if (ty::isSInt(dtype) || ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateMul(L, R, "mul"), dtype);
+            return ir::Symbol(ir::builder->CreateMul(L, R, "mul"), dtype);
     }
     else if (op == "/")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFDiv(L, R, "div"), dtype);
+            return ir::Symbol(ir::builder->CreateFDiv(L, R, "div"), dtype);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateSDiv(L, R, "div"), dtype);
+            return ir::Symbol(ir::builder->CreateSDiv(L, R, "div"), dtype);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateUDiv(L, R, "div"), dtype);
+            return ir::Symbol(ir::builder->CreateUDiv(L, R, "div"), dtype);
     }
     else if (op == "%")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFRem(L, R, "rem"), dtype);
+            return ir::Symbol(ir::builder->CreateFRem(L, R, "rem"), dtype);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateSRem(L, R, "rem"), dtype);
+            return ir::Symbol(ir::builder->CreateSRem(L, R, "rem"), dtype);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateURem(L, R, "rem"), dtype);
+            return ir::Symbol(ir::builder->CreateURem(L, R, "rem"), dtype);
     }
     else if (op == "<")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpULT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpULT(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpSLT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpSLT(L, R, "cmp"), ty::ty_bool);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpULT(L, R, "cmp"), ty::ty_bool);
     }
     else if (op == ">")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpUGT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpUGT(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpSGT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpSGT(L, R, "cmp"), ty::ty_bool);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpUGT(L, R, "cmp"), ty::ty_bool);
     }
     else if (op == "<=")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpULE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpULE(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpSLE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpSLE(L, R, "cmp"), ty::ty_bool);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpULE(L, R, "cmp"), ty::ty_bool);
     }
     else if (op == ">=")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpUGE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpUGE(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpSGE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpSGE(L, R, "cmp"), ty::ty_bool);
         else if (ty::isUInt(dtype))
-            return anx::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpUGE(L, R, "cmp"), ty::ty_bool);
     }
     else if (op == "==")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpUEQ(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpUEQ(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype) || ty::isUInt(dtype) || ty::isBool(dtype))
-            return anx::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpEQ(L, R, "cmp"), ty::ty_bool);
     }
     else if (op == "!=")
     {
         if (ty::isDouble(dtype) || ty::isSingle(dtype))
-            return anx::Symbol(ir::builder->CreateFCmpUNE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateFCmpUNE(L, R, "cmp"), ty::ty_bool);
         else if (ty::isSInt(dtype) || ty::isUInt(dtype) || ty::isBool(dtype))
-            return anx::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), ty::ty_bool);
+            return ir::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), ty::ty_bool);
     }
     else
     {
