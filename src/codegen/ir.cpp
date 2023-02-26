@@ -1,7 +1,6 @@
-#include "anx.h"
 #include "ir.h"
-#include "frontend/ast.h"
 #include "opti.h"
+#include "../frontend/ast.h"
 
 //===---------------------------------------------------------------------===//
 // IR - This module generates LLVM IR from the Anx AST.

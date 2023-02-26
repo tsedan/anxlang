@@ -1,7 +1,7 @@
 #include <map>
 
 #include "anx.h"
-#include "ir.h"
+#include "codegen/ir.h"
 #include "frontend/ast.h"
 
 //===---------------------------------------------------------------------===//

@@ -6,16 +6,17 @@
 
 #include "anx.h"
 #include "frontend/ast.h"
-#include "ir.h"
+#include "codegen/ir.h"
 
 //===---------------------------------------------------------------------===//
 // Anx - This module is the entry point of the Anx compiler.
 //
-// There are four major steps involved in the compilation process:
+// These are the major steps involved in the compilation process:
 // 1. (frontend/lexer.cpp) Tokenize the input file
 // 2. (frontend/ast.cpp) Parse the tokens into an AST
-// 3. (ir.cpp) Generate LLVM IR from the AST
-// 4. (anx.cpp) Generate an executable from the LLVM IR
+// 3. (codegen/ir.cpp) Generate LLVM IR from the AST
+// 4. (codegen/opti.cpp) Run optimization passes on the LLVM IR
+// 5. (anx.cpp) Generate an executable from the LLVM IR
 //
 // The current todo item is loops.
 //===---------------------------------------------------------------------===//
