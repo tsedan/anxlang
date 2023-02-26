@@ -5,6 +5,7 @@
 #include <string>
 
 #include "anx.h"
+#include "frontend/lexer.h"
 #include "frontend/ast.h"
 #include "codegen/ir.h"
 #include "assembly/printer.h"
@@ -22,7 +23,6 @@
 // The current todo item is loops.
 //===---------------------------------------------------------------------===//
 
-std::vector<std::string> anx::file;
 bool anx::verbose = false;
 std::string src;
 
@@ -59,13 +59,7 @@ int main(int argc, char **argv)
         anx::perr("usage: anx [options] file (use -h for help)");
 
     src = argv[optind];
-
-    std::ifstream anxf(src);
-    if (!anxf.is_open())
-        anx::perr("could not open file '" + src + "'");
-
-    for (std::string line; std::getline(anxf, line);)
-        anx::file.push_back(line);
+    lex::read(src);
 
     ast::gen_ast();
 
@@ -85,7 +79,7 @@ int main(int argc, char **argv)
 
 void anx::perr(std::string msg, size_t r, size_t c, size_t s)
 {
-    std::string line = file[r], ep0;
+    std::string line = lex::file[r], ep0;
     size_t p = c, begin = line.find_first_not_of(" \t"), end = line.find_last_not_of(" \t");
     if (begin != std::string::npos)
     {

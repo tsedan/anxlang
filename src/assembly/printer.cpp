@@ -1,6 +1,10 @@
 #include "printer.h"
 #include "../codegen/ir.h"
 
+//===---------------------------------------------------------------------===//
+// Printer - This module houses the assembly and linking stages.
+//===---------------------------------------------------------------------===//
+
 void printer::print()
 {
     llvm::InitializeAllTargetInfos();

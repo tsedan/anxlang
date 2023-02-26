@@ -7,6 +7,7 @@
 // Lexer - This module tokenizes an input Anx file.
 //===---------------------------------------------------------------------===//
 
+std::vector<std::string> lex::file;
 lex::Token lex::tok;              // current token being parsed
 size_t lex::cr, lex::cc;          // current row and column
 size_t lex::lr, lex::lc, lex::ls; // last row, column, and size
@@ -15,9 +16,9 @@ size_t tr = 0, tc = 0; // true current row and column
 
 char grab()
 {
-    if (tc == anx::file[tr].size())
+    if (tc == lex::file[tr].size())
     {
-        if (tr == anx::file.size() - 1)
+        if (tr == lex::file.size() - 1)
             return EOF;
 
         tc = 0, tr++;
@@ -25,7 +26,17 @@ char grab()
         return '\n';
     }
 
-    return anx::file[tr][tc++];
+    return lex::file[tr][tc++];
+}
+
+void lex::read(std::string filename)
+{
+    std::ifstream stream(filename);
+    if (!stream.is_open())
+        anx::perr("could not open file '" + filename + "'");
+
+    for (std::string line; std::getline(stream, line);)
+        file.push_back(line);
 }
 
 // Get the next token from the input file and update the global token variable

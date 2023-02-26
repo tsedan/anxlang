@@ -128,8 +128,6 @@ namespace anx
         }
     };
 
-    extern std::vector<std::string> file;
-
     extern bool verbose; // Whether the compiler should print what it's doing
 
     bool isSInt(Types ty);

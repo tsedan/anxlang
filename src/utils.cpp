@@ -5,7 +5,7 @@
 #include "frontend/ast.h"
 
 //===---------------------------------------------------------------------===//
-// Utils - This module defines utility functions.
+// Utils - This module defines miscellaneous utility functions.
 //===---------------------------------------------------------------------===//
 
 anx::Symbol anx::Symbol::coerce(Types toType, size_t r, size_t c, size_t s)

@@ -48,9 +48,12 @@ namespace lex
         std::string val;
     };
 
+    extern std::vector<std::string> file;
     extern Token tok;
     extern size_t cr, cc;
     extern size_t lr, lc, ls;
+
+    void read(std::string filename);
     void eat();
     void exp(TokEnum token, std::string msg);
 }

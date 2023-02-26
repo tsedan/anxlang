@@ -3,7 +3,7 @@
 #include "ir.h"
 
 //===---------------------------------------------------------------------===//
-// Opti - IR Optimizations for LLVM functions.
+// Opti - Optimization Passes for LLVM IR.
 //===---------------------------------------------------------------------===//
 
 void ir::init()
