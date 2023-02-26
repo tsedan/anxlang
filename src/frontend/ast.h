@@ -4,7 +4,7 @@
 #include <vector>
 #include <iostream>
 
-#include "anx.h"
+#include "../anx.h"
 
 namespace ast
 {

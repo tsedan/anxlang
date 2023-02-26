@@ -1,6 +1,6 @@
 #include "anx.h"
 #include "ir.h"
-#include "ast.h"
+#include "frontend/ast.h"
 #include "opti.h"
 
 //===---------------------------------------------------------------------===//

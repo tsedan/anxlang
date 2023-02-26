@@ -2,7 +2,7 @@
 
 #include "anx.h"
 #include "ir.h"
-#include "ast.h"
+#include "frontend/ast.h"
 
 //===---------------------------------------------------------------------===//
 // Utils - This module defines utility functions.

@@ -5,15 +5,15 @@
 #include <string>
 
 #include "anx.h"
-#include "ast.h"
+#include "frontend/ast.h"
 #include "ir.h"
 
 //===---------------------------------------------------------------------===//
 // Anx - This module is the entry point of the Anx compiler.
 //
 // There are four major steps involved in the compilation process:
-// 1. (lexer.cpp) Tokenize the input file
-// 2. (ast.cpp) Parse the tokens into an AST
+// 1. (frontend/lexer.cpp) Tokenize the input file
+// 2. (frontend/ast.cpp) Parse the tokens into an AST
 // 3. (ir.cpp) Generate LLVM IR from the AST
 // 4. (anx.cpp) Generate an executable from the LLVM IR
 //

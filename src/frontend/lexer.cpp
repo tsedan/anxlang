@@ -1,4 +1,4 @@
-#include "anx.h"
+#include "../anx.h"
 #include "lexer.h"
 
 #include <iostream>

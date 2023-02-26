@@ -1,4 +1,3 @@
-#include "anx.h"
 #include "ast.h"
 #include "lexer.h"
 
