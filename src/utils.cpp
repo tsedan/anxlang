@@ -1,6 +1,7 @@
 #include <map>
 
 #include "anx.h"
+#include "utils.h"
 #include "codegen/ir.h"
 #include "frontend/ast.h"
 
@@ -8,11 +9,11 @@
 // Utils - This module defines miscellaneous utility functions.
 //===---------------------------------------------------------------------===//
 
-anx::Symbol anx::Symbol::coerce(Types toType, size_t r, size_t c, size_t s)
+anx::Symbol anx::Symbol::coerce(ty::Type toType, size_t r, size_t c, size_t s)
 {
-    Types fromType = ty();
+    ty::Type fromType = typ();
     llvm::Value *v = val();
-    llvm::Type *destType = getType(toType, true);
+    llvm::Type *destType = toLLVM(toType, true);
 
     if (isVoid(fromType))
     {
@@ -104,37 +105,37 @@ anx::Symbol anx::Symbol::coerce(Types toType, size_t r, size_t c, size_t s)
     perr("cannot coerce type '" + toString(fromType) + "' to '" + toString(toType) + "'", r, c, s);
 }
 
-bool anx::isSingle(Types ty)
+bool ty::isSingle(Type ty)
 {
     return ty == ty_f32;
 }
 
-bool anx::isDouble(Types ty)
+bool ty::isDouble(Type ty)
 {
     return ty == ty_f64;
 }
 
-bool anx::isSInt(Types ty)
+bool ty::isSInt(Type ty)
 {
     return ty == ty_i8 || ty == ty_i16 || ty == ty_i32 || ty == ty_i64 || ty == ty_i128;
 }
 
-bool anx::isUInt(Types ty)
+bool ty::isUInt(Type ty)
 {
     return ty == ty_u8 || ty == ty_u16 || ty == ty_u32 || ty == ty_u64 || ty == ty_u128;
 }
 
-bool anx::isVoid(Types ty)
+bool ty::isVoid(Type ty)
 {
     return ty == ty_void;
 }
 
-bool anx::isBool(Types ty)
+bool ty::isBool(Type ty)
 {
     return ty == ty_bool;
 }
 
-uint32_t anx::width(Types ty)
+uint32_t ty::width(Type ty)
 {
     switch (ty)
     {
@@ -164,13 +165,13 @@ uint32_t anx::width(Types ty)
     }
 }
 
-anx::Types anx::toType(std::string type, bool allow_void, size_t r, size_t c, size_t s)
+ty::Type ty::fromString(std::string type, bool allow_void, size_t r, size_t c, size_t s)
 {
     if (type == "void")
     {
         if (allow_void)
             return ty_void;
-        perr("void is only valid as a function return type", r, c, s);
+        anx::perr("void is only valid as a function return type", r, c, s);
     }
 
     if (type == "bool")
@@ -203,10 +204,10 @@ anx::Types anx::toType(std::string type, bool allow_void, size_t r, size_t c, si
     if (type == "f64")
         return ty_f64;
 
-    perr("unrecognized type", r, c, s);
+    anx::perr("unrecognized type", r, c, s);
 }
 
-std::string anx::toString(Types type)
+std::string ty::toString(Type type)
 {
     switch (type)
     {
@@ -241,7 +242,7 @@ std::string anx::toString(Types type)
     }
 }
 
-llvm::Type *anx::getType(Types ty, bool allow_void, size_t r, size_t c, size_t s)
+llvm::Type *ty::toLLVM(Type ty, bool allow_void, size_t r, size_t c, size_t s)
 {
     switch (ty)
     {
@@ -270,6 +271,6 @@ llvm::Type *anx::getType(Types ty, bool allow_void, size_t r, size_t c, size_t s
         if (allow_void)
             return llvm::Type::getVoidTy(*ir::ctx);
         else
-            perr("void is only valid as a function return type", r, c, s);
+            anx::perr("void is only valid as a function return type", r, c, s);
     }
 }

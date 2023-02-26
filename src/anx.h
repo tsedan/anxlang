@@ -29,31 +29,14 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 
+#include "utils.h"
+
 namespace anx
 {
+    extern bool verbose;
+
     [[noreturn]] void perr(std::string msg);
     [[noreturn]] void perr(std::string msg, size_t r, size_t c, size_t s = 1);
-
-    enum Types
-    {
-        ty_void,
-        ty_bool,
-
-        ty_i8,
-        ty_i16,
-        ty_i32,
-        ty_i64,
-        ty_i128,
-
-        ty_u8,
-        ty_u16,
-        ty_u32,
-        ty_u64,
-        ty_u128,
-
-        ty_f32,
-        ty_f64,
-    };
 
     class Symbol final
     {
@@ -71,17 +54,17 @@ namespace anx
             llvm::Function *function;
             llvm::AllocaInst *variable;
         };
-        Types type;
-        std::vector<Types> types;
+        ty::Type type;
+        std::vector<ty::Type> types;
 
     public:
-        Symbol(llvm::Value *value, Types type) : kind(sym_val), value(value), type(type) {}
-        Symbol(llvm::Function *function, Types type, std::vector<Types> types) : kind(sym_fn), function(function), type(type), types(types) {}
-        Symbol(llvm::AllocaInst *variable, Types type) : kind(sym_var), variable(variable), type(type) {}
+        Symbol(llvm::Value *value, ty::Type type) : kind(sym_val), value(value), type(type) {}
+        Symbol(llvm::Function *function, ty::Type type, std::vector<ty::Type> types) : kind(sym_fn), function(function), type(type), types(types) {}
+        Symbol(llvm::AllocaInst *variable, ty::Type type) : kind(sym_var), variable(variable), type(type) {}
         Symbol() : kind(sym_empty) {}
 
         // return a new symbol that has been type-coerced to the desired type
-        Symbol coerce(Types toType, size_t r, size_t c, size_t s);
+        Symbol coerce(ty::Type toType, size_t r, size_t c, size_t s);
 
         // get llvm function pointer of a function symbol
         llvm::Function *fn()
@@ -89,7 +72,7 @@ namespace anx
             if (kind == sym_fn)
                 return function;
 
-            perr("attempted to access a non-function as if it were a function");
+            anx::perr("attempted to access a non-function as if it were a function");
         }
 
         // get llvm value pointer of a value symbol
@@ -98,7 +81,7 @@ namespace anx
             if (kind == sym_val)
                 return value;
 
-            perr("attempted to access a non-value as if it were a value");
+            anx::perr("attempted to access a non-value as if it were a value");
         }
 
         llvm::AllocaInst *inst()
@@ -106,39 +89,25 @@ namespace anx
             if (kind == sym_var)
                 return variable;
 
-            perr("attempted to access a non-variable as if it were a variable");
+            anx::perr("attempted to access a non-variable as if it were a variable");
         }
 
         // get anx type of a non-empty symbol
-        anx::Types ty()
+        ty::Type typ()
         {
             if (kind == sym_empty)
-                perr("attempted to access the type of an empty symbol");
+                anx::perr("attempted to access the type of an empty symbol");
 
             return type;
         }
 
         // get anx types list of a function
-        std::vector<anx::Types> atypes()
+        std::vector<ty::Type> atypes()
         {
             if (kind != sym_fn)
-                perr("attempted to access types list of a non-function");
+                anx::perr("attempted to access types list of a non-function");
 
             return types;
         }
     };
-
-    extern bool verbose; // Whether the compiler should print what it's doing
-
-    bool isSInt(Types ty);
-    bool isUInt(Types ty);
-    bool isSingle(Types ty);
-    bool isDouble(Types ty);
-    bool isVoid(Types ty);
-    bool isBool(Types ty);
-    uint32_t width(Types ty);
-
-    std::string toString(Types type);
-    Types toType(std::string type, bool allow_void, size_t r = 0, size_t c = 0, size_t s = 0);
-    llvm::Type *getType(Types ty, bool allow_void, size_t r = 0, size_t c = 0, size_t s = 0);
 }

@@ -124,7 +124,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
     lex::eat(); // eat (
 
     std::vector<std::string> args;
-    std::vector<anx::Types> types;
+    std::vector<ty::Type> types;
 
     if (lex::tok.tok != lex::tok_parene)
     {
@@ -143,7 +143,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
             lex::exp(lex::tok_identifier, "expected type after parameter name");
 
             args.push_back(name);
-            types.push_back(anx::toType(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size()));
+            types.push_back(ty::fromString(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size()));
 
             lex::eat(); // eat type
 
@@ -158,13 +158,13 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     lex::eat(); // eat )
 
-    anx::Types type = anx::ty_void;
+    ty::Type type = ty::ty_void;
 
     if (lex::tok.tok == lex::tok_type)
     {
         lex::eat(); // eat :
 
-        type = anx::toType(lex::tok.val, true, lex::cr, lex::cc, lex::tok.val.size());
+        type = ty::fromString(lex::tok.val, true, lex::cr, lex::cc, lex::tok.val.size());
 
         lex::eat(); // eat return type
     }
@@ -372,13 +372,13 @@ std::unique_ptr<ast::VarDecl> parse_var()
     if (lex::tok.tok == lex::tok_assign)
     {
         lex::eat(); // eat =
-        return std::make_unique<ast::VarDecl>(std::move(name), anx::ty_void, parse_expr(), nrow, ncol);
+        return std::make_unique<ast::VarDecl>(std::move(name), ty::ty_void, parse_expr(), nrow, ncol);
     }
 
     lex::exp(lex::tok_type, "expected a ':' denoting the variable's type");
     lex::eat(); // eat :
 
-    anx::Types type = anx::toType(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size());
+    ty::Type type = ty::fromString(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size());
 
     lex::eat(); // eat type
 

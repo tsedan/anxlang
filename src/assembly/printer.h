@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../anx.h"
 
 namespace printer

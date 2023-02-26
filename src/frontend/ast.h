@@ -26,9 +26,9 @@ namespace ast
     {
     public:
         std::string name;
-        anx::Types type;
+        ty::Type type;
         std::vector<std::string> args;
-        std::vector<anx::Types> types;
+        std::vector<ty::Type> types;
         std::unique_ptr<Node> body;
         bool is_pub;
         llvm::Function *F;
@@ -38,9 +38,9 @@ namespace ast
 
         FnDecl(
             std::string name,
-            anx::Types type,
+            ty::Type type,
             std::vector<std::string> args,
-            std::vector<anx::Types> types,
+            std::vector<ty::Type> types,
             std::unique_ptr<Node> body,
             bool is_pub,
             size_t drow, size_t dcol,
@@ -62,8 +62,8 @@ namespace ast
         {
             std::cout << std::string(ind, ' ') << "< fn " << name << "( ";
             for (size_t i = 0; i < args.size(); i++)
-                std::cout << args[i] << " : " << anx::toString(types[i]) << ", ";
-            std::cout << ") " << anx::toString(type);
+                std::cout << args[i] << " : " << ty::toString(types[i]) << ", ";
+            std::cout << ") " << ty::toString(type);
             std::cout << " >" << '\n';
             if (body)
                 body->print(ind + 1);
@@ -89,17 +89,17 @@ namespace ast
     {
     public:
         std::string name;
-        anx::Types type;
+        ty::Type type;
         std::unique_ptr<StmtNode> init;
         size_t nrow, ncol;
 
-        VarDecl(std::string name, anx::Types type, std::unique_ptr<StmtNode> init, size_t nrow, size_t ncol)
+        VarDecl(std::string name, ty::Type type, std::unique_ptr<StmtNode> init, size_t nrow, size_t ncol)
             : name(name), type(type), init(std::move(init)), nrow(nrow), ncol(ncol) {}
         anx::Symbol codegen();
 
         void print(int ind)
         {
-            std::cout << std::string(ind, ' ') << "< var " << name << " : " << anx::toString(type) << " >" << '\n';
+            std::cout << std::string(ind, ' ') << "< var " << name << " : " << ty::toString(type) << " >" << '\n';
             if (init)
                 init->print(ind + 1);
         }
