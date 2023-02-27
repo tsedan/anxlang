@@ -10,9 +10,11 @@
 //   FnDecl - A function declaration
 //   VarDecl - A variable declaration
 //   ScopeNode - A node consisting of a list of nodes
-//   RetNode - A return
+//   RetNode - A return instruction
 //   IfNode - An if/else block
 //   WhileNode - A while loop
+//   BreakNode - A break instruction
+//   ContNode - A continue instruction
 //   StmtNode - A node that evaluates
 //     AssignStmt - A variable assignment
 //     BinOpStmt - A binary operation statement

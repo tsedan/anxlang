@@ -58,9 +58,9 @@ void lex::eat()
         return;
     }
 
-    if (isalpha(lch))
+    if (isalpha(lch) || lch == '_')
     {
-        while (isalnum(lch = grab()))
+        while (isalnum(lch = grab()) || lch == '_')
             tok.val += lch;
 
         if (tok.val == "fn")

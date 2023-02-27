@@ -26,16 +26,16 @@ Here's a basic sample of the language syntax:
 pub fn fib(n: i32): i32 {
     if !n ret 0;
 
-    var ppn: i32, pn = 0, cn = 1;
+    var prev_prev: i32, prev = 0, curr = 1;
 
     # while n > 1, calculate the next number. decrement n by 1 each step.
     while n > 1 : n = n - 1 {
-        ppn = pn;
-        pn = cn;
-        cn = ppn + pn;
+        prev_prev = prev;
+        prev = curr;
+        curr = prev_prev + prev;
     }
 
-    ret cn;
+    ret curr;
 }
 ```
 
