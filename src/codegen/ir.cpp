@@ -127,30 +127,31 @@ ir::Symbol ast::FnDecl::codegen()
 
 ir::Symbol ast::VarDecl::codegen()
 {
-    std::map<std::string, ir::Symbol>::iterator it;
-    if ((it = ir::symbols.back().find(name)) != ir::symbols.back().end())
-        anx::perr("variable name is already used in this scope", nrow, ncol, name.size());
-
-    ir::Symbol cd;
-    if (init)
+    for (size_t i = 0; i < names.size(); i++)
     {
-        cd = init->codegen();
+        std::map<std::string, ir::Symbol>::iterator it;
+        if ((it = ir::symbols.back().find(names[i])) != ir::symbols.back().end())
+            anx::perr("variable name is already used in this scope", nrows[i], ncols[i], names[i].size());
 
-        if (ty::isVoid(type))
-            type = cd.typ();
+        ir::Symbol cd;
+        if (inits[i])
+        {
+            cd = inits[i]->codegen();
+
+            if (ty::isVoid(types[i]))
+                types[i] = cd.typ();
+        }
+
+        llvm::IRBuilder<> eb(&cf.fn()->getEntryBlock(), cf.fn()->getEntryBlock().begin());
+        llvm::AllocaInst *a = eb.CreateAlloca(ty::toLLVM(types[i], false), nullptr, names[i]);
+
+        if (inits[i])
+            ir::builder->CreateStore(cd.coerce(types[i], inits[i]->srow, inits[i]->scol, inits[i]->ssize).val(), a);
+
+        ir::symbols.back().insert(std::make_pair(names[i], ir::Symbol(a, types[i])));
     }
 
-    llvm::IRBuilder<> eb(&cf.fn()->getEntryBlock(), cf.fn()->getEntryBlock().begin());
-    llvm::AllocaInst *a = eb.CreateAlloca(ty::toLLVM(type, false), nullptr, name);
-
-    if (init)
-        ir::builder->CreateStore(cd.coerce(type, init->srow, init->scol, init->ssize).val(), a);
-
-    ir::Symbol sym(a, type);
-
-    ir::symbols.back().insert(std::make_pair(name, sym));
-
-    return sym;
+    return ir::Symbol();
 }
 
 ir::Symbol ast::AssignStmt::codegen()

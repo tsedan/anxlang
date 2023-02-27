@@ -67,7 +67,7 @@ namespace ast
             std::cout << ") " << ty::toString(type);
             std::cout << " >" << '\n';
             if (body)
-                body->print(ind + 1);
+                body->print(ind + 2);
         }
     };
 
@@ -89,20 +89,36 @@ namespace ast
     class VarDecl : public Node
     {
     public:
-        std::string name;
-        ty::Type type;
-        std::unique_ptr<StmtNode> init;
-        size_t nrow, ncol;
+        std::vector<std::string> names;
+        std::vector<ty::Type> types;
+        std::vector<std::unique_ptr<StmtNode>> inits;
+        std::vector<size_t> nrows, ncols;
 
-        VarDecl(std::string name, ty::Type type, std::unique_ptr<StmtNode> init, size_t nrow, size_t ncol)
-            : name(name), type(type), init(std::move(init)), nrow(nrow), ncol(ncol) {}
+        VarDecl(std::vector<std::string> names,
+                std::vector<ty::Type> types,
+                std::vector<std::unique_ptr<StmtNode>> inits,
+                std::vector<size_t> nrows,
+                std::vector<size_t> ncols)
+            : names(std::move(names)),
+              types(std::move(types)),
+              inits(std::move(inits)),
+              nrows(std::move(nrows)),
+              ncols(std::move(ncols)) {}
         ir::Symbol codegen();
 
         void print(int ind)
         {
-            std::cout << std::string(ind, ' ') << "< var " << name << " : " << ty::toString(type) << " >" << '\n';
-            if (init)
-                init->print(ind + 1);
+            for (size_t i = 0; i < names.size(); i++)
+            {
+                std::cout << std::string(ind, ' ') << "< var '" << names[i] << "'";
+                if (ty::isVoid(types[i]))
+                    std::cout << " : auto";
+                else
+                    std::cout << " : " << ty::toString(types[i]);
+                std::cout << " >" << '\n';
+                if (inits[i])
+                    inits[i]->print(ind + 2);
+            }
         }
     };
 
@@ -118,7 +134,7 @@ namespace ast
         {
             std::cout << std::string(ind, ' ') << "< scope >" << '\n';
             for (auto &node : nodes)
-                node->print(ind + 1);
+                node->print(ind + 2);
         }
     };
 
@@ -136,7 +152,7 @@ namespace ast
         {
             std::cout << std::string(ind, ' ') << "< ret >" << '\n';
             if (value)
-                value->print(ind + 1);
+                value->print(ind + 2);
         }
     };
 
@@ -162,13 +178,13 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< if >" << '\n';
-            cond->print(ind + 1);
+            cond->print(ind + 2);
             std::cout << std::string(ind, ' ') << "< then >" << '\n';
-            then->print(ind + 1);
+            then->print(ind + 2);
             if (els)
             {
                 std::cout << std::string(ind, ' ') << "< else >" << '\n';
-                els->print(ind + 1);
+                els->print(ind + 2);
             }
         }
     };
@@ -195,11 +211,11 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< while >" << '\n';
-            cond->print(ind + 1);
+            cond->print(ind + 2);
             if (step)
-                step->print(ind + 1);
+                step->print(ind + 2);
             if (body)
-                body->print(ind + 1);
+                body->print(ind + 2);
         }
     };
 
@@ -217,7 +233,7 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< assign '" << name << "' >" << '\n';
-            value->print(ind + 1);
+            value->print(ind + 2);
         }
     };
 
@@ -243,8 +259,8 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< binop '" << op << "' >" << '\n';
-            lhs->print(ind + 1);
-            rhs->print(ind + 1);
+            lhs->print(ind + 2);
+            rhs->print(ind + 2);
         }
     };
 
@@ -267,7 +283,7 @@ namespace ast
         void print(int ind)
         {
             std::cout << std::string(ind, ' ') << "< unop '" << op << "' >" << '\n';
-            val->print(ind + 1);
+            val->print(ind + 2);
         }
     };
 
@@ -286,7 +302,7 @@ namespace ast
         {
             std::cout << std::string(ind, ' ') << "< call '" << name << "' >" << '\n';
             for (auto &arg : args)
-                arg->print(ind + 1);
+                arg->print(ind + 2);
         }
     };
 

@@ -399,31 +399,55 @@ std::unique_ptr<ast::VarDecl> parse_var()
 {
     lex::eat(); // eat var
 
-    std::string name = lex::tok.val;
-    size_t nrow = lex::cr, ncol = lex::cc;
+    std::vector<std::string> names;
+    std::vector<ty::Type> types;
+    std::vector<std::unique_ptr<ast::StmtNode>> inits;
+    std::vector<size_t> nrows, ncols;
 
-    lex::eat(); // eat name
-
-    if (lex::tok.tok == lex::tok_assign)
+    while (1)
     {
-        lex::eat(); // eat =
-        return std::make_unique<ast::VarDecl>(std::move(name), ty::ty_void, parse_expr(), nrow, ncol);
+        if (lex::tok.tok != lex::tok_identifier)
+            anx::perr("expected a variable name", lex::cr, lex::cc);
+
+        names.push_back(lex::tok.val);
+        nrows.push_back(lex::cr);
+        ncols.push_back(lex::cc);
+
+        lex::eat(); // eat name
+
+        if (lex::tok.tok == lex::tok_assign)
+        {
+            lex::eat(); // eat =
+            types.push_back(ty::ty_void);
+            inits.push_back(parse_expr());
+            goto varcheck;
+        }
+
+        lex::exp(lex::tok_colon, "expected a ':' denoting the variable's type");
+        lex::eat(); // eat :
+
+        types.push_back(ty::fromString(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size()));
+
+        lex::eat(); // eat type
+
+        if (lex::tok.tok == lex::tok_assign)
+        {
+            lex::eat(); // eat =
+            inits.push_back(parse_expr());
+            goto varcheck;
+        }
+
+        inits.push_back(nullptr);
+
+    varcheck:
+        if (lex::tok.tok == lex::tok_eol)
+            break;
+
+        lex::exp(lex::tok_comma, "expected ',' or ';' to continue or end variable declaration(s)");
+        lex::eat(); // eat ,
     }
 
-    lex::exp(lex::tok_colon, "expected a ':' denoting the variable's type");
-    lex::eat(); // eat :
-
-    ty::Type type = ty::fromString(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size());
-
-    lex::eat(); // eat type
-
-    if (lex::tok.tok == lex::tok_assign)
-    {
-        lex::eat(); // eat =
-        return std::make_unique<ast::VarDecl>(std::move(name), type, parse_expr(), nrow, ncol);
-    }
-
-    return std::make_unique<ast::VarDecl>(std::move(name), type, nullptr, nrow, ncol);
+    return std::make_unique<ast::VarDecl>(std::move(names), std::move(types), std::move(inits), std::move(nrows), std::move(ncols));
 }
 
 std::unique_ptr<ast::Node> parse_inst()

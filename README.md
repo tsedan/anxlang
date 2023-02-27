@@ -26,9 +26,7 @@ Here's a basic sample of the language syntax:
 pub fn fib(n: i32): i32 {
     if !n ret 0;
 
-    var ppn: i32;
-    var pn = 0;
-    var cn = 1;
+    var ppn: i32, pn = 0, cn = 1;
 
     # while n > 1, calculate the next number. decrement n by 1 each step.
     while n > 1 : n = n - 1 {
