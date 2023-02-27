@@ -26,6 +26,18 @@ void ir::init()
     fpm->add(llvm::createSinkingPass());
     fpm->add(llvm::createTailCallEliminationPass());
 
+    fpm->add(llvm::createLoopSimplifyCFGPass());
+    fpm->add(llvm::createLoopDeletionPass());
+    fpm->add(llvm::createLoopRotatePass());
+    fpm->add(llvm::createLoopDataPrefetchPass());
+    fpm->add(llvm::createLoopStrengthReducePass());
+    fpm->add(llvm::createLoopInterchangePass());
+    fpm->add(llvm::createLoopUnrollPass());
+    fpm->add(llvm::createLoopUnrollAndJamPass());
+    fpm->add(llvm::createLoopLoadEliminationPass());
+    fpm->add(llvm::createLoopFlattenPass());
+    fpm->add(llvm::createLoopVectorizePass());
+
     fpm->doInitialization();
 }
 
