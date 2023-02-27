@@ -1,14 +1,23 @@
 pub printi(i: i32);
 
 pub main(): i32 {
-    printi(fib(20));
+    printi(fib(40));
     ret 0;
 }
 
 fn fib(n: i32): i32 {
-    if n < 2 {
-        ret n;
-    }
+    if !n ret 0;
 
-    ret fib(n - 1) + fib(n - 2);
+    var ppn: i32;
+    var pn = 0;
+    var cn = 1;
+
+    while n > 1 {
+        ppn = pn;
+        pn = cn;
+        cn = ppn + pn;
+        n = n - 1;
+    }
+    
+    ret cn;
 }

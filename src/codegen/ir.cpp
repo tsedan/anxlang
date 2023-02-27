@@ -246,11 +246,7 @@ uint32_t min_width(const std::string &str, uint8_t radix)
         width++;
     }
 
-    if (width < 8)
-        return 8;
-    else if (width < 16)
-        return 16;
-    else if (width < 32)
+    if (width < 32)
         return 32;
     else if (width < 64)
         return 64;
@@ -358,7 +354,10 @@ ir::Symbol ast::UnOpStmt::codegen()
         anx::perr("cannot use void type as operand", val->srow, val->scol, val->ssize);
 
     if (op == "!")
-        return ir::Symbol(ir::builder->CreateNot(sym.coerce(ty::ty_bool, val->srow, val->scol, val->ssize).val(), "not"), sym.typ());
+    {
+        ir::Symbol coerced = sym.coerce(ty::ty_bool, val->srow, val->scol, val->ssize);
+        return ir::Symbol(ir::builder->CreateNot(coerced.val(), "not"), coerced.typ());
+    }
     if (op == "-")
     {
         if (ty::isBool(sym.typ()))
