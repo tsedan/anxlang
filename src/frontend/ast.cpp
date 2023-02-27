@@ -40,7 +40,7 @@ std::unique_ptr<ast::Node> parse_inst();
 std::unique_ptr<ast::StmtNode> parse_expr();
 std::unique_ptr<ast::StmtNode> parse_primary();
 
-std::unique_ptr<ast::StmtNode> parse_identifier()
+std::unique_ptr<ast::StmtNode> parse_identifier(bool allow_lone)
 {
     size_t nrow = lex::cr, ncol = lex::cc;
     std::string name = lex::tok.val;
@@ -79,6 +79,9 @@ std::unique_ptr<ast::StmtNode> parse_identifier()
 
         return std::make_unique<ast::AssignStmt>(std::move(name), parse_expr(), nrow, ncol);
     }
+
+    if (!allow_lone)
+        anx::perr("unrecognized symbol or unused expression result", nrow, ncol, name.size());
 
     return std::make_unique<ast::IdentStmt>(std::move(name), nrow, ncol);
 }
@@ -241,7 +244,7 @@ std::unique_ptr<ast::StmtNode> parse_primary()
     switch (lex::tok.tok)
     {
     case lex::tok_identifier:
-        primary = parse_identifier();
+        primary = parse_identifier(true);
         break;
     case lex::tok_number:
         primary = parse_num();
@@ -400,7 +403,7 @@ std::unique_ptr<ast::Node> parse_inst()
     case lex::tok_if:
         return parse_if();
     case lex::tok_identifier:
-        n = parse_identifier();
+        n = parse_identifier(false);
         break;
     case lex::tok_ret:
         n = parse_ret();

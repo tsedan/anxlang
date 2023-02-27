@@ -1,0 +1,14 @@
+pub printi(i: i32);
+
+pub main() {
+    printi(gcd(15, 35));
+}
+
+fn gcd(a: i32, b: i32): i32 {
+    while b != 0 {
+        var t = b;
+        b = a % b;
+        a = t;
+    }
+    ret a;
+}
