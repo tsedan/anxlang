@@ -34,7 +34,7 @@ fn recurseAdd(n: i32, s: i32): i32 {
 Here's Anx reading user input and printing it back out:
 
 ```
-pub main(): i32 { # the pub keyword makes the function public
+pub fn main(): i32 { # the pub keyword makes the function public
     # make a zero-initialized buffer of 256 chars
     var buf: [256]u8 = "";
 
@@ -72,7 +72,7 @@ fn openFile(path: *u8): !u8 {
     ret 1; # if we got here, success!
 }
 
-pub main() { # void is the default return type
+pub fn main() { # void is the default return type
     # try to open a file.
     openFile("doesnt_exist.txt") catch |err| {
         # this block is executed if an error occured

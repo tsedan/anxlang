@@ -113,7 +113,9 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 {
     size_t drow = lex::cr, dcol = lex::cc;
 
-    lex::eat(); // eat fn/pub
+    lex::exp(lex::tok_fn, "expected 'fn' to start function declaration");
+
+    lex::eat(); // eat fn
 
     lex::exp(lex::tok_identifier, "expected name after function declaration");
 
@@ -468,6 +470,7 @@ void ast::gen_ast()
             prog = std::make_unique<ProgramNode>(std::move(decls));
             return;
         case lex::tok_pub:
+            lex::eat(); // eat pub
             decls.push_back(parse_fn(true));
             break;
         case lex::tok_fn:

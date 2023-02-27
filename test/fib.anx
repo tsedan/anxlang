@@ -1,6 +1,6 @@
-pub printi(i: i32);
+pub fn printi(i: i32);
 
-pub main(): i32 {
+pub fn main(): i32 {
     printi(fib(20));
     ret 0;
 }
