@@ -203,6 +203,7 @@ ir::Symbol ast::WhileNode::codegen()
 
     llvm::BasicBlock *EntryBB = llvm::BasicBlock::Create(*ir::ctx, "loop.entry", F);
     llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(*ir::ctx, "loop");
+    llvm::BasicBlock *StepBB = llvm::BasicBlock::Create(*ir::ctx, "loop.step");
     llvm::BasicBlock *ExitBB = llvm::BasicBlock::Create(*ir::ctx, "loop.exit");
 
     ir::builder->CreateBr(EntryBB);
@@ -216,6 +217,15 @@ ir::Symbol ast::WhileNode::codegen()
 
     if (body)
         body->codegen();
+
+    if (!ir::builder->GetInsertBlock()->getTerminator())
+        ir::builder->CreateBr(StepBB);
+
+    F->getBasicBlockList().push_back(StepBB);
+    ir::builder->SetInsertPoint(StepBB);
+
+    if (step)
+        step->codegen();
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
         ir::builder->CreateBr(EntryBB);

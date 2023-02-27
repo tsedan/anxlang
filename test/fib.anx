@@ -12,11 +12,10 @@ fn fib(n: i32): i32 {
     var pn = 0;
     var cn = 1;
 
-    while n > 1 {
+    while n > 1 : n = n - 1 {
         ppn = pn;
         pn = cn;
         cn = ppn + pn;
-        n = n - 1;
     }
 
     ret cn;

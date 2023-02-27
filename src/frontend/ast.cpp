@@ -356,6 +356,14 @@ std::unique_ptr<ast::WhileNode> parse_while()
 
     std::unique_ptr<ast::StmtNode> cond = parse_expr();
 
+    std::unique_ptr<ast::StmtNode> step = nullptr;
+
+    if (lex::tok.tok == lex::tok_colon)
+    {
+        lex::eat(); // eat colon
+        step = parse_expr();
+    }
+
     std::unique_ptr<ast::Node> body;
 
     if (lex::tok.tok == lex::tok_eol)
@@ -368,7 +376,7 @@ std::unique_ptr<ast::WhileNode> parse_while()
     else
         body = parse_inst();
 
-    return std::make_unique<ast::WhileNode>(std::move(cond), std::move(body), drow, dcol);
+    return std::make_unique<ast::WhileNode>(std::move(cond), std::move(step), std::move(body), drow, dcol);
 }
 
 std::unique_ptr<ast::RetNode> parse_ret()
