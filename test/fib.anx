@@ -1,8 +1,7 @@
 pub fn printi(i: i32);
 
-pub fn main(): i32 {
+fn main() {
     printi(fib(20));
-    ret 0;
 }
 
 fn fib(n: i32): i32 {

@@ -1,6 +1,6 @@
 # Anx
 
-Anx is a highly experimental systems programming language written in C++.
+Anx is a modern statically-typed programming language written in C++.
 
 **Note: Anx requires LLVM >= 15.0.7 in order to build properly (llvm-config must be available).**
 
@@ -9,7 +9,7 @@ Anx is a highly experimental systems programming language written in C++.
 The purpose of Anx is to simplify the most common use cases for C, while also including a select few of the quality-of-life features that modern languages provide.
 
 Please note that Anx is still in its early stages of development, and there are several key language features that are still being prototyped.
-For a peek at language features in development, see the `test` directory.
+For a peek at features in development, see the `test` directory.
 
 Here is a list of of the current datatypes available in Anx:
 ```
@@ -17,66 +17,50 @@ i8, i16, i32, i64, i128
 u8, u16, u32, u64, u128
 f32, f64
 bool
-void (only valid as a function return type)
 ```
 
 Here's a basic sample of the language syntax:
 
 ```
-fn recurseAdd(n: i32, s: i32): i32 {
-    if n == 0 ret s;
-    var x: i32 = s * 2 + 1;
+# a public function that returns the nth fibonacci number
+pub fn fib(n: i32): i32 {
+    if !n ret 0;
 
-    ret recurseAdd(n - 1, x);
+    var ppn: i32;
+    var pn = 0;
+    var cn = 1;
+
+    # while n > 1, calculate the next number. decrement n by 1 each step.
+    while n > 1 : n = n - 1 {
+        ppn = pn;
+        pn = cn;
+        cn = ppn + pn;
+    }
+
+    ret cn;
 }
 ```
 
 Here's Anx reading user input and printing it back out:
+(note some of these features are still in the prototyping phase)
 
 ```
-pub fn main(): i32 { # the pub keyword makes the function public
+# main function is the entry point and always public
+fn main() { # note that when we do not specify a return type, it defaults to void
     # make a zero-initialized buffer of 256 chars
     var buf: [256]u8 = "";
 
     # heap allocate a string of length 128
-    # notice that the ptr is immutable ("let")
-    # however, the data inside the ptr is mutable
-    let string: *u8 = @alloc(128);
-
-    # free the string
-    @free(string);
+    # note that the string is garbage collected automatically
+    var string: *u8 = @new(128);
 
     # ask the user for input
     @out("Input something: ");
 
     # read up to 256 chars from stdin into the buffer
-    @in(buf, sizeof buf);
+    @in(buf, @size(buf));
 
     # print the buffer to stdout using a formatted string
-    @out(f"You inputted: %s{buf}\n");
-
-    ret 1;
-}
-```
-
-Errors and safety are a first-class concern in Anx. Here's an example of error handing:
-(note these features are still in the drafting phase)
-
-```
-fn openFile(path: *u8): !u8 {
-    # the ! indicates that this function can return an error
-
-    # try to open the file. if an error occured, return it.
-    try @fopen(path, "r");
-
-    ret 1; # if we got here, success!
-}
-
-pub fn main() { # void is the default return type
-    # try to open a file.
-    openFile("doesnt_exist.txt") catch |err| {
-        # this block is executed if an error occured
-        @out(f"Error: %s{err}\n");
-    };
+    @out(`You inputted: %s{buf}\n`);
 }
 ```

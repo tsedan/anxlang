@@ -13,6 +13,7 @@ std::unique_ptr<llvm::legacy::FunctionPassManager> ir::fpm;
 
 std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
 ir::Symbol cf;
+std::string cfm;
 
 ir::Symbol ir::search(std::string name, size_t row, size_t col)
 {
@@ -48,16 +49,20 @@ void ast::FnDecl::declare()
     if (ir::mod->getFunction(name))
         anx::perr("a function with this name already exists", nrow, ncol, name.size());
 
+    llvm::Type *ret = ty::toLLVM(type, true);
+    if (name == "main")
+    {
+        is_pub = true;
+        ret = llvm::Type::getInt32Ty(*ir::ctx);
+    }
+
     std::vector<llvm::Type *> Params(args.size());
 
     for (size_t i = 0, e = args.size(); i != e; ++i)
         Params[i] = ty::toLLVM(types[i], false);
 
     llvm::FunctionType *FT =
-        llvm::FunctionType::get(ty::toLLVM(type, true), Params, false);
-
-    if (name == "main" && !is_pub)
-        anx::perr("main function must be public (use `pub` keyword)", drow, dcol);
+        llvm::FunctionType::get(ret, Params, false);
 
     llvm::Function::LinkageTypes linkage = is_pub ? llvm::Function::ExternalLinkage : llvm::Function::InternalLinkage;
 
@@ -76,6 +81,7 @@ ir::Symbol ast::FnDecl::codegen()
         return ir::Symbol();
 
     cf = ir::Symbol(F, type, types);
+    cfm = name;
 
     llvm::BasicBlock *BB = llvm::BasicBlock::Create(*ir::ctx, "entry", F);
     ir::builder->SetInsertPoint(BB);
@@ -96,7 +102,9 @@ ir::Symbol ast::FnDecl::codegen()
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
     {
-        if (ty::isVoid(type))
+        if (name == "main")
+            ir::builder->CreateRet(llvm::ConstantInt::get(*ir::ctx, llvm::APInt(32, 0, true)));
+        else if (ty::isVoid(type))
             ir::builder->CreateRetVoid();
         else
             anx::perr("expected return instruction at end of non-void function '" + name + "'", erow, ecol);
@@ -324,7 +332,9 @@ ir::Symbol ast::RetNode::codegen()
 
     if (!value)
     {
-        if (ty::isVoid(cf.typ()))
+        if (cfm == "main")
+            ir::builder->CreateRet(llvm::ConstantInt::get(*ir::ctx, llvm::APInt(32, 0, true)));
+        else if (ty::isVoid(cf.typ()))
             return ir::Symbol(ir::builder->CreateRetVoid(), ty::ty_void);
         else
             anx::perr("cannot return void from non-void function", drow, dcol);
