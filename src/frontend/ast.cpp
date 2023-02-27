@@ -458,6 +458,14 @@ std::unique_ptr<ast::Node> parse_inst()
     {
     case lex::tok_while:
         return parse_while();
+    case lex::tok_break:
+        n = std::make_unique<ast::BreakNode>(lex::cr, lex::cc);
+        lex::eat(); // eat break
+        break;
+    case lex::tok_cont:
+        n = std::make_unique<ast::ContNode>(lex::cr, lex::cc);
+        lex::eat(); // eat cont
+        break;
     case lex::tok_if:
         return parse_if();
     case lex::tok_identifier:
@@ -473,7 +481,7 @@ std::unique_ptr<ast::Node> parse_inst()
         anx::perr("expected an instruction", lex::cr, lex::cc, lex::tok.val.size());
     }
 
-    lex::exp(lex::tok_eol, "expected ';' after instruction");
+    lex::exp(lex::tok_eol, "expected ';'");
     lex::eat(); // eat ;
 
     return n;

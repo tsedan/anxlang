@@ -77,6 +77,10 @@ void lex::eat()
             tok.tok = tok_else;
         else if (tok.val == "while")
             tok.tok = tok_while;
+        else if (tok.val == "break")
+            tok.tok = tok_break;
+        else if (tok.val == "continue")
+            tok.tok = tok_cont;
         else
             tok.tok = tok_identifier;
 

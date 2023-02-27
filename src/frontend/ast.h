@@ -156,6 +156,36 @@ namespace ast
         }
     };
 
+    class BreakNode : public Node
+    {
+    public:
+        size_t drow, dcol;
+
+        BreakNode(size_t drow, size_t dcol)
+            : drow(drow), dcol(dcol) {}
+        ir::Symbol codegen();
+
+        void print(int ind)
+        {
+            std::cout << std::string(ind, ' ') << "< break >" << '\n';
+        }
+    };
+
+    class ContNode : public Node
+    {
+    public:
+        size_t drow, dcol;
+
+        ContNode(size_t drow, size_t dcol)
+            : drow(drow), dcol(dcol) {}
+        ir::Symbol codegen();
+
+        void print(int ind)
+        {
+            std::cout << std::string(ind, ' ') << "< continue >" << '\n';
+        }
+    };
+
     class IfNode : public Node
     {
     public:

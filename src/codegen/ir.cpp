@@ -12,6 +12,8 @@ std::unique_ptr<llvm::IRBuilder<>> ir::builder;
 std::unique_ptr<llvm::legacy::FunctionPassManager> ir::fpm;
 
 std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
+std::vector<llvm::BasicBlock *> breaks;
+std::vector<llvm::BasicBlock *> conts;
 ir::Symbol cf;
 std::string cfm;
 
@@ -203,6 +205,26 @@ ir::Symbol ast::IfNode::codegen()
     return ir::Symbol();
 }
 
+ir::Symbol ast::BreakNode::codegen()
+{
+    if (breaks.empty())
+        anx::perr("break instruction outside of loop", drow, dcol);
+
+    ir::builder->CreateBr(breaks.back());
+
+    return ir::Symbol();
+}
+
+ir::Symbol ast::ContNode::codegen()
+{
+    if (conts.empty())
+        anx::perr("continue instruction outside of loop", drow, dcol);
+
+    ir::builder->CreateBr(conts.back());
+
+    return ir::Symbol();
+}
+
 ir::Symbol ast::WhileNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
@@ -224,8 +246,14 @@ ir::Symbol ast::WhileNode::codegen()
     F->getBasicBlockList().push_back(LoopBB);
     ir::builder->SetInsertPoint(LoopBB);
 
+    breaks.push_back(ExitBB);
+    conts.push_back(StepBB);
+
     if (body)
         body->codegen();
+
+    breaks.pop_back();
+    conts.pop_back();
 
     if (!ir::builder->GetInsertBlock()->getTerminator())
         ir::builder->CreateBr(StepBB);

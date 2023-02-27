@@ -36,6 +36,8 @@ namespace lex
         tok_if,    // if
         tok_else,  // else
         tok_while, // while
+        tok_break, // break
+        tok_cont,  // continue
 
         // identifiers
         tok_identifier, // identifier
