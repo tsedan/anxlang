@@ -93,17 +93,20 @@ namespace ast
         std::vector<ty::Type> types;
         std::vector<std::unique_ptr<StmtNode>> inits;
         std::vector<size_t> nrows, ncols;
+        size_t drow, dcol;
 
         VarDecl(std::vector<std::string> names,
                 std::vector<ty::Type> types,
                 std::vector<std::unique_ptr<StmtNode>> inits,
                 std::vector<size_t> nrows,
-                std::vector<size_t> ncols)
+                std::vector<size_t> ncols,
+                size_t drow, size_t dcol)
             : names(std::move(names)),
               types(std::move(types)),
               inits(std::move(inits)),
               nrows(std::move(nrows)),
-              ncols(std::move(ncols)) {}
+              ncols(std::move(ncols)),
+              drow(drow), dcol(dcol) {}
         ir::Symbol codegen();
 
         void print(int ind)

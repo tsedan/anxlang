@@ -129,6 +129,9 @@ ir::Symbol ast::FnDecl::codegen()
 
 ir::Symbol ast::VarDecl::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("instruction is unreachable", drow, dcol);
+
     for (size_t i = 0; i < names.size(); i++)
     {
         std::map<std::string, ir::Symbol>::iterator it;
@@ -158,6 +161,9 @@ ir::Symbol ast::VarDecl::codegen()
 
 ir::Symbol ast::AssignStmt::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("instruction is unreachable", nrow, ncol);
+
     ir::Symbol sym = ir::search(name, nrow, ncol);
 
     ir::Symbol v = value->codegen().coerce(sym.typ(), value->srow, value->scol, value->ssize);
@@ -207,6 +213,9 @@ ir::Symbol ast::IfNode::codegen()
 
 ir::Symbol ast::BreakNode::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("instruction is unreachable", drow, dcol);
+
     if (breaks.empty())
         anx::perr("break instruction outside of loop", drow, dcol);
 
@@ -217,6 +226,9 @@ ir::Symbol ast::BreakNode::codegen()
 
 ir::Symbol ast::ContNode::codegen()
 {
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("instruction is unreachable", drow, dcol);
+
     if (conts.empty())
         anx::perr("continue instruction outside of loop", drow, dcol);
 

@@ -399,6 +399,8 @@ std::unique_ptr<ast::RetNode> parse_ret()
 
 std::unique_ptr<ast::VarDecl> parse_var()
 {
+    size_t drow = lex::cr, dcol = lex::cc;
+
     lex::eat(); // eat var
 
     std::vector<std::string> names;
@@ -449,7 +451,7 @@ std::unique_ptr<ast::VarDecl> parse_var()
         lex::eat(); // eat ,
     }
 
-    return std::make_unique<ast::VarDecl>(std::move(names), std::move(types), std::move(inits), std::move(nrows), std::move(ncols));
+    return std::make_unique<ast::VarDecl>(std::move(names), std::move(types), std::move(inits), std::move(nrows), std::move(ncols), drow, dcol);
 }
 
 std::unique_ptr<ast::Node> parse_inst()
