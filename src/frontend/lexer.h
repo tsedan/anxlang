@@ -33,8 +33,9 @@ namespace lex
         tok_unop,  // unary operation
 
         // control
-        tok_if,   // if
-        tok_else, // else
+        tok_if,    // if
+        tok_else,  // else
+        tok_while, // while
 
         // identifiers
         tok_identifier, // identifier

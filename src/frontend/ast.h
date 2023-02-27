@@ -173,6 +173,31 @@ namespace ast
         }
     };
 
+    class WhileNode : public Node
+    {
+    public:
+        std::unique_ptr<StmtNode> cond;
+        std::unique_ptr<Node> body;
+        size_t drow, dcol;
+
+        WhileNode(
+            std::unique_ptr<StmtNode> cond,
+            std::unique_ptr<Node> body,
+            size_t drow, size_t dcol)
+            : cond(std::move(cond)),
+              body(std::move(body)),
+              drow(drow), dcol(dcol) {}
+        ir::Symbol codegen();
+
+        void print(int ind)
+        {
+            std::cout << std::string(ind, ' ') << "< while >" << '\n';
+            cond->print(ind + 1);
+            if (body)
+                body->print(ind + 1);
+        }
+    };
+
     class AssignStmt : public StmtNode
     {
     public:

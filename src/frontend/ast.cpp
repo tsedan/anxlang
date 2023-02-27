@@ -12,8 +12,9 @@
 //   ScopeNode - A node consisting of a list of nodes
 //   RetNode - A return
 //   IfNode - An if/else block
-//   AssignStmt - A variable assignment
+//   WhileNode - A while loop
 //   StmtNode - A node that evaluates
+//     AssignStmt - A variable assignment
 //     BinOpStmt - A binary operation statement
 //     UnOpStmt - A unary operation statement
 //     CallStmt - A function call statement
@@ -347,6 +348,29 @@ std::unique_ptr<ast::IfNode> parse_if()
     return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els), drow, dcol);
 }
 
+std::unique_ptr<ast::WhileNode> parse_while()
+{
+    size_t drow = lex::cr, dcol = lex::cc;
+
+    lex::eat(); // eat while
+
+    std::unique_ptr<ast::StmtNode> cond = parse_expr();
+
+    std::unique_ptr<ast::Node> body;
+
+    if (lex::tok.tok == lex::tok_eol)
+    {
+        body = nullptr;
+        lex::eat(); // eat eol
+    }
+    else if (lex::tok.tok == lex::tok_curlys)
+        body = parse_scope();
+    else
+        body = parse_inst();
+
+    return std::make_unique<ast::WhileNode>(std::move(cond), std::move(body), drow, dcol);
+}
+
 std::unique_ptr<ast::RetNode> parse_ret()
 {
     size_t drow = lex::cr, dcol = lex::cc;
@@ -358,9 +382,7 @@ std::unique_ptr<ast::RetNode> parse_ret()
     if (lex::tok.tok != lex::tok_eol)
         val = parse_expr();
 
-    std::unique_ptr<ast::RetNode> ret = std::make_unique<ast::RetNode>(std::move(val), drow, dcol);
-
-    return ret;
+    return std::make_unique<ast::RetNode>(std::move(val), drow, dcol);
 }
 
 std::unique_ptr<ast::VarDecl> parse_var()
@@ -400,6 +422,8 @@ std::unique_ptr<ast::Node> parse_inst()
 
     switch (lex::tok.tok)
     {
+    case lex::tok_while:
+        return parse_while();
     case lex::tok_if:
         return parse_if();
     case lex::tok_identifier:

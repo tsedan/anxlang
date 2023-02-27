@@ -99,7 +99,7 @@ ir::Symbol ast::FnDecl::codegen()
         if (ty::isVoid(type))
             ir::builder->CreateRetVoid();
         else
-            anx::perr("expected return statement at end of non-void function '" + name + "'", erow, ecol);
+            anx::perr("expected return instruction at end of non-void function '" + name + "'", erow, ecol);
     }
 
     opti::fun(F);
@@ -159,16 +159,16 @@ ir::Symbol ast::AssignStmt::codegen()
 ir::Symbol ast::IfNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        anx::perr("statement is unreachable", drow, dcol);
+        anx::perr("instruction is unreachable", drow, dcol);
 
     llvm::Value *CondV = cond->codegen().coerce(ty::ty_bool, cond->srow, cond->scol, cond->ssize).val();
 
-    llvm::Function *F = ir::builder->GetInsertBlock()->getParent();
+    llvm::Function *F = cf.fn();
 
     llvm::BasicBlock *ThenBB =
         llvm::BasicBlock::Create(*ir::ctx, "then", F);
     llvm::BasicBlock *ElseBB = llvm::BasicBlock::Create(*ir::ctx, "else");
-    llvm::BasicBlock *MergeBB = llvm::BasicBlock::Create(*ir::ctx, "ifcont");
+    llvm::BasicBlock *MergeBB = llvm::BasicBlock::Create(*ir::ctx, "if.exit");
 
     ir::builder->CreateCondBr(CondV, ThenBB, ElseBB);
 
@@ -190,6 +190,38 @@ ir::Symbol ast::IfNode::codegen()
 
     F->getBasicBlockList().push_back(MergeBB);
     ir::builder->SetInsertPoint(MergeBB);
+
+    return ir::Symbol();
+}
+
+ir::Symbol ast::WhileNode::codegen()
+{
+    if (ir::builder->GetInsertBlock()->getTerminator())
+        anx::perr("instruction is unreachable", drow, dcol);
+
+    llvm::Function *F = cf.fn();
+
+    llvm::BasicBlock *EntryBB = llvm::BasicBlock::Create(*ir::ctx, "loop.entry", F);
+    llvm::BasicBlock *LoopBB = llvm::BasicBlock::Create(*ir::ctx, "loop");
+    llvm::BasicBlock *ExitBB = llvm::BasicBlock::Create(*ir::ctx, "loop.exit");
+
+    ir::builder->CreateBr(EntryBB);
+    ir::builder->SetInsertPoint(EntryBB);
+
+    llvm::Value *CondV = cond->codegen().coerce(ty::ty_bool, cond->srow, cond->scol, cond->ssize).val();
+    ir::builder->CreateCondBr(CondV, LoopBB, ExitBB);
+
+    F->getBasicBlockList().push_back(LoopBB);
+    ir::builder->SetInsertPoint(LoopBB);
+
+    if (body)
+        body->codegen();
+
+    if (!ir::builder->GetInsertBlock()->getTerminator())
+        ir::builder->CreateBr(EntryBB);
+
+    F->getBasicBlockList().push_back(ExitBB);
+    ir::builder->SetInsertPoint(ExitBB);
 
     return ir::Symbol();
 }
@@ -282,7 +314,7 @@ ir::Symbol ast::NumStmt::codegen()
 ir::Symbol ast::RetNode::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        anx::perr("statement is unreachable", drow, dcol);
+        anx::perr("instruction is unreachable", drow, dcol);
 
     if (!value)
     {
@@ -299,7 +331,7 @@ ir::Symbol ast::RetNode::codegen()
 ir::Symbol ast::CallStmt::codegen()
 {
     if (ir::builder->GetInsertBlock()->getTerminator())
-        anx::perr("statement is unreachable", nrow, ncol);
+        anx::perr("instruction is unreachable", nrow, ncol);
 
     ir::Symbol sym = ir::search(name, nrow, ncol);
     llvm::Function *CalleeF = sym.fn();
