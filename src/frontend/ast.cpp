@@ -140,7 +140,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
             lex::eat(); // eat name
 
-            lex::exp(lex::tok_type, "expected ':' after parameter name");
+            lex::exp(lex::tok_colon, "expected ':' after parameter name");
 
             lex::eat(); // eat :
 
@@ -164,7 +164,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub)
 
     ty::Type type = ty::ty_void;
 
-    if (lex::tok.tok == lex::tok_type)
+    if (lex::tok.tok == lex::tok_colon)
     {
         lex::eat(); // eat :
 
@@ -400,7 +400,7 @@ std::unique_ptr<ast::VarDecl> parse_var()
         return std::make_unique<ast::VarDecl>(std::move(name), ty::ty_void, parse_expr(), nrow, ncol);
     }
 
-    lex::exp(lex::tok_type, "expected a ':' denoting the variable's type");
+    lex::exp(lex::tok_colon, "expected a ':' denoting the variable's type");
     lex::eat(); // eat :
 
     ty::Type type = ty::fromString(lex::tok.val, false, lex::cr, lex::cc, lex::tok.val.size());

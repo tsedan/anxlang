@@ -219,7 +219,7 @@ void lex::eat()
         tok.tok = tok_parene;
         return;
     case ':':
-        tok.tok = tok_type;
+        tok.tok = tok_colon;
         return;
     case '*':
     case '/':

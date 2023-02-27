@@ -1,7 +1,7 @@
 pub printi(i: i32);
 
 pub main(): i32 {
-    printi(fib(40));
+    printi(fib(20));
     ret 0;
 }
 
@@ -18,6 +18,6 @@ fn fib(n: i32): i32 {
         cn = ppn + pn;
         n = n - 1;
     }
-    
+
     ret cn;
 }

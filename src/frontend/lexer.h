@@ -25,7 +25,7 @@ namespace lex
 
         // variables
         tok_var,    // variable
-        tok_type,   // :
+        tok_colon,  // :
         tok_assign, // =
 
         // comparison / arithmetic
