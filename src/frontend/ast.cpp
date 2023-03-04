@@ -462,6 +462,8 @@ std::unique_ptr<ast::Node> parse_inst()
     {
     case lex::tok_while:
         return parse_while();
+    case lex::tok_if:
+        return parse_if();
     case lex::tok_break:
         n = std::make_unique<ast::BreakNode>(lex::cr, lex::cc);
         lex::eat(); // eat break
@@ -470,8 +472,6 @@ std::unique_ptr<ast::Node> parse_inst()
         n = std::make_unique<ast::ContNode>(lex::cr, lex::cc);
         lex::eat(); // eat cont
         break;
-    case lex::tok_if:
-        return parse_if();
     case lex::tok_identifier:
         n = parse_identifier(false);
         break;
