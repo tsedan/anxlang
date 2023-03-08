@@ -14,7 +14,7 @@ pub fn fib(n: i32): i32 {
     var prev_prev: i32, prev = 0, curr = 1;
 
     # while n > 1, calculate the next number. decrement n by 1 each step.
-    while n > 1 : --n {
+    for n > 1 : --n {
         prev_prev = prev;
         prev = curr;
         curr = prev_prev + prev;
@@ -55,7 +55,7 @@ fn add<T>(a: T, b: T): T {
 
 ```
 obj arr<T> {
-    var length: u32;
+    var length: u64;
     var items: T[];
 }
 ```

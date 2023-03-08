@@ -352,7 +352,7 @@ std::unique_ptr<ast::IfNode> parse_if()
     return std::make_unique<ast::IfNode>(std::move(cond), std::move(then), std::move(els), drow, dcol);
 }
 
-std::unique_ptr<ast::WhileNode> parse_while()
+std::unique_ptr<ast::WhileNode> parse_for()
 {
     size_t drow = lex::cr, dcol = lex::cc;
 
@@ -460,8 +460,8 @@ std::unique_ptr<ast::Node> parse_inst()
 
     switch (lex::tok.tok)
     {
-    case lex::tok_while:
-        return parse_while();
+    case lex::tok_for:
+        return parse_for();
     case lex::tok_if:
         return parse_if();
     case lex::tok_break:
