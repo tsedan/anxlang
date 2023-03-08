@@ -14,7 +14,7 @@ pub fn fib(n: i32): i32 {
     var prev_prev: i32, prev = 0, curr = 1;
 
     # while n > 1, calculate the next number. decrement n by 1 each step.
-    for n > 1 : --n {
+    for n > 1 : n -= 1 {
         prev_prev = prev;
         prev = curr;
         curr = prev_prev + prev;
@@ -43,10 +43,14 @@ There are also a few compound datatypes that are automatically available in ever
 str, map, arr
 ```
 
+Any datatype can be prefixed with `*` to signify that it is an address.
+For example, `*i32` is a pointer to a 32 bit integer.
+See the memory section to learn more.
+
 ## generics / templating
 
 ```
-fn add<T>(a: T, b: T): T {
+fn add[T](a: T, b: T): T {
     ret a + b;
 }
 ```
@@ -54,15 +58,17 @@ fn add<T>(a: T, b: T): T {
 ## object orientation
 
 ```
-obj arr<T> {
+obj arr[T] {
     var length: u64;
-    var items: T[];
+    var start: *T;
 }
 ```
 
 ## literals
 
 ## memory
+
+Memory in Anx is garbage collected, so the user does not generally need to worry about memory management.
 
 ## input / output
 
