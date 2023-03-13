@@ -43,13 +43,13 @@ There are also a few compound datatypes that are automatically available in ever
 str, map, arr
 ```
 
-Any datatype can be prefixed with `*` to signify that it is an address.
-For example, `*i32` is a pointer to a 32 bit integer.
+Any datatype can be prefixed with `*` to signify that it is a pointer to that datatype.
+For example, `*i32` represents the address of a 32 bit integer.
 See the memory section to learn more.
 
 ## literals
 
-There are four different kinds of literals in Anx: numbers, booleans, strings, lists, and maps. Notice how these correspond to the different fundamental datatypes available.
+There are four different kinds of literals in Anx: numbers, booleans, strings, arrays, and maps. Notice how these correspond to the different fundamental datatypes available.
 
 A number literal is a sequence of digits.
 For example, `123` is an integer literal. The size of the literal is at least 32 bits, but is automatically enlarged up to 128 bits if necessary.
@@ -66,9 +66,9 @@ Boolean literals are `true` and `false`. These are equivalent to `1u8` and `0u8`
 A string literal is a sequence of characters surrounded by double quotes.
 For example, `"hello world"` is a string literal.
 
-A list literal is a sequence of values surrounded by square brackets.
-For example, `[1, 2, 3]` is a list literal.
-The type of the list is inferred from the type of the values.
+An array literal is a sequence of values surrounded by square brackets.
+For example, `[1, 2, 3]` is an array literal.
+The type of the array is inferred from the type of the values.
 However, note that all values in the list must be of the same type.
 
 A map literal is a sequence of key-value pairs surrounded by curly braces.
@@ -87,18 +87,65 @@ fn add[T](a: T, b: T): T {
 ## object orientation
 
 ```
-class arr[T] {
+class MyArray[T] {
     var length: u64;
+    var capacity: u64;
     var start: *T;
+
+    pub fn _init(len: u64) { # constructor
+        start = @alloc(len * @size(T)); # compiler memory allocation builtin
+        length = len;
+        capacity = len;
+    }
+
+    pub fn _get(index: u64): T { # array indexing overload (i.e. x[5])
+        if index >= length
+            @panic("index out of bounds"); # compiler panic builtin
+
+        ret start[index];
+    }
+
+    pub fn _set(index: u64, value: T) { # array indexing assignment overload (i.e. x[5] = 10)
+        if index >= length
+            @panic("index out of bounds");
+
+        start[index] = value;
+    }
+
+    pub fn add(value: T) { # add an element to the end of the array
+        if length == capacity {
+            start = @realloc(start, length * 2 * @size(T)); # compiler memory reallocation builtin
+            capacity <<= 1;
+        }
+
+        start[length] = value;
+        length += 1;
+    }
+}
+
+fn main() {
+    var x = MyArray[i32](2); # create a new array of 2 integers
+
+    x.add(5); # add 5 to the end of the array
+    x.add(10); # add 10 to the end of the array
+
+    x[0] = 1; # set the first element to 1
+    x[1] = 2; # set the second element to 2
+
+    # x.length would be an error because length is a private field. you would need to make it public or use a getter method
+
+    var y = x[0] + x[3]; # get the first element and add it to the fourth element
+
+    @out(y); # compiler output builtin, prints 11 here
 }
 ```
 
 ## memory
 
-Memory in Anx is garbage collected, so the user does not generally need to worry about memory management.
+Memory in Anx is garbage collected, so the user does not need to worry about freeing memory.
 
 ## input / output
 
 ## threading
 
-# coercion
+## coercion
