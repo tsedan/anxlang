@@ -35,7 +35,7 @@ namespace lex
         // control
         tok_if,    // if
         tok_else,  // else
-        tok_for,   // for
+        tok_while, // for
         tok_break, // break
         tok_cont,  // continue
 
