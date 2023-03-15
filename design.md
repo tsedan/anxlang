@@ -79,7 +79,7 @@ However, all keys must be of the same type, and all values must be of the same t
 ## generics / templating
 
 ```
-fn add[T](a: T, b: T): T {
+fn add<T>(a: T, b: T): T {
     ret a + b;
 }
 ```
@@ -87,7 +87,7 @@ fn add[T](a: T, b: T): T {
 ## object orientation
 
 ```
-class MyArray[T] {
+class MyArray<T> {
     var length: u64;
     var capacity: u64;
     var start: *T;
@@ -124,7 +124,7 @@ class MyArray[T] {
 }
 
 fn main() {
-    var x = MyArray[i32](2); # create a new array of 2 integers
+    var x = MyArray<i32>(2); # create a new array of 2 integers
 
     x.add(5); # add 5 to the end of the array
     x.add(10); # add 10 to the end of the array
