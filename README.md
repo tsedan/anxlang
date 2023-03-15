@@ -14,4 +14,4 @@ For a peek at features in development, see the <a href="dev">dev</a> directory.
 
 If your editor/language server is acting up about not finding the LLVM include files, I recommend using a tool like [bear](https://github.com/rizsotto/Bear) to generate `compile_commands.json` when you compile.
 
-After cloning this repository and making sure LLVM is installed on your machine simply run `make`. The compiled binary can be found in the <a href="bin">bin</a> directory.
+After cloning this repository and making sure LLVM is installed on your machine simply run `make`. The compiled binary can be found in the resultant `bin` directory.
