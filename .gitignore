@@ -1,4 +1,6 @@
 .vscode
+.cache
+
 bin
 a.out
 compile_commands.json
