@@ -1,16 +1,16 @@
 pub fn print(c: i8);
 
 fn main() {
-    print('h');
-    print('e');
-    print('l');
-    print('l');
-    print('o');
-    print(' ');
-    print('w');
-    print('o');
-    print('r');
-    print('l');
-    print('d');
-    print('\n');
+  print('h');
+  print('e');
+  print('l');
+  print('l');
+  print('o');
+  print(' ');
+  print('w');
+  print('o');
+  print('r');
+  print('l');
+  print('d');
+  print('\n');
 }

@@ -1,19 +1,19 @@
 pub fn printi(i: i32);
 
 fn main() {
-    printi(fib(20));
+  printi(fib(20));
 }
 
 fn fib(n: i32): i32 {
-    if !n ret 0;
+  if !n ret 0;
 
-    var prev_prev: i32, prev = 0, curr = 1;
+  var prev_prev: i32, prev = 0, curr = 1;
 
-    while n > 1 : n = n - 1 {
-        prev_prev = prev;
-        prev = curr;
-        curr = prev_prev + prev;
-    }
+  while n > 1 : n = n - 1 {
+    prev_prev = prev;
+    prev = curr;
+    curr = prev_prev + prev;
+  }
 
-    ret curr;
+  ret curr;
 }

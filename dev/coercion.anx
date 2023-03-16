@@ -1,5 +1,5 @@
 fn main() {
-    takesingle(takeint(7.0));
+  takesingle(takeint(7.0));
 }
 
 fn takeint(n: i32): f64 ret n + 5.2;
