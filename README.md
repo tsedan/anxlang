@@ -10,7 +10,7 @@ For a peek at features in development, see the <a href="dev">dev</a> directory.
 
 # Building
 
-**Anx requires LLVM >= 15.0.7 to build properly.** Any reasonable installation method should be fine as long as `llvm-config` is available in the path.
+**Anx requires LLVM >= 16.0.0 to build properly.** Any reasonable installation method should be fine as long as `llvm-config` is available in the path.
 
 If your editor/language server is acting up about not finding the LLVM include files, I recommend using a tool like [bear](https://github.com/rizsotto/Bear) to generate `compile_commands.json` when you compile.
 

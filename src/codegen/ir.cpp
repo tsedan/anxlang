@@ -200,7 +200,7 @@ ir::Symbol ast::IfNode::codegen() {
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(MergeBB);
 
-  F->getBasicBlockList().push_back(ElseBB);
+  F->insert(F->end(), ElseBB);
   ir::builder->SetInsertPoint(ElseBB);
 
   if (els)
@@ -209,7 +209,7 @@ ir::Symbol ast::IfNode::codegen() {
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(MergeBB);
 
-  F->getBasicBlockList().push_back(MergeBB);
+  F->insert(F->end(), MergeBB);
   ir::builder->SetInsertPoint(MergeBB);
 
   return ir::Symbol();
@@ -260,7 +260,7 @@ ir::Symbol ast::WhileNode::codegen() {
           .val();
   ir::builder->CreateCondBr(CondV, LoopBB, ExitBB);
 
-  F->getBasicBlockList().push_back(LoopBB);
+  F->insert(F->end(), LoopBB);
   ir::builder->SetInsertPoint(LoopBB);
 
   breaks.push_back(ExitBB);
@@ -275,7 +275,7 @@ ir::Symbol ast::WhileNode::codegen() {
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(StepBB);
 
-  F->getBasicBlockList().push_back(StepBB);
+  F->insert(F->end(), StepBB);
   ir::builder->SetInsertPoint(StepBB);
 
   if (step)
@@ -284,7 +284,7 @@ ir::Symbol ast::WhileNode::codegen() {
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(EntryBB);
 
-  F->getBasicBlockList().push_back(ExitBB);
+  F->insert(F->end(), ExitBB);
   ir::builder->SetInsertPoint(ExitBB);
 
   return ir::Symbol();

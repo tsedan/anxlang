@@ -25,10 +25,10 @@ void printer::print() {
   auto Features = "";
 
   llvm::TargetOptions opt;
-  auto RM = llvm::Optional<llvm::Reloc::Model>();
+  auto RM = std::optional<llvm::Reloc::Model>();
   auto TheTargetMachine =
       Target->createTargetMachine(TargetTriple, CPU, Features, opt, RM,
-                                  llvm::None, llvm::CodeGenOpt::Aggressive);
+                                  std::nullopt, llvm::CodeGenOpt::Aggressive);
 
   ir::mod->setDataLayout(TheTargetMachine->createDataLayout());
 

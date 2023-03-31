@@ -15,7 +15,6 @@ void ir::init() {
 
   fpm->add(llvm::createCFGSimplificationPass());
   fpm->add(llvm::createPromoteMemoryToRegisterPass());
-  fpm->add(llvm::createAggressiveInstCombinerPass());
   fpm->add(llvm::createReassociatePass());
   fpm->add(llvm::createGVNPass());
   fpm->add(llvm::createAggressiveDCEPass());
