@@ -1,5 +1,6 @@
 #include "ir.h"
 #include "../frontend/ast.h"
+#include "../intrinsics/intr.h"
 #include "opti.h"
 
 //===---------------------------------------------------------------------===//
@@ -393,7 +394,7 @@ ir::Symbol ast::CallStmt::codegen() {
     anx::perr("instruction is unreachable", nrow, ncol);
 
   if (name[0] == '@') {
-    anx::perr("intrinsics are still in development", nrow, ncol);
+    intr::handle(name);
   }
 
   ir::Symbol sym = ir::search(name, nrow, ncol);
