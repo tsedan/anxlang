@@ -48,7 +48,7 @@ struct Token {
   std::string val;
 };
 
-extern std::vector<std::string> file;
+extern std::vector<std::string> src;
 extern Token tok;
 extern size_t cr, cc;
 extern size_t lr, lc, ls;

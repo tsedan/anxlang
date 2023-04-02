@@ -19,8 +19,9 @@
 // 3. (codegen/ir.cpp) Generate LLVM IR from the AST
 // 4. (codegen/opti.cpp) Run optimization passes on the LLVM IR
 // 5. (assembly/printer.cpp) Generate an executable from the LLVM IR
+// utils.cpp holds a few miscellaneous long functions used in these steps.
 //
-// The current todo item is the JIT.
+// The current todo item is intrinsics.
 //===---------------------------------------------------------------------===//
 
 bool verbose = false;
@@ -93,7 +94,7 @@ int main(int argc, char **argv) {
 }
 
 void anx::perr(std::string msg, size_t r, size_t c, size_t s) {
-  std::string line = lex::file[r], ep0;
+  std::string line = lex::src[r], ep0;
   size_t p = c, begin = line.find_first_not_of(" \t"),
          end = line.find_last_not_of(" \t");
   if (begin != std::string::npos) {

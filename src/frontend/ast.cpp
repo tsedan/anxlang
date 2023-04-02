@@ -297,7 +297,7 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority,
     if (lex::lr == srow)
       lhs->ssize = lex::lc + lex::ls - lhs->scol;
     else
-      lhs->ssize = lex::file[srow].size() - lhs->scol;
+      lhs->ssize = lex::src[srow].size() - lhs->scol;
   }
 }
 
