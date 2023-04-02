@@ -52,12 +52,7 @@ void printer::print() {
 }
 
 void printer::link(std::string filename) {
-  // developer comment: the library location is currently hardcoded but will be
-  // eventually dealt with more formally.
-  std::string linkercmd =
-      "cc -O3 out.o /Users/tomer/Documents/GitHub/anxlang/lib/intr.c -o" +
-      filename;
-
+  std::string linkercmd = "cc -O3 out.o -o" + filename;
   system(linkercmd.c_str());
 }
 

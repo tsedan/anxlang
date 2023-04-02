@@ -1,7 +1,5 @@
-pub fn printi(i: i32);
-
 fn main() {
-  printi(fib(20));
+  @out(fib(20));
 }
 
 fn fib(n: i32): i32 {

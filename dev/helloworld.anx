@@ -1,16 +1,14 @@
-pub fn print(c: i8);
-
 fn main() {
-  print('h');
-  print('e');
-  print('l');
-  print('l');
-  print('o');
-  print(' ');
-  print('w');
-  print('o');
-  print('r');
-  print('l');
-  print('d');
-  print('\n');
+  @out('h');
+  @out('e');
+  @out('l');
+  @out('l');
+  @out('o');
+  @out(' ');
+  @out('w');
+  @out('o');
+  @out('r');
+  @out('l');
+  @out('d');
+  @out('\n');
 }

@@ -54,7 +54,7 @@ void lex::eat() {
     return;
   }
 
-  if (isalpha(lch) || lch == '_') {
+  if (isalpha(lch) || lch == '_' || lch == '@') {
     while (isalnum(lch = grab()) || lch == '_')
       tok.val += lch;
 
