@@ -9,13 +9,19 @@
 std::unique_ptr<llvm::LLVMContext> ir::ctx;
 std::unique_ptr<llvm::Module> ir::mod;
 std::unique_ptr<llvm::IRBuilder<>> ir::builder;
-std::unique_ptr<llvm::legacy::FunctionPassManager> ir::fpm;
 
 std::vector<std::map<std::string, ir::Symbol>> ir::symbols;
 std::vector<llvm::BasicBlock *> breaks;
 std::vector<llvm::BasicBlock *> conts;
 ir::Symbol cf;
 std::string cfm;
+
+void ir::init(std::string name) {
+  ctx = std::make_unique<llvm::LLVMContext>();
+  mod = std::make_unique<llvm::Module>(name, *ctx);
+  builder = std::make_unique<llvm::IRBuilder<>>(*ctx);
+  opti::init(mod.get());
+}
 
 ir::Symbol ir::search(std::string name, size_t row, size_t col) {
   std::map<std::string, ir::Symbol>::iterator sym;
@@ -113,13 +119,6 @@ ir::Symbol ast::FnDecl::codegen() {
   }
 
   opti::fun(F);
-
-  llvm::verifyFunction(*F, &llvm::errs());
-
-  if (anx::verbose) {
-    llvm::errs() << '\n';
-    F->print(llvm::errs());
-  }
 
   ir::symbols.pop_back();
 

@@ -6,12 +6,10 @@
 // Opti - Optimization Passes for LLVM IR.
 //===---------------------------------------------------------------------===//
 
-void ir::init() {
-  ctx = std::make_unique<llvm::LLVMContext>();
-  mod = std::make_unique<llvm::Module>("Anx Main", *ctx);
-  builder = std::make_unique<llvm::IRBuilder<>>(*ctx);
+std::unique_ptr<llvm::legacy::FunctionPassManager> fpm;
 
-  fpm = std::make_unique<llvm::legacy::FunctionPassManager>(ir::mod.get());
+void opti::init(llvm::Module *mod) {
+  fpm = std::make_unique<llvm::legacy::FunctionPassManager>(mod);
 
   fpm->add(llvm::createCFGSimplificationPass());
   fpm->add(llvm::createPromoteMemoryToRegisterPass());
@@ -41,6 +39,5 @@ void ir::init() {
 
 void opti::fun(llvm::Function *F) {
   llvm::EliminateUnreachableBlocks(*F);
-
-  ir::fpm->run(*F);
+  fpm->run(*F);
 }

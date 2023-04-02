@@ -24,8 +24,6 @@
 //     NumStmt - A number literal statement
 //===---------------------------------------------------------------------===//
 
-std::unique_ptr<ast::ProgramNode> ast::prog;
-
 // Get the priority of an operator, such as + or /
 int prio(const std::string &op) {
   if (op == "*" || op == "/" || op == "%")
@@ -475,7 +473,7 @@ std::unique_ptr<ast::Node> parse_inst() {
 }
 
 // Generate the program AST
-void ast::gen_ast() {
+std::unique_ptr<ast::ProgramNode> ast::generate() {
   lex::eat(); // generate the first token
 
   std::vector<std::unique_ptr<FnDecl>> decls;
@@ -483,8 +481,7 @@ void ast::gen_ast() {
   while (1) {
     switch (lex::tok.tok) {
     case lex::tok_eof:
-      prog = std::make_unique<ProgramNode>(std::move(decls));
-      return;
+      return std::make_unique<ProgramNode>(std::move(decls));
     case lex::tok_pub:
       lex::eat(); // eat pub
       decls.push_back(parse_fn(true));

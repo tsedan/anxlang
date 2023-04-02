@@ -13,5 +13,6 @@
 #include "llvm/Transforms/Vectorize.h"
 
 namespace opti {
+void init(llvm::Module *mod);
 void fun(llvm::Function *F);
-}
+} // namespace opti

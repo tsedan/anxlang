@@ -5,13 +5,15 @@
 // Printer - This module houses the assembly and linking stages.
 //===---------------------------------------------------------------------===//
 
-void printer::print() {
+void printer::init() {
   llvm::InitializeAllTargetInfos();
   llvm::InitializeAllTargets();
   llvm::InitializeAllTargetMCs();
   llvm::InitializeAllAsmParsers();
   llvm::InitializeAllAsmPrinters();
+}
 
+void printer::print() {
   auto TargetTriple = llvm::sys::getDefaultTargetTriple();
   ir::mod->setTargetTriple(TargetTriple);
 
@@ -49,15 +51,12 @@ void printer::print() {
   dest.flush();
 }
 
-void printer::link(char *filename) {
+void printer::link(std::string filename) {
   // developer comment: the library location is currently hardcoded but will be
   // eventually dealt with more formally.
   std::string linkercmd =
-      "cc -O3 out.o /Users/tomer/Documents/GitHub/anxlang/lib/intr.c";
-  if (filename) {
-    linkercmd += " -o";
-    linkercmd += filename;
-  }
+      "cc -O3 out.o /Users/tomer/Documents/GitHub/anxlang/lib/intr.c -o" +
+      filename;
 
   system(linkercmd.c_str());
 }

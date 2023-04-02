@@ -3,7 +3,8 @@
 #include "../anx.h"
 
 namespace printer {
+void init();
 void print();
-void link(char *filename);
+void link(std::string filename);
 void clean();
 } // namespace printer

@@ -30,8 +30,6 @@
 #include "utils.h"
 
 namespace anx {
-extern bool verbose;
-
 [[noreturn]] void perr(std::string msg);
 [[noreturn]] void perr(std::string msg, size_t r, size_t c, size_t s = 1);
 } // namespace anx

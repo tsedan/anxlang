@@ -303,7 +303,5 @@ public:
   }
 };
 
-extern std::unique_ptr<ast::ProgramNode> prog;
-
-void gen_ast();
+std::unique_ptr<ast::ProgramNode> generate();
 } // namespace ast

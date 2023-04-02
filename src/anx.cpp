@@ -20,14 +20,14 @@
 // 4. (codegen/opti.cpp) Run optimization passes on the LLVM IR
 // 5. (assembly/printer.cpp) Generate an executable from the LLVM IR
 //
-// The current todo item is loops.
+// The current todo item is the JIT.
 //===---------------------------------------------------------------------===//
 
-bool anx::verbose = false;
+bool verbose = false;
 std::string src;
 
 int main(int argc, char **argv) {
-  char *outfile = nullptr;
+  std::string outfile = "a.out";
 
   opterr = 0;
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   while ((c = getopt(argc, argv, "vho:")) != -1) {
     switch (c) {
     case 'v':
-      anx::verbose = true;
+      verbose = true;
       break;
     case 'o':
       outfile = optarg;
@@ -57,20 +57,37 @@ int main(int argc, char **argv) {
     anx::perr("usage: anx [options] file (use -h for help)");
 
   src = argv[optind];
+
   lex::read(src);
 
-  ast::gen_ast();
+  auto prog = ast::generate();
 
-  if (anx::verbose)
-    ast::prog->print(0);
+  ir::init(src);
 
-  ir::init();
+  prog->codegen();
 
-  ast::prog->codegen();
-
+  printer::init();
   printer::print();
   printer::link(outfile);
   printer::clean();
+
+  if (verbose) {
+    std::cout << "\033[0;32m"
+              << "anx ast:"
+              << "\033[0m" << '\n';
+
+    prog->print(0);
+
+    std::cout << "\033[0;32m"
+              << "llvm ir:"
+              << "\033[0m" << '\n';
+
+    ir::mod->print(llvm::outs(), nullptr);
+
+    std::cout << "\033[0;32m"
+              << "successfully compiled '" << src << "' to '" << outfile << "'"
+              << "\033[0m" << '\n';
+  }
 
   return 0;
 }
