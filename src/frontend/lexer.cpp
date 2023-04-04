@@ -1,7 +1,6 @@
-#include "lexer.h"
-#include "../anx.h"
-
 #include <iostream>
+
+#include "lexer.h"
 
 //===---------------------------------------------------------------------===//
 // Lexer - This module tokenizes an input Anx file.
@@ -9,10 +8,10 @@
 
 std::vector<std::string> lex::src; // source code
 lex::Token lex::tok;               // current token being parsed
-size_t lex::cr, lex::cc;           // current row and column
-size_t lex::lr, lex::lc, lex::ls;  // last row, column, and size
 
-size_t tr = 0, tc = 0; // true current row and column
+anx::Pos lex::c, lex::l;
+size_t lex::ls;
+anx::Pos t;
 
 // Read an input file
 void lex::read(std::string filename) {
@@ -25,16 +24,16 @@ void lex::read(std::string filename) {
 }
 
 char grab() {
-  if (tc == lex::src[tr].size()) {
-    if (tr == lex::src.size() - 1)
+  if (t.c == lex::src[t.r].size()) {
+    if (t.r == lex::src.size() - 1)
       return EOF;
 
-    tc = 0, tr++;
+    t.c = 0, t.r++;
 
     return '\n';
   }
 
-  return lex::src[tr][tc++];
+  return lex::src[t.r][t.c++];
 }
 
 // Get the next token from the input file and update the global token variable
@@ -44,8 +43,8 @@ void lex::eat() {
   while (isspace(lch))
     lch = grab();
 
-  lr = cr, lc = cc, ls = tok.val.size();
-  cr = tr, cc = tc - 1;
+  l.r = c.r, l.c = c.c, ls = tok.val.size();
+  c.r = t.r, c.c = t.c - 1;
 
   tok.val = lch;
 
@@ -93,7 +92,7 @@ void lex::eat() {
         } while (isxdigit(lch) || lch == '_');
 
         if (lch == '.')
-          anx::perr("hexadecimal float literal is not supported", cr, cc,
+          anx::perr("hexadecimal float literal is not supported", c,
                     tok.val.size());
 
         if (lch == 'i' || lch == 'u') {
@@ -111,11 +110,10 @@ void lex::eat() {
         } while (lch == '0' || lch == '1' || lch == '_');
 
         if (isdigit(lch))
-          anx::perr("invalid digit in binary literal", tr, tc - 1);
+          anx::perr("invalid digit in binary literal", {t.r, t.c - 1});
 
         if (lch == '.' || lch == 'f')
-          anx::perr("binary float literal is not supported", cr, cc,
-                    tok.val.size());
+          anx::perr("binary float literal is not supported", c, tok.val.size());
 
         if (lch == 'i' || lch == 'u') {
           do
@@ -132,11 +130,10 @@ void lex::eat() {
         } while ((lch >= '0' && lch <= '7') || lch == '_');
 
         if (isdigit(lch))
-          anx::perr("invalid digit in octal literal", tr, tc - 1);
+          anx::perr("invalid digit in octal literal", {t.r, t.c - 1});
 
         if (lch == '.' || lch == 'f')
-          anx::perr("octal float literal is not supported", cr, cc,
-                    tok.val.size());
+          anx::perr("octal float literal is not supported", c, tok.val.size());
 
         if (lch == 'i' || lch == 'u') {
           do
@@ -236,11 +233,11 @@ void lex::eat() {
       tok.tok = tok_unop;
     return;
   case '\'':
-    size_t st = cc;
+    size_t st = c.c;
 
     switch (lch) {
     case '\'':
-      anx::perr("cannot have empty character literal", tr, cc, 2);
+      anx::perr("cannot have empty character literal", {t.r, c.c}, 2);
     case '\\':
       lch = grab();
       switch (lch) {
@@ -254,7 +251,7 @@ void lex::eat() {
         tok.val = '\'';
         break;
       default:
-        anx::perr("unrecognized escape character", tr, tc - 1);
+        anx::perr("unrecognized escape character", {t.r, t.c - 1});
       }
       break;
     default:
@@ -265,18 +262,18 @@ void lex::eat() {
 
     if (lch != '\'')
       anx::perr(
-          "missing apostrophe or literal too large for a single character", cr,
-          st, tc - st);
+          "missing apostrophe or literal too large for a single character",
+          {c.r, st}, t.c - st);
     lch = grab();
 
     tok.tok = tok_character;
     return;
   }
 
-  anx::perr("invalid token found", cr, cc);
+  anx::perr("invalid token found", c);
 }
 
 void lex::exp(lex::TokEnum token, std::string msg) {
   if (tok.tok != token)
-    anx::perr(msg, lr, lc + ls);
+    anx::perr(msg, {l.r, l.c + ls});
 }

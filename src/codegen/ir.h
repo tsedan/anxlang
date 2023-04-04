@@ -3,6 +3,7 @@
 #include <map>
 
 #include "../anx.h"
+#include "../utils.h"
 
 namespace ir {
 class Symbol final {
@@ -26,7 +27,7 @@ public:
   Symbol() : kind(sym_empty) {}
 
   // return a new symbol that has been type-coerced to the desired type
-  Symbol coerce(ty::Type toType, size_t r, size_t c, size_t s);
+  Symbol coerce(ty::Type toType, anx::Pos pos, size_t s);
 
   // get llvm function pointer of a function symbol
   llvm::Function *fn() {
@@ -75,5 +76,5 @@ extern std::unique_ptr<llvm::IRBuilder<>> builder;
 extern std::vector<std::map<std::string, Symbol>> symbols;
 
 void init(std::string name);
-Symbol search(std::string name, size_t row, size_t col);
+Symbol search(std::string name, anx::Pos pos);
 } // namespace ir

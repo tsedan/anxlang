@@ -27,9 +27,11 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/raw_ostream.h"
 
-#include "utils.h"
-
 namespace anx {
+struct Pos {
+  size_t r, c;
+};
+
 [[noreturn]] void perr(std::string msg);
-[[noreturn]] void perr(std::string msg, size_t r, size_t c, size_t s = 1);
+[[noreturn]] void perr(std::string msg, Pos pos, size_t size = 1);
 } // namespace anx

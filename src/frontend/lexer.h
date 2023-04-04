@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "../anx.h"
+
 namespace lex {
 enum TokEnum {
   // general
@@ -50,8 +52,8 @@ struct Token {
 
 extern std::vector<std::string> src;
 extern Token tok;
-extern size_t cr, cc;
-extern size_t lr, lc, ls;
+extern anx::Pos c, l;
+extern size_t ls;
 
 void read(std::string filename);
 void eat();

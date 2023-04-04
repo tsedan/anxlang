@@ -2,6 +2,8 @@
 
 #include "llvm/IR/BasicBlock.h"
 
+#include "anx.h"
+
 namespace ty {
 enum Type {
   ty_void,
@@ -32,8 +34,7 @@ bool isBool(Type ty);
 uint32_t width(Type ty);
 
 std::string toString(Type type);
-Type fromString(std::string type, bool allow_void, size_t r = 0, size_t c = 0,
+Type fromString(std::string type, bool allow_void, anx::Pos pos = {},
                 size_t s = 0);
-llvm::Type *toLLVM(Type ty, bool allow_void, size_t r = 0, size_t c = 0,
-                   size_t s = 0);
+llvm::Type *toLLVM(Type ty, bool allow_void, anx::Pos pos = {}, size_t s = 0);
 } // namespace ty

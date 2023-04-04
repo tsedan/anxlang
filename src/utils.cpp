@@ -1,6 +1,5 @@
 #include <map>
 
-#include "anx.h"
 #include "codegen/ir.h"
 #include "frontend/ast.h"
 #include "utils.h"
@@ -9,7 +8,7 @@
 // Utils - This module defines miscellaneous utility functions.
 //===---------------------------------------------------------------------===//
 
-ir::Symbol ir::Symbol::coerce(ty::Type toType, size_t r, size_t c, size_t s) {
+ir::Symbol ir::Symbol::coerce(ty::Type toType, anx::Pos pos, size_t s) {
   ty::Type fromType = typ();
   llvm::Value *v = val();
   llvm::Type *destType = toLLVM(toType, true);
@@ -135,7 +134,7 @@ ir::Symbol ir::Symbol::coerce(ty::Type toType, size_t r, size_t c, size_t s) {
 
   anx::perr("cannot coerce type '" + toString(fromType) + "' to '" +
                 toString(toType) + "'",
-            r, c, s);
+            pos, s);
 }
 
 bool ty::isSingle(Type ty) { return ty == ty_f32; }
@@ -184,12 +183,12 @@ uint32_t ty::width(Type ty) {
   }
 }
 
-ty::Type ty::fromString(std::string type, bool allow_void, size_t r, size_t c,
+ty::Type ty::fromString(std::string type, bool allow_void, anx::Pos pos,
                         size_t s) {
   if (type == "void") {
     if (allow_void)
       return ty_void;
-    anx::perr("void is only valid as a function return type", r, c, s);
+    anx::perr("void is only valid as a function return type", pos, s);
   }
 
   if (type == "bool")
@@ -222,7 +221,7 @@ ty::Type ty::fromString(std::string type, bool allow_void, size_t r, size_t c,
   if (type == "f64")
     return ty_f64;
 
-  anx::perr("unrecognized type", r, c, s);
+  anx::perr("unrecognized type", pos, s);
 }
 
 std::string ty::toString(Type type) {
@@ -258,7 +257,7 @@ std::string ty::toString(Type type) {
   }
 }
 
-llvm::Type *ty::toLLVM(Type ty, bool allow_void, size_t r, size_t c, size_t s) {
+llvm::Type *ty::toLLVM(Type ty, bool allow_void, anx::Pos pos, size_t s) {
   switch (ty) {
   case ty_bool:
     return llvm::Type::getInt1Ty(*ir::ctx);
@@ -285,6 +284,6 @@ llvm::Type *ty::toLLVM(Type ty, bool allow_void, size_t r, size_t c, size_t s) {
     if (allow_void)
       return llvm::Type::getVoidTy(*ir::ctx);
     else
-      anx::perr("void is only valid as a function return type", r, c, s);
+      anx::perr("void is only valid as a function return type", pos, s);
   }
 }

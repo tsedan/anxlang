@@ -1,5 +1,4 @@
 #include "ast.h"
-#include "lexer.h"
 
 //===---------------------------------------------------------------------===//
 // AST - This module implements the Abstract Syntax Tree (AST) for Anx.
@@ -42,7 +41,7 @@ std::unique_ptr<ast::StmtNode> parse_expr();
 std::unique_ptr<ast::StmtNode> parse_primary();
 
 std::unique_ptr<ast::StmtNode> parse_identifier(bool allow_lone) {
-  size_t nrow = lex::cr, ncol = lex::cc;
+  anx::Pos n = lex::c;
   std::string name = lex::tok.val;
 
   lex::eat(); // eat identifier
@@ -67,22 +66,20 @@ std::unique_ptr<ast::StmtNode> parse_identifier(bool allow_lone) {
 
     lex::eat(); // eat )
 
-    return std::make_unique<ast::CallStmt>(std::move(name), std::move(args),
-                                           nrow, ncol);
+    return std::make_unique<ast::CallStmt>(std::move(name), std::move(args), n);
   }
 
   if (lex::tok.tok == lex::tok_assign) {
     lex::eat(); // eat =
 
-    return std::make_unique<ast::AssignStmt>(std::move(name), parse_expr(),
-                                             nrow, ncol);
+    return std::make_unique<ast::AssignStmt>(std::move(name), parse_expr(), n);
   }
 
   if (!allow_lone)
-    anx::perr("unrecognized symbol or unused expression result", nrow, ncol,
+    anx::perr("unrecognized symbol or unused expression result", n,
               name.size());
 
-  return std::make_unique<ast::IdentStmt>(std::move(name), nrow, ncol);
+  return std::make_unique<ast::IdentStmt>(std::move(name), n);
 }
 
 std::unique_ptr<ast::ScopeNode> parse_scope() {
@@ -105,7 +102,7 @@ std::unique_ptr<ast::ScopeNode> parse_scope() {
 }
 
 std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub) {
-  size_t drow = lex::cr, dcol = lex::cc;
+  anx::Pos d = lex::c;
 
   lex::exp(lex::tok_fn, "expected 'fn' to start function declaration");
 
@@ -115,7 +112,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub) {
 
   std::string name = lex::tok.val;
 
-  size_t nrow = lex::cr, ncol = lex::cc;
+  anx::Pos n = lex::c;
 
   lex::eat(); // eat identifier
 
@@ -142,8 +139,8 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub) {
       lex::exp(lex::tok_identifier, "expected type after parameter name");
 
       args.push_back(name);
-      types.push_back(ty::fromString(lex::tok.val, false, lex::cr, lex::cc,
-                                     lex::tok.val.size()));
+      types.push_back(
+          ty::fromString(lex::tok.val, false, lex::c, lex::tok.val.size()));
 
       lex::eat(); // eat type
 
@@ -164,8 +161,7 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub) {
   if (lex::tok.tok == lex::tok_colon) {
     lex::eat(); // eat :
 
-    type = ty::fromString(lex::tok.val, true, lex::cr, lex::cc,
-                          lex::tok.val.size());
+    type = ty::fromString(lex::tok.val, true, lex::c, lex::tok.val.size());
 
     lex::eat(); // eat return type
   }
@@ -184,11 +180,11 @@ std::unique_ptr<ast::FnDecl> parse_fn(bool is_pub) {
     body = parse_inst();
   }
 
-  size_t erow = lex::lr, ecol = lex::lc;
+  anx::Pos e = lex::l;
 
-  return std::make_unique<ast::FnDecl>(
-      std::move(name), std::move(type), std::move(args), std::move(types),
-      std::move(body), is_pub, drow, dcol, nrow, ncol, erow, ecol);
+  return std::make_unique<ast::FnDecl>(std::move(name), std::move(type),
+                                       std::move(args), std::move(types),
+                                       std::move(body), is_pub, d, n, e);
 }
 
 std::unique_ptr<ast::StmtNode> parse_paren_expr() {
@@ -205,36 +201,35 @@ std::unique_ptr<ast::StmtNode> parse_paren_expr() {
 
 std::unique_ptr<ast::StmtNode> parse_unary() {
   std::string op = lex::tok.val;
-  size_t nrow = lex::cr, ncol = lex::cc;
+  anx::Pos n = lex::c;
 
   lex::eat(); // eat op
 
-  return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary(), nrow,
-                                         ncol);
+  return std::make_unique<ast::UnOpStmt>(std::move(op), parse_primary(), n);
 }
 
 std::unique_ptr<ast::NumStmt> parse_num() {
   std::string val = lex::tok.val;
-  size_t nrow = lex::cr, ncol = lex::cc;
+  anx::Pos n = lex::c;
 
   lex::eat(); // eat number
 
-  return std::make_unique<ast::NumStmt>(val, nrow, ncol);
+  return std::make_unique<ast::NumStmt>(val, n);
 }
 
 std::unique_ptr<ast::NumStmt> parse_char() {
   char c = lex::tok.val[0];
   std::string val = std::to_string(c) + "i8";
-  size_t nrow = lex::cr, ncol = lex::cc;
+  anx::Pos n = lex::c;
 
   lex::eat(); // eat char
 
-  return std::make_unique<ast::NumStmt>(val, nrow, ncol);
+  return std::make_unique<ast::NumStmt>(val, n);
 }
 
 std::unique_ptr<ast::StmtNode> parse_primary() {
   std::unique_ptr<ast::StmtNode> primary;
-  size_t srow = lex::cr, scol = lex::cc;
+  anx::Pos s = lex::c;
 
   switch (lex::tok.tok) {
   case lex::tok_identifier:
@@ -253,18 +248,17 @@ std::unique_ptr<ast::StmtNode> parse_primary() {
     if (lex::tok.val == "-")
       primary = parse_unary();
     else
-      anx::perr("expected an expression", lex::lr, lex::lc + lex::ls);
+      anx::perr("expected an expression", {lex::l.r, lex::l.c + lex::ls});
     break;
   case lex::tok_unop:
     primary = parse_unary();
     break;
   default:
-    anx::perr("expected an expression", lex::lr, lex::lc + lex::ls);
+    anx::perr("expected an expression", {lex::l.r, lex::l.c + lex::ls});
   }
 
-  primary->srow = srow;
-  primary->scol = scol;
-  primary->ssize = lex::lc + lex::ls - scol;
+  primary->s = s;
+  primary->ssize = lex::l.c + lex::ls - s.c;
 
   return primary;
 }
@@ -272,7 +266,7 @@ std::unique_ptr<ast::StmtNode> parse_primary() {
 std::unique_ptr<ast::StmtNode> parse_binop(int priority,
                                            std::unique_ptr<ast::StmtNode> lhs) {
   while (1) {
-    size_t srow = lhs->srow, scol = lhs->scol;
+    anx::Pos s = lhs->s;
 
     int c_prio = prio(lex::tok.val);
 
@@ -280,7 +274,7 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority,
       return lhs;
 
     std::string op = lex::tok.val;
-    size_t nrow = lex::cr, ncol = lex::cc;
+    anx::Pos n = lex::c;
 
     lex::eat(); // eat op
 
@@ -290,14 +284,13 @@ std::unique_ptr<ast::StmtNode> parse_binop(int priority,
       rhs = parse_binop(c_prio + 1, std::move(rhs));
 
     lhs = std::make_unique<ast::BinOpStmt>(std::move(op), std::move(lhs),
-                                           std::move(rhs), nrow, ncol);
+                                           std::move(rhs), n);
 
-    lhs->srow = srow;
-    lhs->scol = scol;
-    if (lex::lr == srow)
-      lhs->ssize = lex::lc + lex::ls - lhs->scol;
+    lhs->s = s;
+    if (lex::l.r == s.r)
+      lhs->ssize = lex::l.c + lex::ls - lhs->s.c;
     else
-      lhs->ssize = lex::src[srow].size() - lhs->scol;
+      lhs->ssize = lex::src[s.r].size() - lhs->s.c;
   }
 }
 
@@ -311,7 +304,7 @@ std::unique_ptr<ast::StmtNode> parse_expr() {
 }
 
 std::unique_ptr<ast::IfNode> parse_if() {
-  size_t drow = lex::cr, dcol = lex::cc;
+  anx::Pos d = lex::c;
 
   lex::eat(); // eat if
 
@@ -336,11 +329,11 @@ std::unique_ptr<ast::IfNode> parse_if() {
   }
 
   return std::make_unique<ast::IfNode>(std::move(cond), std::move(then),
-                                       std::move(els), drow, dcol);
+                                       std::move(els), d);
 }
 
 std::unique_ptr<ast::WhileNode> parse_while() {
-  size_t drow = lex::cr, dcol = lex::cc;
+  anx::Pos d = lex::c;
 
   lex::eat(); // eat while
 
@@ -364,11 +357,11 @@ std::unique_ptr<ast::WhileNode> parse_while() {
     body = parse_inst();
 
   return std::make_unique<ast::WhileNode>(std::move(cond), std::move(step),
-                                          std::move(body), drow, dcol);
+                                          std::move(body), d);
 }
 
 std::unique_ptr<ast::RetNode> parse_ret() {
-  size_t drow = lex::cr, dcol = lex::cc;
+  anx::Pos d = lex::c;
 
   lex::eat(); // eat ret
 
@@ -377,26 +370,25 @@ std::unique_ptr<ast::RetNode> parse_ret() {
   if (lex::tok.tok != lex::tok_eol)
     val = parse_expr();
 
-  return std::make_unique<ast::RetNode>(std::move(val), drow, dcol);
+  return std::make_unique<ast::RetNode>(std::move(val), d);
 }
 
 std::unique_ptr<ast::VarDecl> parse_var() {
-  size_t drow = lex::cr, dcol = lex::cc;
+  anx::Pos d = lex::c;
 
   lex::eat(); // eat var
 
   std::vector<std::string> names;
   std::vector<ty::Type> types;
   std::vector<std::unique_ptr<ast::StmtNode>> inits;
-  std::vector<size_t> nrows, ncols;
+  std::vector<anx::Pos> n;
 
   while (1) {
     if (lex::tok.tok != lex::tok_identifier)
-      anx::perr("expected a variable name", lex::cr, lex::cc);
+      anx::perr("expected a variable name", lex::c);
 
     names.push_back(lex::tok.val);
-    nrows.push_back(lex::cr);
-    ncols.push_back(lex::cc);
+    n.push_back(lex::c);
 
     lex::eat(); // eat name
 
@@ -410,8 +402,8 @@ std::unique_ptr<ast::VarDecl> parse_var() {
     lex::exp(lex::tok_colon, "expected a ':' denoting the variable's type");
     lex::eat(); // eat :
 
-    types.push_back(ty::fromString(lex::tok.val, false, lex::cr, lex::cc,
-                                   lex::tok.val.size()));
+    types.push_back(
+        ty::fromString(lex::tok.val, false, lex::c, lex::tok.val.size()));
 
     lex::eat(); // eat type
 
@@ -433,8 +425,7 @@ std::unique_ptr<ast::VarDecl> parse_var() {
   }
 
   return std::make_unique<ast::VarDecl>(std::move(names), std::move(types),
-                                        std::move(inits), std::move(nrows),
-                                        std::move(ncols), drow, dcol);
+                                        std::move(inits), std::move(n), d);
 }
 
 std::unique_ptr<ast::Node> parse_inst() {
@@ -446,11 +437,11 @@ std::unique_ptr<ast::Node> parse_inst() {
   case lex::tok_if:
     return parse_if();
   case lex::tok_break:
-    n = std::make_unique<ast::BreakNode>(lex::cr, lex::cc);
+    n = std::make_unique<ast::BreakNode>(lex::c);
     lex::eat(); // eat break
     break;
   case lex::tok_cont:
-    n = std::make_unique<ast::ContNode>(lex::cr, lex::cc);
+    n = std::make_unique<ast::ContNode>(lex::c);
     lex::eat(); // eat cont
     break;
   case lex::tok_identifier:
@@ -463,7 +454,7 @@ std::unique_ptr<ast::Node> parse_inst() {
     n = parse_var();
     break;
   default:
-    anx::perr("expected an instruction", lex::cr, lex::cc, lex::tok.val.size());
+    anx::perr("expected an instruction", lex::c, lex::tok.val.size());
   }
 
   lex::exp(lex::tok_eol, "expected ';'");
@@ -490,8 +481,8 @@ std::unique_ptr<ast::ProgramNode> ast::generate() {
       decls.push_back(parse_fn(false));
       break;
     default:
-      anx::perr("only declarations permitted at the top level", lex::cr,
-                lex::cc, lex::tok.val.size());
+      anx::perr("only declarations permitted at the top level", lex::c,
+                lex::tok.val.size());
     }
   }
 }

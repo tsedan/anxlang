@@ -93,9 +93,9 @@ int main(int argc, char **argv) {
   return 0;
 }
 
-void anx::perr(std::string msg, size_t r, size_t c, size_t s) {
-  std::string line = lex::src[r], ep0;
-  size_t p = c, begin = line.find_first_not_of(" \t"),
+void anx::perr(std::string msg, Pos pos, size_t size) {
+  std::string line = lex::src[pos.r], ep0;
+  size_t p = pos.c, begin = line.find_first_not_of(" \t"),
          end = line.find_last_not_of(" \t");
   if (begin != std::string::npos) {
     ep0 = line.substr(0, begin);
@@ -106,15 +106,15 @@ void anx::perr(std::string msg, size_t r, size_t c, size_t s) {
       p = 0;
   }
 
-  size_t len = std::max(line.size(), p + s);
+  size_t len = std::max(line.size(), p + size);
 
-  std::string ep1(p, '~'), ep2(s, '^'), ep3(len - s - p, '~');
+  std::string ep1(p, '~'), ep2(size, '^'), ep3(len - size - p, '~');
 
   std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
 
-  std::cerr << "  --> " << src << ':' << r + 1 << ':' << c + 1;
-  if (s > 1)
-    std::cerr << '-' << c + s;
+  std::cerr << "  --> " << src << ':' << pos.r + 1 << ':' << pos.c + 1;
+  if (size > 1)
+    std::cerr << '-' << pos.c + size;
   std::cerr << '\n';
 
   std::cerr << "   | " << ep0 << line << '\n';

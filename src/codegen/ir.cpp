@@ -24,14 +24,14 @@ void ir::init(std::string name) {
   opti::init(mod.get());
 }
 
-ir::Symbol ir::search(std::string name, size_t row, size_t col) {
+ir::Symbol ir::search(std::string name, anx::Pos pos) {
   std::map<std::string, ir::Symbol>::iterator sym;
 
   for (auto it = ir::symbols.rbegin(); it != ir::symbols.rend(); ++it)
     if ((sym = it->find(name)) != it->end())
       return sym->second;
 
-  anx::perr("unrecognized symbol", row, col, name.size());
+  anx::perr("unrecognized symbol", pos, name.size());
 }
 
 ir::Symbol ast::ProgramNode::codegen() {
@@ -53,8 +53,7 @@ ir::Symbol ast::ProgramNode::codegen() {
 
 void ast::FnDecl::declare() {
   if (ir::mod->getFunction(name))
-    anx::perr("a function with this name already exists", nrow, ncol,
-              name.size());
+    anx::perr("a function with this name already exists", n, name.size());
 
   llvm::Type *ret = ty::toLLVM(type, true);
   if (name == "main") {
@@ -116,7 +115,7 @@ ir::Symbol ast::FnDecl::codegen() {
     else
       anx::perr("expected return instruction at end of non-void function '" +
                     name + "'",
-                erow, ecol);
+                e);
   }
 
   opti::fun(F);
@@ -128,13 +127,13 @@ ir::Symbol ast::FnDecl::codegen() {
 
 ir::Symbol ast::VarDecl::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   for (size_t i = 0; i < names.size(); i++) {
     std::map<std::string, ir::Symbol>::iterator it;
     if ((it = ir::symbols.back().find(names[i])) != ir::symbols.back().end())
-      anx::perr("variable name is already used in this scope", nrows[i],
-                ncols[i], names[i].size());
+      anx::perr("variable name is already used in this scope", n[i],
+                names[i].size());
 
     ir::Symbol cd;
     if (inits[i]) {
@@ -151,9 +150,7 @@ ir::Symbol ast::VarDecl::codegen() {
 
     if (inits[i])
       ir::builder->CreateStore(
-          cd.coerce(types[i], inits[i]->srow, inits[i]->scol, inits[i]->ssize)
-              .val(),
-          a);
+          cd.coerce(types[i], inits[i]->s, inits[i]->ssize).val(), a);
 
     ir::symbols.back().insert(
         std::make_pair(names[i], ir::Symbol(a, types[i])));
@@ -164,12 +161,11 @@ ir::Symbol ast::VarDecl::codegen() {
 
 ir::Symbol ast::AssignStmt::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", nrow, ncol);
+    anx::perr("instruction is unreachable", n);
 
-  ir::Symbol sym = ir::search(name, nrow, ncol);
+  ir::Symbol sym = ir::search(name, n);
 
-  ir::Symbol v = value->codegen().coerce(sym.typ(), value->srow, value->scol,
-                                         value->ssize);
+  ir::Symbol v = value->codegen().coerce(sym.typ(), value->s, value->ssize);
 
   ir::builder->CreateStore(v.val(), sym.inst());
 
@@ -178,12 +174,10 @@ ir::Symbol ast::AssignStmt::codegen() {
 
 ir::Symbol ast::IfNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   llvm::Value *CondV =
-      cond->codegen()
-          .coerce(ty::ty_bool, cond->srow, cond->scol, cond->ssize)
-          .val();
+      cond->codegen().coerce(ty::ty_bool, cond->s, cond->ssize).val();
 
   llvm::Function *F = cf.fn();
 
@@ -217,10 +211,10 @@ ir::Symbol ast::IfNode::codegen() {
 
 ir::Symbol ast::BreakNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   if (breaks.empty())
-    anx::perr("break instruction outside of loop", drow, dcol);
+    anx::perr("break instruction outside of loop", d);
 
   ir::builder->CreateBr(breaks.back());
 
@@ -229,10 +223,10 @@ ir::Symbol ast::BreakNode::codegen() {
 
 ir::Symbol ast::ContNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   if (conts.empty())
-    anx::perr("continue instruction outside of loop", drow, dcol);
+    anx::perr("continue instruction outside of loop", d);
 
   ir::builder->CreateBr(conts.back());
 
@@ -241,7 +235,7 @@ ir::Symbol ast::ContNode::codegen() {
 
 ir::Symbol ast::WhileNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   llvm::Function *F = cf.fn();
 
@@ -255,9 +249,7 @@ ir::Symbol ast::WhileNode::codegen() {
   ir::builder->SetInsertPoint(EntryBB);
 
   llvm::Value *CondV =
-      cond->codegen()
-          .coerce(ty::ty_bool, cond->srow, cond->scol, cond->ssize)
-          .val();
+      cond->codegen().coerce(ty::ty_bool, cond->s, cond->ssize).val();
   ir::builder->CreateCondBr(CondV, LoopBB, ExitBB);
 
   F->insert(F->end(), LoopBB);
@@ -330,7 +322,7 @@ ir::Symbol ast::NumStmt::codegen() {
   ty::Type dtype = ty::ty_void;
   for (size_t i = prsd.size() - 1; i > 0; i--) {
     if (prsd[i] == 'i' || prsd[i] == 'u' || (radix == 10 && prsd[i] == 'f')) {
-      dtype = ty::fromString(prsd.substr(i), false, nrow, ncol + i,
+      dtype = ty::fromString(prsd.substr(i), false, {n.r, n.c + i},
                              prsd.size() - i);
       prsd = prsd.substr(0, i);
       break;
@@ -343,7 +335,7 @@ ir::Symbol ast::NumStmt::codegen() {
   prsd.erase(remove(prsd.begin(), prsd.end(), '_'), prsd.end());
 
   if (!prsd.size())
-    anx::perr("number literal has no value", nrow, ncol, value.size());
+    anx::perr("number literal has no value", n, value.size());
 
   ir::Symbol sym;
   if (prsd.find('.') == std::string::npos) {
@@ -365,14 +357,14 @@ ir::Symbol ast::NumStmt::codegen() {
   }
 
   if (!ty::isVoid(dtype))
-    return sym.coerce(dtype, nrow, ncol, value.size());
+    return sym.coerce(dtype, n, value.size());
 
   return sym;
 }
 
 ir::Symbol ast::RetNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", drow, dcol);
+    anx::perr("instruction is unreachable", d);
 
   if (!value) {
     if (cfm == "main")
@@ -381,23 +373,22 @@ ir::Symbol ast::RetNode::codegen() {
     else if (ty::isVoid(cf.typ()))
       return ir::Symbol(ir::builder->CreateRetVoid(), ty::ty_void);
     else
-      anx::perr("cannot return void from non-void function", drow, dcol);
+      anx::perr("cannot return void from non-void function", d);
   }
 
-  ir::Symbol v =
-      value->codegen().coerce(cf.typ(), value->srow, value->scol, value->ssize);
+  ir::Symbol v = value->codegen().coerce(cf.typ(), value->s, value->ssize);
   return ir::Symbol(ir::builder->CreateRet(v.val()), v.typ());
 }
 
 ir::Symbol ast::CallStmt::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
-    anx::perr("instruction is unreachable", nrow, ncol);
+    anx::perr("instruction is unreachable", n);
 
   if (name[0] == '@') {
     intr::handle(name);
   }
 
-  ir::Symbol sym = ir::search(name, nrow, ncol);
+  ir::Symbol sym = ir::search(name, n);
   llvm::Function *CalleeF = sym.fn();
   std::vector<ty::Type> atypes = sym.atypes();
 
@@ -405,15 +396,12 @@ ir::Symbol ast::CallStmt::codegen() {
     anx::perr("expected " + std::to_string(CalleeF->arg_size()) +
                   " argument(s), got " + std::to_string(args.size()) +
                   " instead",
-              nrow, ncol, name.size());
+              n, name.size());
 
   std::vector<llvm::Value *> ArgsV;
   for (unsigned i = 0, e = args.size(); i != e; ++i)
     ArgsV.push_back(
-        args[i]
-            ->codegen()
-            .coerce(atypes[i], args[i]->srow, args[i]->scol, args[i]->ssize)
-            .val());
+        args[i]->codegen().coerce(atypes[i], args[i]->s, args[i]->ssize).val());
 
   if (ty::isVoid(sym.typ()))
     return ir::Symbol(ir::builder->CreateCall(CalleeF, ArgsV), ty::ty_void);
@@ -425,19 +413,17 @@ ir::Symbol ast::UnOpStmt::codegen() {
   ir::Symbol sym = val->codegen();
 
   if (ty::isVoid(sym.typ()))
-    anx::perr("cannot use void type as operand", val->srow, val->scol,
-              val->ssize);
+    anx::perr("cannot use void type as operand", val->s, val->ssize);
 
   if (op == "!") {
-    ir::Symbol coerced =
-        sym.coerce(ty::ty_bool, val->srow, val->scol, val->ssize);
+    ir::Symbol coerced = sym.coerce(ty::ty_bool, val->s, val->ssize);
     return ir::Symbol(ir::builder->CreateNot(coerced.val(), "not"),
                       coerced.typ());
   }
   if (op == "-") {
     if (ty::isBool(sym.typ()))
-      anx::perr("cannot negate boolean type, use `!` instead", val->srow,
-                val->scol, val->ssize);
+      anx::perr("cannot negate boolean type, use `!` instead", val->s,
+                val->ssize);
 
     if (ty::isUInt(sym.typ())) {
       uint32_t width = ty::width(sym.typ());
@@ -451,11 +437,11 @@ ir::Symbol ast::UnOpStmt::codegen() {
     return ir::Symbol(ir::builder->CreateNeg(sym.val(), "neg"), sym.typ());
   }
 
-  anx::perr("invalid unary operator", nrow, ncol, op.size());
+  anx::perr("invalid unary operator", n, op.size());
 }
 
 ir::Symbol ast::IdentStmt::codegen() {
-  ir::Symbol sym = ir::search(name, nrow, ncol);
+  ir::Symbol sym = ir::search(name, n);
   llvm::AllocaInst *inst = sym.inst();
 
   return ir::Symbol(
@@ -481,11 +467,9 @@ ir::Symbol ast::BinOpStmt::codegen() {
 
   ty::Type dtype;
   if (ty::isVoid(lt))
-    anx::perr("cannot use void type as operand", lhs->srow, lhs->scol,
-              lhs->ssize);
+    anx::perr("cannot use void type as operand", lhs->s, lhs->ssize);
   else if (ty::isVoid(rt))
-    anx::perr("cannot use void type as operand", rhs->srow, rhs->scol,
-              rhs->ssize);
+    anx::perr("cannot use void type as operand", rhs->s, rhs->ssize);
   else if (ty::isDouble(lt) || ty::isDouble(rt))
     dtype = ty::ty_f64;
   else if (ty::isSingle(lt) || ty::isSingle(rt))
@@ -499,8 +483,8 @@ ir::Symbol ast::BinOpStmt::codegen() {
   else
     dtype = ty::ty_bool;
 
-  llvm::Value *L = lsym.coerce(dtype, lhs->srow, lhs->scol, lhs->ssize).val();
-  llvm::Value *R = rsym.coerce(dtype, lhs->srow, lhs->scol, lhs->ssize).val();
+  llvm::Value *L = lsym.coerce(dtype, lhs->s, lhs->ssize).val();
+  llvm::Value *R = rsym.coerce(dtype, lhs->s, lhs->ssize).val();
 
   if (op == "+") {
     if (ty::isDouble(dtype) || ty::isSingle(dtype))
@@ -570,10 +554,10 @@ ir::Symbol ast::BinOpStmt::codegen() {
     else if (ty::isSInt(dtype) || ty::isUInt(dtype) || ty::isBool(dtype))
       return ir::Symbol(ir::builder->CreateICmpNE(L, R, "cmp"), ty::ty_bool);
   } else {
-    anx::perr("invalid binary operator", nrow, ncol, op.size());
+    anx::perr("invalid binary operator", n, op.size());
   }
 
   anx::perr("operation '" + op + "' does not support '" + ty::toString(lt) +
                 "' and '" + ty::toString(rt) + "' type combination",
-            nrow, ncol, op.size());
+            n, op.size());
 }

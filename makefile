@@ -8,16 +8,16 @@ LINKERFLAGS = `llvm-config --cxxflags --ldflags --system-libs --libs core`
 bin/anx: bin/anx.o bin/lexer.o bin/ast.o bin/ir.o bin/intr.o bin/utils.o bin/opti.o bin/printer.o | bin
 	$(CC) -o bin/anx bin/anx.o bin/lexer.o bin/ast.o bin/ir.o bin/intr.o bin/utils.o bin/opti.o bin/printer.o $(CFLAGS) $(LINKERFLAGS) 
 
-bin/anx.o: src/anx.cpp src/anx.h src/frontend/ast.h src/codegen/ir.h | bin
+bin/anx.o: src/anx.cpp src/anx.h src/frontend/lexer.h src/frontend/ast.h src/codegen/ir.h src/assembly/printer.h | bin
 	$(CC) -c -o bin/anx.o src/anx.cpp $(CFLAGS) $(LLVMFLAGS)
 
 bin/lexer.o: src/frontend/lexer.cpp src/frontend/lexer.h src/anx.h | bin
 	$(CC) -c -o bin/lexer.o src/frontend/lexer.cpp $(CFLAGS) $(LLVMFLAGS)
 
-bin/ast.o: src/frontend/ast.cpp src/frontend/ast.h src/frontend/lexer.h src/codegen/ir.h src/anx.h | bin
+bin/ast.o: src/frontend/ast.cpp src/frontend/ast.h src/frontend/lexer.h src/codegen/ir.h src/utils.h src/anx.h | bin
 	$(CC) -c -o bin/ast.o src/frontend/ast.cpp $(CFLAGS) $(LLVMFLAGS)
 
-bin/ir.o: src/codegen/ir.cpp src/codegen/ir.h src/frontend/ast.h src/intrinsics/intr.h src/codegen/opti.h src/anx.h | bin
+bin/ir.o: src/codegen/ir.cpp src/codegen/ir.h src/frontend/ast.h src/intrinsics/intr.h src/codegen/opti.h src/utils.h src/anx.h | bin
 	$(CC) -c -o bin/ir.o src/codegen/ir.cpp $(CFLAGS) $(LLVMFLAGS)
 
 bin/intr.o: src/intrinsics/intr.cpp src/intrinsics/intr.h src/codegen/ir.h src/anx.h | bin

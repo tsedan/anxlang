@@ -6,6 +6,8 @@
 
 #include "../anx.h"
 #include "../codegen/ir.h"
+#include "../utils.h"
+#include "lexer.h"
 
 namespace ast {
 class Node {
@@ -17,7 +19,8 @@ public:
 
 class StmtNode : public Node {
 public:
-  size_t srow, scol, ssize;
+  anx::Pos s;
+  size_t ssize;
 };
 
 class FnDecl : public Node {
@@ -29,18 +32,14 @@ public:
   std::unique_ptr<Node> body;
   bool is_pub;
   llvm::Function *F;
-  size_t drow, dcol;
-  size_t nrow, ncol;
-  size_t erow, ecol;
+  anx::Pos d, n, e;
 
   FnDecl(std::string name, ty::Type type, std::vector<std::string> args,
          std::vector<ty::Type> types, std::unique_ptr<Node> body, bool is_pub,
-         size_t drow, size_t dcol, size_t nrow, size_t ncol, size_t erow,
-         size_t ecol)
+         anx::Pos d, anx::Pos n, anx::Pos e)
       : name(name), type(std::move(type)), args(std::move(args)),
-        types(std::move(types)), body(std::move(body)), is_pub(is_pub),
-        drow(drow), dcol(dcol), nrow(nrow), ncol(ncol), erow(erow), ecol(ecol) {
-  }
+        types(std::move(types)), body(std::move(body)), is_pub(is_pub), d(d),
+        n(n), e(e) {}
   void declare();
   ir::Symbol codegen();
 
@@ -74,16 +73,14 @@ public:
   std::vector<std::string> names;
   std::vector<ty::Type> types;
   std::vector<std::unique_ptr<StmtNode>> inits;
-  std::vector<size_t> nrows, ncols;
-  size_t drow, dcol;
+  std::vector<anx::Pos> n;
+  anx::Pos d;
 
   VarDecl(std::vector<std::string> names, std::vector<ty::Type> types,
-          std::vector<std::unique_ptr<StmtNode>> inits,
-          std::vector<size_t> nrows, std::vector<size_t> ncols, size_t drow,
-          size_t dcol)
+          std::vector<std::unique_ptr<StmtNode>> inits, std::vector<anx::Pos> n,
+          anx::Pos d)
       : names(std::move(names)), types(std::move(types)),
-        inits(std::move(inits)), nrows(std::move(nrows)),
-        ncols(std::move(ncols)), drow(drow), dcol(dcol) {}
+        inits(std::move(inits)), n(std::move(n)), d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -118,10 +115,10 @@ public:
 class RetNode : public Node {
 public:
   std::unique_ptr<StmtNode> value;
-  size_t drow, dcol;
+  anx::Pos d;
 
-  RetNode(std::unique_ptr<StmtNode> value, size_t drow, size_t dcol)
-      : value(std::move(value)), drow(drow), dcol(dcol) {}
+  RetNode(std::unique_ptr<StmtNode> value, anx::Pos d)
+      : value(std::move(value)), d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -133,9 +130,9 @@ public:
 
 class BreakNode : public Node {
 public:
-  size_t drow, dcol;
+  anx::Pos d;
 
-  BreakNode(size_t drow, size_t dcol) : drow(drow), dcol(dcol) {}
+  BreakNode(anx::Pos d) : d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -145,9 +142,9 @@ public:
 
 class ContNode : public Node {
 public:
-  size_t drow, dcol;
+  anx::Pos d;
 
-  ContNode(size_t drow, size_t dcol) : drow(drow), dcol(dcol) {}
+  ContNode(anx::Pos d) : d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -160,12 +157,12 @@ public:
   std::unique_ptr<StmtNode> cond;
   std::unique_ptr<Node> then;
   std::unique_ptr<Node> els;
-  size_t drow, dcol;
+  anx::Pos d;
 
   IfNode(std::unique_ptr<StmtNode> cond, std::unique_ptr<Node> then,
-         std::unique_ptr<Node> els, size_t drow, size_t dcol)
+         std::unique_ptr<Node> els, anx::Pos d)
       : cond(std::move(cond)), then(std::move(then)), els(std::move(els)),
-        drow(drow), dcol(dcol) {}
+        d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -185,12 +182,12 @@ public:
   std::unique_ptr<StmtNode> cond;
   std::unique_ptr<StmtNode> step;
   std::unique_ptr<Node> body;
-  size_t drow, dcol;
+  anx::Pos d;
 
   WhileNode(std::unique_ptr<StmtNode> cond, std::unique_ptr<StmtNode> step,
-            std::unique_ptr<Node> body, size_t drow, size_t dcol)
+            std::unique_ptr<Node> body, anx::Pos d)
       : cond(std::move(cond)), step(std::move(step)), body(std::move(body)),
-        drow(drow), dcol(dcol) {}
+        d(d) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -207,11 +204,10 @@ class AssignStmt : public StmtNode {
 public:
   std::string name;
   std::unique_ptr<StmtNode> value;
-  size_t nrow, ncol;
+  anx::Pos n;
 
-  AssignStmt(std::string name, std::unique_ptr<StmtNode> value, size_t nrow,
-             size_t ncol)
-      : name(name), value(std::move(value)), nrow(nrow), ncol(ncol) {}
+  AssignStmt(std::string name, std::unique_ptr<StmtNode> value, anx::Pos n)
+      : name(name), value(std::move(value)), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -225,12 +221,11 @@ public:
   std::string op;
   std::unique_ptr<StmtNode> lhs;
   std::unique_ptr<StmtNode> rhs;
-  size_t nrow, ncol;
+  anx::Pos n;
 
   BinOpStmt(std::string op, std::unique_ptr<StmtNode> lhs,
-            std::unique_ptr<StmtNode> rhs, size_t nrow, size_t ncol)
-      : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), nrow(nrow),
-        ncol(ncol) {}
+            std::unique_ptr<StmtNode> rhs, anx::Pos n)
+      : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -244,11 +239,10 @@ class UnOpStmt : public StmtNode {
 public:
   std::string op;
   std::unique_ptr<StmtNode> val;
-  size_t nrow, ncol;
+  anx::Pos n;
 
-  UnOpStmt(std::string op, std::unique_ptr<StmtNode> val, size_t nrow,
-           size_t ncol)
-      : op(op), val(std::move(val)), nrow(nrow), ncol(ncol) {}
+  UnOpStmt(std::string op, std::unique_ptr<StmtNode> val, anx::Pos n)
+      : op(op), val(std::move(val)), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -261,11 +255,11 @@ class CallStmt : public StmtNode {
 public:
   std::string name;
   std::vector<std::unique_ptr<StmtNode>> args;
-  size_t nrow, ncol;
+  anx::Pos n;
 
   CallStmt(std::string name, std::vector<std::unique_ptr<StmtNode>> args,
-           size_t nrow, size_t ncol)
-      : name(name), args(std::move(args)), nrow(nrow), ncol(ncol) {}
+           anx::Pos n)
+      : name(name), args(std::move(args)), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -278,10 +272,9 @@ public:
 class IdentStmt : public StmtNode {
 public:
   std::string name;
-  size_t nrow, ncol;
+  anx::Pos n;
 
-  IdentStmt(std::string name, size_t nrow, size_t ncol)
-      : name(name), nrow(nrow), ncol(ncol) {}
+  IdentStmt(std::string name, anx::Pos n) : name(name), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
@@ -292,10 +285,9 @@ public:
 class NumStmt : public StmtNode {
 public:
   std::string value;
-  size_t nrow, ncol;
+  anx::Pos n;
 
-  NumStmt(std::string value, size_t nrow, size_t ncol)
-      : value(value), nrow(nrow), ncol(ncol) {}
+  NumStmt(std::string value, anx::Pos n) : value(value), n(n) {}
   ir::Symbol codegen();
 
   void print(int ind) {
