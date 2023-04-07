@@ -77,4 +77,6 @@ extern std::vector<std::map<std::string, Symbol>> symbols;
 
 void init(std::string name);
 Symbol search(std::string name, anx::Pos pos);
+void add(std::string name, Symbol sym);
+std::string mangle(std::string name);
 } // namespace ir

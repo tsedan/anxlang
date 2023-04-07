@@ -26,12 +26,24 @@ void ir::init(std::string name) {
 
 ir::Symbol ir::search(std::string name, anx::Pos pos) {
   std::map<std::string, ir::Symbol>::iterator sym;
+  std::string mngl = mangle(name);
 
   for (auto it = ir::symbols.rbegin(); it != ir::symbols.rend(); ++it)
-    if ((sym = it->find(name)) != it->end())
+    if ((sym = it->find(mngl)) != it->end())
       return sym->second;
 
   anx::perr("unrecognized symbol", pos, name.size());
+}
+
+void ir::add(std::string name, ir::Symbol sym) {
+  ir::symbols.back().insert(std::make_pair(mangle(name), sym));
+}
+
+std::string ir::mangle(std::string name) {
+  if (name == "main")
+    return name;
+
+  return name + ".anx";
 }
 
 ir::Symbol ast::ProgramNode::codegen() {
@@ -52,7 +64,9 @@ ir::Symbol ast::ProgramNode::codegen() {
 }
 
 void ast::FnDecl::declare() {
-  if (ir::mod->getFunction(name))
+  std::string mngl = ir::mangle(name);
+
+  if (ir::mod->getFunction(mngl))
     anx::perr("a function with this name already exists", n, name.size());
 
   llvm::Type *ret = ty::toLLVM(type, true);
@@ -72,13 +86,13 @@ void ast::FnDecl::declare() {
                                              ? llvm::Function::ExternalLinkage
                                              : llvm::Function::InternalLinkage;
 
-  F = llvm::Function::Create(FT, linkage, name, ir::mod.get());
+  F = llvm::Function::Create(FT, linkage, mngl, ir::mod.get());
 
   unsigned Idx = 0;
   for (auto &Arg : F->args())
     Arg.setName(args[Idx++]);
 
-  ir::symbols.back().insert(std::make_pair(name, ir::Symbol(F, type, types)));
+  ir::add(name, ir::Symbol(F, type, types));
 }
 
 ir::Symbol ast::FnDecl::codegen() {
@@ -98,9 +112,9 @@ ir::Symbol ast::FnDecl::codegen() {
     llvm::IRBuilder<> eb(&F->getEntryBlock(), F->getEntryBlock().begin());
     llvm::AllocaInst *a =
         eb.CreateAlloca(ty::toLLVM(types[i], false), nullptr, Arg.getName());
+
     ir::builder->CreateStore(&Arg, a);
-    ir::symbols.back().insert(
-        std::make_pair(std::string(Arg.getName()), ir::Symbol(a, types[i])));
+    ir::add(std::string(Arg.getName()), ir::Symbol(a, types[i]));
     i++;
   }
 
@@ -131,7 +145,9 @@ ir::Symbol ast::VarDecl::codegen() {
 
   for (size_t i = 0; i < names.size(); i++) {
     std::map<std::string, ir::Symbol>::iterator it;
-    if ((it = ir::symbols.back().find(names[i])) != ir::symbols.back().end())
+    std::string mngl = ir::mangle(names[i]);
+
+    if ((it = ir::symbols.back().find(mngl)) != ir::symbols.back().end())
       anx::perr("variable name is already used in this scope", n[i],
                 names[i].size());
 
@@ -152,8 +168,7 @@ ir::Symbol ast::VarDecl::codegen() {
       ir::builder->CreateStore(
           cd.coerce(types[i], inits[i]->s, inits[i]->ssize).val(), a);
 
-    ir::symbols.back().insert(
-        std::make_pair(names[i], ir::Symbol(a, types[i])));
+    ir::add(names[i], ir::Symbol(a, types[i]));
   }
 
   return ir::Symbol();
@@ -444,9 +459,9 @@ ir::Symbol ast::IdentStmt::codegen() {
   ir::Symbol sym = ir::search(name, n);
   llvm::AllocaInst *inst = sym.inst();
 
-  return ir::Symbol(
-      ir::builder->CreateLoad(inst->getAllocatedType(), inst, name.c_str()),
-      sym.typ());
+  return ir::Symbol(ir::builder->CreateLoad(inst->getAllocatedType(), inst,
+                                            ir::mangle(name).c_str()),
+                    sym.typ());
 }
 
 ir::Symbol ast::ScopeNode::codegen() {
