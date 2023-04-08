@@ -399,11 +399,7 @@ ir::Symbol ast::CallStmt::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
     anx::perr("instruction is unreachable", n);
 
-  if (name[0] == '@') {
-    intr::handle(name);
-  }
-
-  ir::Symbol sym = ir::search(name, n);
+  ir::Symbol sym = name[0] == '@' ? intr::handle(name, n) : ir::search(name, n);
   llvm::Function *CalleeF = sym.fn();
   std::vector<ty::Type> atypes = sym.atypes();
 
