@@ -216,6 +216,26 @@ public:
   }
 };
 
+class SwapStmt : public StmtNode {
+public:
+  std::vector<std::string> names;
+  std::vector<std::unique_ptr<StmtNode>> values;
+  anx::Pos d;
+
+  SwapStmt(std::vector<std::string> names,
+           std::vector<std::unique_ptr<StmtNode>> values, anx::Pos d)
+      : names(names), values(std::move(values)), d(d) {}
+  ir::Symbol codegen();
+
+  void print(int ind) {
+    std::cout << std::string(ind, ' ') << "< swap >\n";
+    for (size_t i = 0; i < names.size(); i++) {
+      std::cout << std::string(ind + 2, ' ') << "< var '" << names[i] << "'>\n";
+      values[i]->print(ind + 4);
+    }
+  }
+};
+
 class BinOpStmt : public StmtNode {
 public:
   std::string op;

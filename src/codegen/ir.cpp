@@ -187,6 +187,25 @@ ir::Symbol ast::AssignStmt::codegen() {
   return v;
 }
 
+ir::Symbol ast::SwapStmt::codegen() {
+  if (ir::builder->GetInsertBlock()->getTerminator())
+    anx::perr("instruction is unreachable", d);
+
+  std::vector<ir::Symbol> vals;
+  std::vector<ir::Symbol> syms;
+
+  for (size_t i = 0; i < names.size(); i++) {
+    syms.push_back(ir::search(names[i], d));
+    vals.push_back(values[i]->codegen().coerce(syms[i].typ(), values[i]->s,
+                                               values[i]->ssize));
+  }
+
+  for (size_t i = 0; i < names.size(); i++)
+    ir::builder->CreateStore(vals[i].val(), syms[i].inst());
+
+  return ir::Symbol();
+}
+
 ir::Symbol ast::IfNode::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
     anx::perr("instruction is unreachable", d);

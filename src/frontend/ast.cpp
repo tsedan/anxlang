@@ -40,7 +40,7 @@ std::unique_ptr<ast::Node> parse_inst();
 std::unique_ptr<ast::StmtNode> parse_expr();
 std::unique_ptr<ast::StmtNode> parse_primary();
 
-std::unique_ptr<ast::StmtNode> parse_identifier(bool allow_lone) {
+std::unique_ptr<ast::StmtNode> parse_identifier(bool standalone) {
   anx::Pos n = lex::c;
   std::string name = lex::tok.val;
 
@@ -69,13 +69,44 @@ std::unique_ptr<ast::StmtNode> parse_identifier(bool allow_lone) {
     return std::make_unique<ast::CallStmt>(std::move(name), std::move(args), n);
   }
 
+  if (standalone && lex::tok.tok == lex::tok_comma) {
+    std::vector<std::string> names = {name};
+
+    while (lex::tok.tok == lex::tok_comma) {
+      lex::eat(); // eat ,
+
+      lex::exp(lex::tok_identifier, "expected identifier");
+
+      names.push_back(lex::tok.val);
+
+      lex::eat(); // eat identifier
+    }
+
+    lex::exp(lex::tok_assign, "expected '=' in swap statement");
+    lex::eat(); // eat =
+
+    std::vector<std::unique_ptr<ast::StmtNode>> values;
+    values.push_back(parse_expr());
+
+    while (lex::tok.tok == lex::tok_comma) {
+      lex::eat(); // eat ,
+
+      values.push_back(parse_expr());
+    }
+
+    if (names.size() != values.size())
+      anx::perr("swap statement parity mismatch", lex::c);
+
+    return std::make_unique<ast::SwapStmt>(names, std::move(values), n);
+  }
+
   if (lex::tok.tok == lex::tok_assign) {
     lex::eat(); // eat =
 
     return std::make_unique<ast::AssignStmt>(std::move(name), parse_expr(), n);
   }
 
-  if (!allow_lone)
+  if (standalone)
     anx::perr("unrecognized symbol or unused expression result", n,
               name.size());
 
@@ -233,7 +264,7 @@ std::unique_ptr<ast::StmtNode> parse_primary() {
 
   switch (lex::tok.tok) {
   case lex::tok_identifier:
-    primary = parse_identifier(true);
+    primary = parse_identifier(false);
     break;
   case lex::tok_number:
     primary = parse_num();
@@ -445,7 +476,7 @@ std::unique_ptr<ast::Node> parse_inst() {
     lex::eat(); // eat cont
     break;
   case lex::tok_identifier:
-    n = parse_identifier(false);
+    n = parse_identifier(true);
     break;
   case lex::tok_ret:
     n = parse_ret();
