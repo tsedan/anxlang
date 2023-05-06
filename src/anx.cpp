@@ -21,7 +21,7 @@
 // 5. (assembly/printer.cpp) Generate an executable from the LLVM IR
 // utils.cpp holds a few miscellaneous long functions used in these steps.
 //
-// The current todo item is intrinsics.
+// The current todo item is increment / decrement.
 //===---------------------------------------------------------------------===//
 
 bool verbose = false;
