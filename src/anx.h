@@ -34,4 +34,6 @@ struct Pos {
 
 [[noreturn]] void perr(std::string msg);
 [[noreturn]] void perr(std::string msg, Pos pos, size_t size = 1);
+
+extern std::istream *stream;
 } // namespace anx

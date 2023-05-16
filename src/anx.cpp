@@ -24,6 +24,7 @@
 // The current todo item is increment / decrement.
 //===---------------------------------------------------------------------===//
 
+std::istream *anx::stream = nullptr;
 std::string src;
 
 int main(int argc, char **argv) {
@@ -59,7 +60,11 @@ int main(int argc, char **argv) {
 
     src = argv[optind];
 
-    lex::read(src);
+    std::ifstream f(src);
+    if (!f.is_open())
+      anx::perr("could not open file '" + src + "'");
+
+    anx::stream = &f;
 
     auto prog = ast::generate();
 
@@ -78,8 +83,8 @@ int main(int argc, char **argv) {
 
 void anx::perr(std::string msg, Pos pos, size_t size) {
   std::string line = lex::src[pos.r], ep0;
-  size_t p = pos.c, begin = line.find_first_not_of(" \t"),
-         end = line.find_last_not_of(" \t");
+  size_t p = pos.c, begin = line.find_first_not_of(" \t\n"),
+         end = line.find_last_not_of(" \t\n");
   if (begin != std::string::npos) {
     ep0 = line.substr(0, begin);
     line = line.substr(begin, end - begin + 1);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,6 @@ extern Token tok;
 extern anx::Pos c, l;
 extern size_t ls;
 
-void read(std::string filename);
 void eat();
 void exp(TokEnum token, std::string msg);
 } // namespace lex

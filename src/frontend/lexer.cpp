@@ -1,5 +1,3 @@
-#include <iostream>
-
 #include "lexer.h"
 
 //===---------------------------------------------------------------------===//
@@ -13,27 +11,25 @@ anx::Pos lex::c, lex::l;
 size_t lex::ls;
 anx::Pos t;
 
-// Read an input file
-void lex::read(std::string filename) {
-  std::ifstream stream(filename);
-  if (!stream.is_open())
-    anx::perr("could not open file '" + filename + "'");
-
-  for (std::string line; std::getline(stream, line);)
-    src.push_back(line);
-}
-
 char grab() {
-  if (t.c == lex::src[t.r].size()) {
-    if (t.r == lex::src.size() - 1)
-      return EOF;
+  static std::string curr = "";
+  static char next = 0;
 
-    t.c = 0, t.r++;
+  if (next == EOF)
+    return EOF;
 
-    return '\n';
+  next = anx::stream->get();
+  curr += next;
+  t.c++;
+
+  if (next == '\n') {
+    lex::src.push_back(curr);
+    curr.clear();
+    t.r++;
+    t.c = 0;
   }
 
-  return lex::src[t.r][t.c++];
+  return next;
 }
 
 // Get the next token from the input file and update the global token variable
