@@ -13,23 +13,19 @@ anx::Pos t;
 
 char grab() {
   static std::string curr = "";
-  static char next = 0;
 
-  if (next == EOF)
-    return EOF;
-
-  next = anx::stream->get();
-  curr += next;
-  t.c++;
-
-  if (next == '\n') {
+  while (t.c >= curr.size()) {
+    std::getline(*anx::stream, curr);
     lex::src.push_back(curr);
-    curr.clear();
-    t.r++;
+
+    if (anx::stream->eof())
+      return EOF;
+
     t.c = 0;
+    t.r++;
   }
 
-  return next;
+  return curr[t.c++];
 }
 
 // Get the next token from the input file and update the global token variable

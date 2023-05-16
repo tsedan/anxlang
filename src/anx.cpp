@@ -54,7 +54,9 @@ int main(int argc, char **argv) {
   if (argc - optind != 1) {
     // shell JIT mode
 
-    anx::perr("this feature is still under development.");
+    anx::stream = &std::cin;
+
+    anx::perr("this feature is still under development");
   } else {
     // compiler mode
 
@@ -68,7 +70,7 @@ int main(int argc, char **argv) {
 
     auto prog = ast::generate();
 
-    ir::init(src);
+    ir::init();
 
     prog->codegen();
 
@@ -82,9 +84,9 @@ int main(int argc, char **argv) {
 }
 
 void anx::perr(std::string msg, Pos pos, size_t size) {
-  std::string line = lex::src[pos.r], ep0;
-  size_t p = pos.c, begin = line.find_first_not_of(" \t\n"),
-         end = line.find_last_not_of(" \t\n");
+  std::string line = lex::src[pos.r - 1], ep0;
+  size_t p = pos.c, begin = line.find_first_not_of(" \t"),
+         end = line.find_last_not_of(" \t");
   if (begin != std::string::npos) {
     ep0 = line.substr(0, begin);
     line = line.substr(begin, end - begin + 1);
@@ -100,7 +102,7 @@ void anx::perr(std::string msg, Pos pos, size_t size) {
 
   std::cerr << "\033[0;31merror: \033[0m" << msg << '\n';
 
-  std::cerr << "  --> " << src << ':' << pos.r + 1 << ':' << pos.c + 1;
+  std::cerr << "  --> " << src << ':' << pos.r << ':' << pos.c + 1;
   if (size > 1)
     std::cerr << '-' << pos.c + size;
   std::cerr << '\n';

@@ -17,9 +17,9 @@ std::vector<llvm::BasicBlock *> conts;
 ir::Symbol cf;
 std::string cfm;
 
-void ir::init(std::string name) {
+void ir::init() {
   ctx = std::make_unique<llvm::LLVMContext>();
-  mod = std::make_unique<llvm::Module>(name, *ctx);
+  mod = std::make_unique<llvm::Module>("anx", *ctx);
   builder = std::make_unique<llvm::IRBuilder<>>(*ctx);
   opti::init(mod.get());
 }
