@@ -14,14 +14,14 @@
 // Anx - This module is the entry point of the Anx compiler.
 //
 // These are the major steps involved in the compilation process:
-// 1. (frontend/lexer.cpp) Tokenize the input file
-// 2. (frontend/ast.cpp) Parse the tokens into an AST
-// 3. (codegen/ir.cpp) Generate LLVM IR from the AST
-// 4. (codegen/opti.cpp) Run optimization passes on the LLVM IR
-// 5. (assembly/printer.cpp) Generate an executable from the LLVM IR
-// utils.cpp holds a few miscellaneous long functions used in these steps.
+// 0. (anx.cpp) (this file) Orchestrate compilation / JIT processes
+// 1. (frontend/lexer.cpp) Tokenize source code input
+// 2. (frontend/ast.cpp) Parse AST from tokens
+// 3. (codegen/ir.cpp) Generate LLVM IR from AST
+// 4. (codegen/opti.cpp) Optimize LLVM IR
+// 5. (assembly/printer.cpp) Assemble executable from IR
+// utils.cpp holds a few misc. large functions used in these steps.
 //
-// The current todo item is increment / decrement.
 //===---------------------------------------------------------------------===//
 
 std::istream *anx::stream = nullptr;
