@@ -13,7 +13,6 @@ namespace ast {
 class Node {
 public:
   virtual ~Node() {}
-  virtual void print(int ind) {}
   virtual ir::Symbol codegen() = 0;
 };
 
@@ -42,16 +41,6 @@ public:
         n(n), e(e) {}
   void declare();
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< fn " << name << "( ";
-    for (size_t i = 0; i < args.size(); i++)
-      std::cout << args[i] << " : " << ty::toString(types[i]) << ", ";
-    std::cout << ") " << ty::toString(type);
-    std::cout << " >" << '\n';
-    if (body)
-      body->print(ind + 2);
-  }
 };
 
 class ProgramNode : public Node {
@@ -61,11 +50,6 @@ public:
   ProgramNode(std::vector<std::unique_ptr<FnDecl>> decls)
       : decls(std::move(decls)) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    for (auto &decl : decls)
-      decl->print(ind);
-  }
 };
 
 class VarDecl : public Node {
@@ -82,19 +66,6 @@ public:
       : names(std::move(names)), types(std::move(types)),
         inits(std::move(inits)), n(std::move(n)), d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    for (size_t i = 0; i < names.size(); i++) {
-      std::cout << std::string(ind, ' ') << "< var '" << names[i] << "'";
-      if (ty::isVoid(types[i]))
-        std::cout << " : auto";
-      else
-        std::cout << " : " << ty::toString(types[i]);
-      std::cout << " >" << '\n';
-      if (inits[i])
-        inits[i]->print(ind + 2);
-    }
-  }
 };
 
 class ScopeNode : public Node {
@@ -104,12 +75,6 @@ public:
   ScopeNode(std::vector<std::unique_ptr<Node>> nodes)
       : nodes(std::move(nodes)) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< scope >" << '\n';
-    for (auto &node : nodes)
-      node->print(ind + 2);
-  }
 };
 
 class RetNode : public Node {
@@ -120,12 +85,6 @@ public:
   RetNode(std::unique_ptr<StmtNode> value, anx::Pos d)
       : value(std::move(value)), d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< ret >" << '\n';
-    if (value)
-      value->print(ind + 2);
-  }
 };
 
 class BreakNode : public Node {
@@ -134,10 +93,6 @@ public:
 
   BreakNode(anx::Pos d) : d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< break >" << '\n';
-  }
 };
 
 class ContNode : public Node {
@@ -146,10 +101,6 @@ public:
 
   ContNode(anx::Pos d) : d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< continue >" << '\n';
-  }
 };
 
 class IfNode : public Node {
@@ -164,17 +115,6 @@ public:
       : cond(std::move(cond)), then(std::move(then)), els(std::move(els)),
         d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< if >" << '\n';
-    cond->print(ind + 2);
-    std::cout << std::string(ind, ' ') << "< then >" << '\n';
-    then->print(ind + 2);
-    if (els) {
-      std::cout << std::string(ind, ' ') << "< else >" << '\n';
-      els->print(ind + 2);
-    }
-  }
 };
 
 class WhileNode : public Node {
@@ -189,15 +129,6 @@ public:
       : cond(std::move(cond)), step(std::move(step)), body(std::move(body)),
         d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< while >" << '\n';
-    cond->print(ind + 2);
-    if (step)
-      step->print(ind + 2);
-    if (body)
-      body->print(ind + 2);
-  }
 };
 
 class AssignStmt : public StmtNode {
@@ -209,11 +140,6 @@ public:
   AssignStmt(std::string name, std::unique_ptr<StmtNode> value, anx::Pos n)
       : name(name), value(std::move(value)), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< assign '" << name << "' >" << '\n';
-    value->print(ind + 2);
-  }
 };
 
 class SwapStmt : public StmtNode {
@@ -226,14 +152,6 @@ public:
            std::vector<std::unique_ptr<StmtNode>> values, anx::Pos d)
       : names(names), values(std::move(values)), d(d) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< swap >\n";
-    for (size_t i = 0; i < names.size(); i++) {
-      std::cout << std::string(ind + 2, ' ') << "< var '" << names[i] << "'>\n";
-      values[i]->print(ind + 4);
-    }
-  }
 };
 
 class BinOpStmt : public StmtNode {
@@ -247,12 +165,6 @@ public:
             std::unique_ptr<StmtNode> rhs, anx::Pos n)
       : op(op), lhs(std::move(lhs)), rhs(std::move(rhs)), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< binop '" << op << "' >" << '\n';
-    lhs->print(ind + 2);
-    rhs->print(ind + 2);
-  }
 };
 
 class UnOpStmt : public StmtNode {
@@ -264,11 +176,6 @@ public:
   UnOpStmt(std::string op, std::unique_ptr<StmtNode> val, anx::Pos n)
       : op(op), val(std::move(val)), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< unop '" << op << "' >" << '\n';
-    val->print(ind + 2);
-  }
 };
 
 class CallStmt : public StmtNode {
@@ -281,12 +188,6 @@ public:
            anx::Pos n)
       : name(name), args(std::move(args)), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< call '" << name << "' >" << '\n';
-    for (auto &arg : args)
-      arg->print(ind + 2);
-  }
 };
 
 class IdentStmt : public StmtNode {
@@ -296,10 +197,6 @@ public:
 
   IdentStmt(std::string name, anx::Pos n) : name(name), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< ident '" << name << "' >" << '\n';
-  }
 };
 
 class NumStmt : public StmtNode {
@@ -309,10 +206,6 @@ public:
 
   NumStmt(std::string value, anx::Pos n) : value(value), n(n) {}
   ir::Symbol codegen();
-
-  void print(int ind) {
-    std::cout << std::string(ind, ' ') << "< number " << value << " >" << '\n';
-  }
 };
 
 std::unique_ptr<ast::ProgramNode> generate();

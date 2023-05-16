@@ -28,16 +28,12 @@ std::string src;
 
 int main(int argc, char **argv) {
   std::string outfile = "a.out";
-  bool verbose = false;
 
   opterr = 0;
 
   int c;
-  while ((c = getopt(argc, argv, "vho:")) != -1) {
+  while ((c = getopt(argc, argv, "ho:")) != -1) {
     switch (c) {
-    case 'v':
-      verbose = true;
-      break;
     case 'o':
       outfile = optarg;
       break;
@@ -75,25 +71,6 @@ int main(int argc, char **argv) {
     printer::print();
     printer::link(outfile);
     printer::clean();
-
-    if (verbose) {
-      std::cout << "\033[0;32m"
-                << "anx ast:"
-                << "\033[0m" << '\n';
-
-      prog->print(0);
-
-      std::cout << "\033[0;32m"
-                << "llvm ir:"
-                << "\033[0m" << '\n';
-
-      ir::mod->print(llvm::outs(), nullptr);
-
-      std::cout << "\033[0;32m"
-                << "successfully compiled '" << src << "' to '" << outfile
-                << "'"
-                << "\033[0m" << '\n';
-    }
   }
 
   return 0;
