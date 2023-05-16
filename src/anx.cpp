@@ -24,11 +24,11 @@
 // The current todo item is increment / decrement.
 //===---------------------------------------------------------------------===//
 
-bool verbose = false;
 std::string src;
 
 int main(int argc, char **argv) {
   std::string outfile = "a.out";
+  bool verbose = false;
 
   opterr = 0;
 
@@ -54,40 +54,46 @@ int main(int argc, char **argv) {
     }
   }
 
-  if (argc - optind != 1)
-    anx::perr("usage: anx [options] file (use -h for help)");
+  if (argc - optind != 1) {
+    // shell JIT mode
 
-  src = argv[optind];
+    anx::perr("this feature is still under development.");
+  } else {
+    // compiler mode
 
-  lex::read(src);
+    src = argv[optind];
 
-  auto prog = ast::generate();
+    lex::read(src);
 
-  ir::init(src);
+    auto prog = ast::generate();
 
-  prog->codegen();
+    ir::init(src);
 
-  printer::init();
-  printer::print();
-  printer::link(outfile);
-  printer::clean();
+    prog->codegen();
 
-  if (verbose) {
-    std::cout << "\033[0;32m"
-              << "anx ast:"
-              << "\033[0m" << '\n';
+    printer::init();
+    printer::print();
+    printer::link(outfile);
+    printer::clean();
 
-    prog->print(0);
+    if (verbose) {
+      std::cout << "\033[0;32m"
+                << "anx ast:"
+                << "\033[0m" << '\n';
 
-    std::cout << "\033[0;32m"
-              << "llvm ir:"
-              << "\033[0m" << '\n';
+      prog->print(0);
 
-    ir::mod->print(llvm::outs(), nullptr);
+      std::cout << "\033[0;32m"
+                << "llvm ir:"
+                << "\033[0m" << '\n';
 
-    std::cout << "\033[0;32m"
-              << "successfully compiled '" << src << "' to '" << outfile << "'"
-              << "\033[0m" << '\n';
+      ir::mod->print(llvm::outs(), nullptr);
+
+      std::cout << "\033[0;32m"
+                << "successfully compiled '" << src << "' to '" << outfile
+                << "'"
+                << "\033[0m" << '\n';
+    }
   }
 
   return 0;
