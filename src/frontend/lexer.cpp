@@ -16,6 +16,8 @@ char grab() {
 
   while (t.c >= curr.size()) {
     std::getline(*anx::stream, curr);
+    curr += '\n';
+
     lex::src.push_back(curr);
 
     if (anx::stream->eof())

@@ -494,10 +494,8 @@ std::unique_ptr<ast::Node> parse_inst() {
   return n;
 }
 
-// Generate the program AST
-std::unique_ptr<ast::ProgramNode> ast::generate() {
-  lex::eat(); // generate the first token
-
+// generate the AST for a full translation unit
+std::unique_ptr<ast::ProgramNode> ast::unit() {
   std::vector<std::unique_ptr<FnDecl>> decls;
 
   while (1) {
@@ -515,5 +513,19 @@ std::unique_ptr<ast::ProgramNode> ast::generate() {
       anx::perr("only declarations permitted at the top level", lex::c,
                 lex::tok.val.size());
     }
+  }
+}
+
+// generate the AST for a single instruction
+std::unique_ptr<ast::FnDecl> ast::step() {
+  switch (lex::tok.tok) {
+  case lex::tok_pub:
+    lex::eat(); // eat pub
+    return parse_fn(true);
+  case lex::tok_fn:
+    return parse_fn(false);
+  default:
+    anx::perr("only declarations permitted at the top level", lex::c,
+              lex::tok.val.size());
   }
 }

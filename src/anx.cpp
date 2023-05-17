@@ -56,7 +56,9 @@ int main(int argc, char **argv) {
 
     anx::stream = &std::cin;
 
-    anx::perr("this feature is still under development");
+    lex::eat(); // generate the first token
+    auto fn = ast::step();
+
   } else {
     // compiler mode
 
@@ -68,7 +70,8 @@ int main(int argc, char **argv) {
 
     anx::stream = &f;
 
-    auto prog = ast::generate();
+    lex::eat(); // generate the first token
+    auto prog = ast::unit();
 
     ir::init();
 
@@ -85,8 +88,8 @@ int main(int argc, char **argv) {
 
 void anx::perr(std::string msg, Pos pos, size_t size) {
   std::string line = lex::src[pos.r - 1], ep0;
-  size_t p = pos.c, begin = line.find_first_not_of(" \t"),
-         end = line.find_last_not_of(" \t");
+  size_t p = pos.c, begin = line.find_first_not_of(" \t\n"),
+         end = line.find_last_not_of(" \t\n");
   if (begin != std::string::npos) {
     ep0 = line.substr(0, begin);
     line = line.substr(begin, end - begin + 1);

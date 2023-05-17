@@ -208,5 +208,6 @@ public:
   ir::Symbol codegen();
 };
 
-std::unique_ptr<ast::ProgramNode> generate();
+std::unique_ptr<ProgramNode> unit();
+std::unique_ptr<FnDecl> step();
 } // namespace ast
