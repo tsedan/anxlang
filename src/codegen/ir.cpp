@@ -206,7 +206,7 @@ ir::Symbol ast::SwapStmt::codegen() {
   return ir::Symbol();
 }
 
-ir::Symbol ast::IfNode::codegen() {
+ir::Symbol ast::IfStmt::codegen() {
   if (ir::builder->GetInsertBlock()->getTerminator())
     anx::perr("instruction is unreachable", d);
 
@@ -223,7 +223,7 @@ ir::Symbol ast::IfNode::codegen() {
 
   ir::builder->SetInsertPoint(ThenBB);
 
-  then->codegen();
+  ir::Symbol s1 = then->codegen();
 
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(MergeBB);
@@ -231,8 +231,9 @@ ir::Symbol ast::IfNode::codegen() {
   F->insert(F->end(), ElseBB);
   ir::builder->SetInsertPoint(ElseBB);
 
+  ir::Symbol s2;
   if (els)
-    els->codegen();
+    s2 = els->codegen();
 
   if (!ir::builder->GetInsertBlock()->getTerminator())
     ir::builder->CreateBr(MergeBB);
@@ -240,7 +241,17 @@ ir::Symbol ast::IfNode::codegen() {
   F->insert(F->end(), MergeBB);
   ir::builder->SetInsertPoint(MergeBB);
 
-  return ir::Symbol();
+  if (!ternary)
+    return ir::Symbol();
+
+  ty::Type ty = s1.typ();
+
+  llvm::PHINode *PN = ir::builder->CreatePHI(ty::toLLVM(ty, true), 2, "iftmp");
+
+  PN->addIncoming(s1.val(), ThenBB);
+  PN->addIncoming(s2.coerce(ty, s, ssize).val(), ElseBB);
+
+  return ir::Symbol(PN, ty);
 }
 
 ir::Symbol ast::BreakNode::codegen() {

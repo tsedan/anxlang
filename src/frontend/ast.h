@@ -103,20 +103,6 @@ public:
   ir::Symbol codegen();
 };
 
-class IfNode : public Node {
-public:
-  std::unique_ptr<StmtNode> cond;
-  std::unique_ptr<Node> then;
-  std::unique_ptr<Node> els;
-  anx::Pos d;
-
-  IfNode(std::unique_ptr<StmtNode> cond, std::unique_ptr<Node> then,
-         std::unique_ptr<Node> els, anx::Pos d)
-      : cond(std::move(cond)), then(std::move(then)), els(std::move(els)),
-        d(d) {}
-  ir::Symbol codegen();
-};
-
 class WhileNode : public Node {
 public:
   std::unique_ptr<StmtNode> cond;
@@ -128,6 +114,21 @@ public:
             std::unique_ptr<Node> body, anx::Pos d)
       : cond(std::move(cond)), step(std::move(step)), body(std::move(body)),
         d(d) {}
+  ir::Symbol codegen();
+};
+
+class IfStmt : public StmtNode {
+public:
+  std::unique_ptr<StmtNode> cond;
+  std::unique_ptr<Node> then;
+  std::unique_ptr<Node> els;
+  bool ternary;
+  anx::Pos d;
+
+  IfStmt(std::unique_ptr<StmtNode> cond, std::unique_ptr<Node> then,
+         std::unique_ptr<Node> els, bool ternary, anx::Pos d)
+      : cond(std::move(cond)), then(std::move(then)), els(std::move(els)),
+        ternary(ternary), d(d) {}
   ir::Symbol codegen();
 };
 

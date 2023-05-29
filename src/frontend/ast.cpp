@@ -10,7 +10,7 @@
 //   VarDecl - A variable declaration
 //   ScopeNode - A node consisting of a list of nodes
 //   RetNode - A return instruction
-//   IfNode - An if/else block
+//   IfStmt - An if/else block
 //   WhileNode - A while loop
 //   BreakNode - A break instruction
 //   ContNode - A continue instruction
@@ -258,6 +258,44 @@ std::unique_ptr<ast::NumStmt> parse_char() {
   return std::make_unique<ast::NumStmt>(val, n);
 }
 
+std::unique_ptr<ast::IfStmt> parse_if(bool ternary) {
+  anx::Pos d = lex::c;
+
+  lex::eat(); // eat if
+
+  std::unique_ptr<ast::StmtNode> cond = parse_expr();
+
+  std::unique_ptr<ast::Node> then;
+
+  if (ternary) {
+    then = parse_expr();
+  } else if (lex::tok.tok == lex::tok_curlys) {
+    then = parse_scope();
+  } else {
+    then = parse_inst();
+  }
+
+  std::unique_ptr<ast::Node> els;
+
+  if (ternary)
+    lex::exp(lex::tok_else, "else required in ternary if");
+
+  if (lex::tok.tok == lex::tok_else) {
+    lex::eat(); // eat else
+
+    if (ternary) {
+      els = parse_expr();
+    } else if (lex::tok.tok == lex::tok_curlys) {
+      els = parse_scope();
+    } else {
+      els = parse_inst();
+    }
+  }
+
+  return std::make_unique<ast::IfStmt>(std::move(cond), std::move(then),
+                                       std::move(els), ternary, d);
+}
+
 std::unique_ptr<ast::StmtNode> parse_primary() {
   std::unique_ptr<ast::StmtNode> primary;
   anx::Pos s = lex::c;
@@ -283,6 +321,9 @@ std::unique_ptr<ast::StmtNode> parse_primary() {
     break;
   case lex::tok_unop:
     primary = parse_unary();
+    break;
+  case lex::tok_if:
+    primary = parse_if(true);
     break;
   default:
     anx::perr("expected an expression", {lex::l.r, lex::l.c + lex::ls});
@@ -332,35 +373,6 @@ std::unique_ptr<ast::StmtNode> parse_expr() {
     lhs = parse_binop(0, std::move(lhs));
 
   return lhs;
-}
-
-std::unique_ptr<ast::IfNode> parse_if() {
-  anx::Pos d = lex::c;
-
-  lex::eat(); // eat if
-
-  std::unique_ptr<ast::StmtNode> cond = parse_expr();
-
-  std::unique_ptr<ast::Node> then;
-
-  if (lex::tok.tok == lex::tok_curlys)
-    then = parse_scope();
-  else
-    then = parse_inst();
-
-  std::unique_ptr<ast::Node> els;
-
-  if (lex::tok.tok == lex::tok_else) {
-    lex::eat(); // eat else
-
-    if (lex::tok.tok == lex::tok_curlys)
-      els = parse_scope();
-    else
-      els = parse_inst();
-  }
-
-  return std::make_unique<ast::IfNode>(std::move(cond), std::move(then),
-                                       std::move(els), d);
 }
 
 std::unique_ptr<ast::WhileNode> parse_while() {
@@ -466,7 +478,7 @@ std::unique_ptr<ast::Node> parse_inst() {
   case lex::tok_while:
     return parse_while();
   case lex::tok_if:
-    return parse_if();
+    return parse_if(false);
   case lex::tok_break:
     n = std::make_unique<ast::BreakNode>(lex::c);
     lex::eat(); // eat break
