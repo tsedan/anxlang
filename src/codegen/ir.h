@@ -8,12 +8,19 @@
 namespace ir {
 class Symbol final {
 private:
-  enum { sym_empty, sym_fn, sym_val, sym_var } kind;
+  enum {
+    sym_void,
+    sym_fn,
+    sym_val,
+    sym_var,
+  } kind;
+
   union {
     llvm::Value *value;
     llvm::Function *function;
     llvm::AllocaInst *variable;
   };
+
   ty::Type type;
   std::vector<ty::Type> types;
 
@@ -24,7 +31,7 @@ public:
       : kind(sym_fn), function(function), type(type), types(types) {}
   Symbol(llvm::AllocaInst *variable, ty::Type type)
       : kind(sym_var), variable(variable), type(type) {}
-  Symbol() : kind(sym_empty) {}
+  Symbol() : kind(sym_void) {}
 
   // return a new symbol that has been type-coerced to the desired type
   Symbol coerce(ty::Type toType, anx::Pos pos, size_t s);
@@ -54,7 +61,7 @@ public:
 
   // get anx type of a non-empty symbol
   ty::Type typ() {
-    if (kind == sym_empty)
+    if (kind == sym_void)
       anx::perr("attempted to access the type of an empty symbol");
 
     return type;
